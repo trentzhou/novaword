@@ -32,8 +32,6 @@ scratch. This page gets rid of all links and provides the needed markup only.
 
     <!-- Google Font -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
-
-    <link rel="stylesheet" href="https://bootsnipp.com/css/jquery.Jcrop.min.css">
 </head>
 <!--
 BODY TAG OPTIONS:
@@ -217,12 +215,12 @@ desired effect
 
                 <!-- Sidebar Menu -->
                 <ul class="sidebar-menu" data-widget="tree">
-                    <li class="active">
-                        <a href="#"><i class="fa fa-gear"></i> <span>个人设置</span></a>
+                    <li>
+                        <a href="user_profile.html"><i class="fa fa-gear"></i> <span>个人设置</span></a>
                     </li>
                     <li class="header">学习</li>
                     <!-- Optionally, you can add icons to the links -->
-                    <li>
+                    <li class="active">
                         <a href="#"><i class="fa fa-table"></i> <span>概况</span></a>
                     </li>
                     <li>
@@ -262,14 +260,14 @@ desired effect
             <!-- Content Header (Page header) -->
             <section class="content-header">
                 <h1>
-                    个人设置
-                    <small>显示和修改个人设置</small>
+                    学习概况
+                    <small>展示最近学习情况</small>
                 </h1>
                 <ol class="breadcrumb">
                     <li>
                         <a href="#"><i class="fa fa-dashboard"></i> 首页</a>
                     </li>
-                    <li class="active">个人设置</li>
+                    <li class="active">学习概况</li>
                 </ol>
             </section>
 
@@ -280,104 +278,169 @@ desired effect
                     | Your Page Content Here |
                     -------------------------->
                 <!-- Small boxes (Stat box) -->
-                <div class="row" style="margin-top:20px;">
-                    <div class="col-md-5">
-                        <div class="panel panel-info">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    个人设置
-                                </h3>
+                <div class="row">
+                    <div class="col-lg-3 col-xs-6">
+                        <!-- small box -->
+                        <div class="small-box bg-aqua">
+                            <div class="inner">
+                                <h3>56</h3>
+
+                                <p>学习次数</p>
                             </div>
-                            <div class="panel-body">
-                                <form method="POST" action="user_profile.html" accept-charset="UTF-8" role="form" id="user_profile" class="form-horizontal">
-                                    <fieldset>
-                                        <div class="form-group ">
-                                            <label for="email" class="col-lg-4 control-label">昵称</label>
-                                            <div class="col-lg-8">
-                                                <input class="form-control" placeholder="Username" name="username" type="text" value="马小跳">
-                                            </div>
-
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="email" class="col-lg-4 control-label">电子邮箱</label>
-                                            <div class="col-lg-8">
-                                                <input type="email" disabled class="form-control" id="email" placeholder="xxx@xxx.com">
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label for="avatar" class="col-lg-4 control-label">头像</label>
-                                            <div class="col-lg-8">
-                                                <input type="hidden" id="avatar-hidden" name="avatar" value="">
-                                                <div id="upload-avatar" class="upload-avatar">
-                                                    <div class="userpic" style="">
-                                                        <div class="js-preview userpic__preview"></div>
-                                                    </div>
-                                                    <div class="btn btn-sm btn-success js-fileapi-wrapper">
-                                                        <div class="js-browse">
-                                                            <span class="btn-txt">选择文件</span>
-                                                            <input type="file" name="filedata">
-                                                        </div>
-                                                        <div class="js-upload" style="display: none;">
-                                                            <div class="progress progress-success">
-                                                                <div class="js-progress bar"></div>
-                                                            </div>
-                                                            <span class="btn-txt">正在上传...</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <input name="stamp" type="hidden">
-
-                                        <div class="form-group">
-                                            <label for="password" class="col-lg-4 control-label">密码</label>
-                                            <div class="col-lg-8">
-                                                <input class="form-control" placeholder="密码" name="password" type="password" value="">
-                                            </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="password_confirmation" class="col-lg-4 control-label">确认密码</label>
-                                            <div class="col-lg-8">
-                                                <input class="form-control" placeholder="确认密码" name="password_confirmation" type="password" value="">
-                                            </div>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <div class="col-lg-offset-7 col-lg-12">
-                                                <input class="btn btn-sm" type="reset" value="清空">
-                                                <input class="btn btn-info" type="submit" value="提交">
-                                            </div>
-                                        </div>
-                                    </fieldset>
-                                </form>
+                            <div class="icon">
+                                <i class="fa fa-flask"></i>
                             </div>
+                            <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
                         </div>
-                        <div class="text-right" style="margin-bottom: 30px;">
-                            <a href="#" data-toggle="modal" data-target="#delete_account">删除账户</a>
-                        </div>
-
-
                     </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-xs-6">
+                        <!-- small box -->
+                        <div class="small-box bg-green">
+                            <div class="inner">
+                                <h3>14</h3>
 
-                    <div class="col-md-7">
-                        <div id="cropper-preview" style="display:none;">
-                            <div class="panel panel-info">
-                                <div class="panel-heading">
-                                    <h3 class="panel-title"> 裁剪图片 </h3>
-                                </div>
-                                <div class="panel-body">
-                                    <div class="js-img"></div>
-                                    <p>
-                                        <div class="js-upload btn btn-primary">上传</div>
-                                    </p>
-                                </div>
+                                <p>掌握单元</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-cube"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-xs-6">
+                        <!-- small box -->
+                        <div class="small-box bg-yellow">
+                            <div class="inner">
+                                <h3>12</h3>
+
+                                <p>完成测试</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-binoculars"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-xs-6">
+                        <!-- small box -->
+                        <div class="small-box bg-red">
+                            <div class="inner">
+                                <h3>69</h3>
+
+                                <p>易错单词</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fa fa-bug"></i>
+                            </div>
+                            <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                </div>
+                <!-- /.row -->
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <h3 class="box-title">今日任务</h3>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body no-padding">
+                                <ul class="nav nav-stacked">
+                                    <li>
+                                        <a href="#"><del>复习 8年级上学期 Unit 9</del></a>
+                                    </li>
+                                    <li>
+                                        <a href="#">学习 8年级上学期 Unit 10</a>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- /.row -->
 
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="box">
+                            <div class="box-header">
+                                <h3 class="box-title">近期学习</h3>
+                            </div>
+                            <!-- /.box-header -->
+                            <div class="box-body table-responsive no-padding">
+                                <table class="table table-hover">
+                                    <tr>
+                                        <th>单词书</th>
+                                        <th>单元</th>
+                                        <th>学习次数</th>
+                                        <th>复习次数</th>
+                                        <th>测试正确率</th>
+                                        <th>操作</th>
+                                    </tr>
+                                    <tr>
+                                        <td>8年级上学期</td>
+                                        <td>Unit 10</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-default">去学习</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>8年级上学期</td>
+                                        <td>Unit 9</td>
+                                        <td>1</td>
+                                        <td>0</td>
+                                        <td>0</td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-default">去测试</button>
+                                                <button type="button" class="btn btn-default">去复习</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>8年级上学期</td>
+                                        <td>Unit 8</td>
+                                        <td>2</td>
+                                        <td>1</td>
+                                        <td>85<sup>%</sup></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-default">去测试</button>
+                                                <button type="button" class="btn btn-default">去复习</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>8年级上学期</td>
+                                        <td>Unit 7</td>
+                                        <td>2</td>
+                                        <td>3</td>
+                                        <td>95<sup>%</sup></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-default">去测试</button>
+                                                <button type="button" class="btn btn-default">去复习</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+                                </table>
+                            </div>
+                            <!-- /.box-body -->
+                        </div>
+                        <!-- /.box -->
+                    </div>
+                </div>
+                <!-- /.row -->
             </section>
             <!-- /.content -->
         </div>
@@ -408,74 +471,6 @@ desired effect
     <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the
      user experience. -->
-    <script src="https://bootsnipp.com/js/vendor/uploader/FileAPI.min.js"></script>
-    <script src="https://bootsnipp.com/js/vendor/uploader/FileAPI.exif.js"></script>
-    <script src="https://bootsnipp.com/js/vendor/uploader/jquery.fileapi.js"></script>
-    <script src="https://bootsnipp.com/js/vendor/uploader/jquery.Jcrop.min.js"></script>
-
-    <script type="text/javascript">
-        if (top != self) {
-            top.location.replace(document.location);
-            alert("For security reasons, framing is not allowed; click OK to remove the frames.")
-        }
-
-        jQuery(function($) {
-            $('#cropper-preview').on('click', '.js-upload', function() {
-                $('#upload-avatar').fileapi('upload');
-                $('#cropper-preview').fadeOut();
-            });
-            $('#upload-avatar').fileapi({
-                url: 'http://xxx.xxx/xxx`',
-                accept: 'image/*',
-                imageSize: {
-                    minWidth: 100,
-                    minHeight: 100
-                },
-                elements: {
-                    active: {
-                        show: '.js-upload',
-                        hide: '.js-browse'
-                    },
-                    preview: {
-                        el: '.js-preview',
-                        width: 96,
-                        height: 96
-                    },
-                    progress: '.js-progress'
-                },
-
-                onSelect: function(evt, ui) {
-                    var file = ui.all[0];
-                    if (file) {
-                        $('#cropper-preview').show();
-
-                        $('.js-img').cropper({
-                            file: file,
-                            bgColor: '#fff',
-                            maxSize: [$('#cropper-preview').width() - 40, $(window).height() - 100],
-                            minSize: [100, 100],
-                            selection: '90%',
-                            aspectRatio: 1,
-                            onSelect: function(coords) {
-                                $('#upload-avatar').fileapi('crop', file, coords);
-                            }
-                        });
-                    }
-                },
-
-                onComplete: function(evt, xhr) {
-                    try {
-                        var result = FileAPI.parseJSON(xhr.xhr.responseText);
-                        $('#avatar-hidden').attr("value", result.images.filename);
-                    } catch (er) {
-                        FileAPI.log('PARSE ERROR:', er.message);
-                    }
-                }
-            });
-
-
-        });
-    </script>
 </body>
 
 </html>
