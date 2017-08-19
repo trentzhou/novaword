@@ -15,6 +15,7 @@ class WordAdmin(object):
     search_fields = list_display
     list_filter = list_display
     model_icon = 'fa fa-bars'
+    relfield_style = 'fk-ajax'
 
 
 class WordBookAdmin(object):
