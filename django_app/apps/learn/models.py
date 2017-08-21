@@ -13,10 +13,10 @@ class Word(models.Model):
                                          verbose_name=u"美式发音")
     pronounciation_uk = models.CharField(blank=False, max_length=100,
                                          verbose_name=u"英式发音")
-    mp3_us_url = models.CharField(blank=True, max_length=100,
-                                  verbose_name=u"美式发音mp3")
-    mp3_uk_url = models.CharField(blank=True, max_length=100,
-                                  verbose_name=u"英式发音mp3")
+    mp3_us_url = models.URLField(blank=True,
+                                 verbose_name=u"美式发音mp3")
+    mp3_uk_url = models.URLField(blank=True,
+                                 verbose_name=u"英式发音mp3")
     short_meaning = models.CharField(blank=False, max_length=300,
                                      verbose_name=u"简单解释")
     detailed_meanings = models.TextField(blank=True, verbose_name=u"详细解释")
