@@ -90,8 +90,12 @@ DATABASES = {
     }
 }
 
+if (sys.version_info > (3, 0)):
+    import pymysql
+    pymysql.install_as_MySQLdb()
+
 # when running on Trent's laptop, use mysql
-if os.environ.get('USER', None) == 'trent':
+if os.environ.get('USER', None) in ['trent', 'ubuntu']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',

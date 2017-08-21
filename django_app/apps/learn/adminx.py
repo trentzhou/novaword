@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import Word, WordBook, WordUnit, LearningPlan, LearningRecord
+from .models import Word, WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord
 
 
 class WordAdmin(object):
@@ -36,6 +36,13 @@ class WordUnitAdmin(object):
     model_icon = 'fa fa-calendar'
 
 
+class WordInUnitAdmin(object):
+    list_display = ['word', 'unit', 'order']
+    search_fields = list_display
+    list_filter = list_display
+    model_icon = 'fa fa-chain'
+
+
 class LearningPlanAdmin(object):
     list_display = ['user', 'unit']
     search_fields = list_display
@@ -53,5 +60,6 @@ class LearningRecordAdmin(object):
 xadmin.site.register(Word, WordAdmin)
 xadmin.site.register(WordBook, WordBookAdmin)
 xadmin.site.register(WordUnit, WordUnitAdmin)
+xadmin.site.register(WordInUnit, WordInUnitAdmin)
 xadmin.site.register(LearningPlan, LearningPlanAdmin)
 xadmin.site.register(LearningRecord, LearningRecordAdmin)

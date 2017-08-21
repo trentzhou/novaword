@@ -7,3 +7,5 @@ local_settings.py
 *~*
 *.swp
 *.sqlite3
+venv/
+*xxx*

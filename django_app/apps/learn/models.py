@@ -31,6 +31,9 @@ class Word(models.Model):
         verbose_name = u"单词"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return self.spelling
 
@@ -50,6 +53,9 @@ class WordBook(models.Model):
         verbose_name = u"单词书"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return self.description
 
@@ -64,8 +70,28 @@ class WordUnit(models.Model):
         verbose_name = u"单元"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return u"{0} - {1}".format(self.book.description, self.description)
+
+
+class WordInUnit(models.Model):
+    word = models.ForeignKey(Word, verbose_name=u"Word")
+    unit = models.ForeignKey(WordUnit, verbose_name=u"Unit")
+    order = models.IntegerField(default=1, verbose_name=u"顺序")
+
+    class Meta:
+        verbose_name = u"Words in unit"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.word, self.unit)
+
 
 
 class LearningPlan(models.Model):
@@ -75,6 +101,9 @@ class LearningPlan(models.Model):
     class Meta:
         verbose_name = u"学习计划"
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
 
     def __unicode__(self):
         return u"{0} - {1}".format(self.user.username, self.unit)
@@ -95,6 +124,9 @@ class LearningRecord(models.Model):
     class Meta:
         verbose_name = u"学习记录"
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
 
     def __unicode__(self):
         return u"{0} - {1}".format(self.user.username, self.unit)
