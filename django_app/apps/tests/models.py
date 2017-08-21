@@ -23,6 +23,9 @@ class Quiz(models.Model):
         verbose_name = u"测试"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return self.description
 
@@ -39,6 +42,9 @@ class QuizQuestion(models.Model):
         verbose_name = u"测试题"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return "{0}".format(self.word)
 
@@ -54,6 +60,9 @@ class QuizResult(models.Model):
         verbose_name = u"测试结果"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return "{0} - {1}".format(self.user.username, self.quiz.description)
 
@@ -66,6 +75,9 @@ class QuizQuestionResult(models.Model):
     class Meta:
         verbose_name = u"题目解答"
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
 
     def __unicode__(self):
         return "{0} - {1}".format(self.quiz_question, self.quiz_result)

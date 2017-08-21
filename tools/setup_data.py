@@ -10,7 +10,8 @@ def setup_word_database():
         'data/primary_school.yaml',
         'data/midschool.yaml',
         'data/high_school.yaml',
-        'data/cet4.yaml'
+        'data/cet4.yaml',
+        'data/cet6.yaml'
     ]
     pool = Pool(20)
     for file_name in yaml_files:

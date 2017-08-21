@@ -78,12 +78,12 @@ class WordUnit(models.Model):
 
 
 class WordInUnit(models.Model):
-    word = models.ForeignKey(Word, verbose_name=u"Word")
-    unit = models.ForeignKey(WordUnit, verbose_name=u"Unit")
+    word = models.ForeignKey(Word, verbose_name=u"单词")
+    unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
     order = models.IntegerField(default=1, verbose_name=u"顺序")
 
     class Meta:
-        verbose_name = u"Words in unit"
+        verbose_name = u"单元单词"
         verbose_name_plural = verbose_name
 
     def __str__(self):
@@ -91,7 +91,6 @@ class WordInUnit(models.Model):
 
     def __unicode__(self):
         return u"{0} - {1}".format(self.word, self.unit)
-
 
 
 class LearningPlan(models.Model):

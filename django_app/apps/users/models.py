@@ -22,6 +22,9 @@ class UserProfile(AbstractUser):
         verbose_name = u"用户信息"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return self.username
 
@@ -40,6 +43,9 @@ class EmailVerifyRecord(models.Model):
         verbose_name = u"邮箱验证码"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return '{0}({1})'.format(self.code, self.email)
 
@@ -57,6 +63,9 @@ class Group(models.Model):
         verbose_name = u"班级"
         verbose_name_plural = verbose_name
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return self.name
 
@@ -73,6 +82,9 @@ class UserGroup(models.Model):
     class Meta:
         verbose_name = u"学籍登记"
         verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
 
     def __unicode__(self):
         return "{0} - {1}".format(self.user.username, self.group.name)
