@@ -42,3 +42,13 @@
  29. 查看测试统计情况
 
 以后可能还会增加新的页面。
+
+## 开发环境 ##
+
+我用的电脑上运行ubuntu，编辑器是visual studio code。
+如果用的是windows系统，建议安装visual studio 2017 community edition。自带了python和django的支持。
+python 2和python 3应该都可以。
+
+## 部署环境 ##
+
+开发的时候有一个amazon aws上的虚拟机，ip地址是 `52.68.86.61` , 打开了端口8000。
