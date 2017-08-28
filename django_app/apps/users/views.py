@@ -101,7 +101,7 @@ class RegisterView(View):
                 user_message.message = "欢迎注册"
                 user_message.save()
 
-            send_register_email(user_name, "register")
+            send_register_email(user_name, "register", request.get_host())
             return render(request, "user_login.html", {"login_title": u"注册成功，请登录"})
         else:
             return render(request, "user_register.html", {"register_form": register_form})
@@ -138,7 +138,7 @@ class ForgetPasswordView(View):
                     "forget_form": forget_form,
                     "msg": u"用户不存在"
                 })
-            send_register_email(email, "forget")
+            send_register_email(email, "forget", request.get_host())
             return render(request, "send_success.html")
         else:
             return render(request, "forget_password.html", {"forget_form":forget_form})

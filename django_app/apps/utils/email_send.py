@@ -24,7 +24,7 @@ def send_mail(title, body, email_from, email_to):
     """
     Send a mail using service provided by sendcloud.net.
     The interface is identical to django.core.mail#send_mail.
-    
+
     :param str title: mail title
     :param str body: mail body
     :param str email_from: mail from
@@ -47,7 +47,7 @@ def send_mail(title, body, email_from, email_to):
     requests.post(url, files={}, data=params)
     return True
 
-def send_register_email(email, send_type="register"):
+def send_register_email(email, send_type="register", host="localhost:8000"):
     email_record = EmailVerifyRecord()
     if send_type == "update_email":
         code = random_str(4)
@@ -63,14 +63,14 @@ def send_register_email(email, send_type="register"):
 
     if send_type == "register":
         email_title = "谁能背过我 -- 注册激活链接"
-        email_body = "请点击下面的链接激活你的账号: http://127.0.0.1:8000/active/{0}".format(code)
+        email_body = "请点击下面的链接激活你的账号: http://{0}/activate/{1}".format(host, code)
 
         send_status = send_mail(email_title, email_body, EMAIL_FROM, [email])
         if send_status:
             pass
     elif send_type == "forget":
         email_title = "谁能背过我 -- 注册密码重置链接"
-        email_body = "请点击下面的链接重置密码: http://127.0.0.1:8000/reset_password/{0}".format(code)
+        email_body = "请点击下面的链接重置密码: http://{0}/reset_password/{1}".format(host, code)
 
         send_status = send_mail(email_title, email_body, EMAIL_FROM, [email])
         if send_status:
