@@ -22,6 +22,10 @@ class UserProfile(AbstractUser):
         verbose_name = u"用户信息"
         verbose_name_plural = verbose_name
 
+    def membership_days(self):
+        delta = datetime.now() - self.date_joined
+        return delta.days
+
     def __str__(self):
         return self.__unicode__()
 

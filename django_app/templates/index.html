@@ -61,7 +61,7 @@ desired effect
         <header class="main-header">
 
             <!-- Logo -->
-            <a href="index.html" class="logo">
+            <a href="{% url 'index' %}" class="logo">
                 <!-- mini logo for sidebar mini 50x50 pixels -->
                 <span class="logo-mini"><b>背！</b></span>
                 <!-- logo for regular state and mobile devices -->
@@ -140,7 +140,7 @@ desired effect
                                 <!-- The user image in the navbar-->
                                 <img src="{% static 'AdminLTE/img/avatar.png' %}" class="user-image" alt="User Image">
                                 <!-- hidden-xs hides the username on small devices so only the image appears. -->
-                                <span class="hidden-xs">马小跳</span>
+                                <span class="hidden-xs">{{ request.user.nick_name }}</span>
                             </a>
                             <ul class="dropdown-menu">
                                 <!-- The user image in the menu -->
@@ -148,8 +148,8 @@ desired effect
                                     <img src="{% static 'AdminLTE/img/avatar.png' %}" class="img-circle" alt="User Image">
 
                                     <p>
-                                        马小跳
-                                        <small>已注册13个月</small>
+                                        {{ request.user.nick_name }}
+                                        <small>已注册{{ request.user.membership_days }}天</small>
                                     </p>
                                 </li>
                                 <!-- Menu Body -->
@@ -173,7 +173,7 @@ desired effect
                                         <a href="#" class="btn btn-default btn-flat">我的账号</a>
                                     </div>
                                     <div class="pull-right">
-                                        <a href="#" class="btn btn-default btn-flat">退出系统</a>
+                                        <a href="{% url 'user_logout' %}" class="btn btn-default btn-flat">退出系统</a>
                                     </div>
                                 </li>
                             </ul>
@@ -195,7 +195,7 @@ desired effect
                         <img src="{% static 'AdminLTE/img/avatar.png' %}" class="img-circle" alt="User Image">
                     </div>
                     <div class="pull-left info">
-                        <p>马小跳</p>
+                        <p>{{ request.user.nick_name }}</p>
                         <!-- Status -->
                         <a href="#"><i class="fa fa-circle text-success"></i> 在线</a>
                     </div>
@@ -462,11 +462,11 @@ desired effect
     <!-- REQUIRED JS SCRIPTS -->
 
     <!-- jQuery 3 -->
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
     <!-- Bootstrap 3.3.7 -->
-    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
     <!-- AdminLTE App -->
-    <script src="AdminLTE/js/adminlte.min.js"></script>
+    <script src="{% static 'AdminLTE/js/adminlte.min.js' %}"></script>
 
     <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the

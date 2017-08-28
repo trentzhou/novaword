@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'tests',
     'operations',
     'xadmin',
-    'crispy_forms'
+    'crispy_forms',
+    'captcha'
 ]
 
 AUTH_USER_MODEL = "users.UserProfile"
@@ -83,15 +84,16 @@ WSGI_APPLICATION = 'word_master.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+database_engine = os.getenv("DATABASE_BACKEND", "sqlite3")
 
-# when running on Trent's laptop, use mysql
-if os.environ.get('USER', None) in ['trent', 'ubuntu']:
+if database_engine == 'sqlite3':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+elif database_engine == 'mysql':
     if sys.version_info > (3, 0):
         import pymysql
         pymysql.install_as_MySQLdb()
@@ -99,10 +101,10 @@ if os.environ.get('USER', None) in ['trent', 'ubuntu']:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'word_master',
-            'USER': 'trent',
-            'PASSWORD': 'trenttrent',
-            'HOST': '172.17.0.1'
+            'NAME': os.getenv("MYSQL_DATABASE_NAME", "word_master"),
+            'USER': os.getenv("MYSQL_USERNAME", "root"),
+            'PASSWORD': os.getenv("MYSQL_PASSWORD", "root"),
+            'HOST': os.getenv("MYSQL_HOST", "localhost")
         }
     }
 
@@ -125,6 +127,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Application definition
+AUTHENTICATION_BACKENDS = (
+    'users.views.CustomBackend',
+)
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -144,3 +151,14 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+#STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.sina.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "word_master@sina.com")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "word_master")
+EMAIL_USE_TLS = False
+EMAIL_FROM = os.getenv("EMAIL_FROM", "word_master@sina.com")
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

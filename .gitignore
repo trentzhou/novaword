@@ -9,3 +9,6 @@ local_settings.py
 *.sqlite3
 venv/
 *xxx*
+*.env
+.idea/
+.vscode/

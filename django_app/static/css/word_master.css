@@ -1,0 +1,16 @@
+.captcha1 > img{
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 2;
+    height: 36px;
+}
+
+.captcha1 {
+    position: relative;
+}
+
+.captcha1 > input {
+    padding-right: 85px;
+    height: 40px;
+}
