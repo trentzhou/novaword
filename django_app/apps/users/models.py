@@ -12,6 +12,7 @@ class UserProfile(AbstractUser):
                                  max_length=100)
     avatar = models.ImageField(upload_to="images/%Y/%m",
                                verbose_name=u"头像",
+                               blank=True,
                                max_length=200)
     mobile_phone = models.CharField(blank=True,
                                     null=True,
@@ -25,6 +26,14 @@ class UserProfile(AbstractUser):
     def membership_days(self):
         delta = datetime.now() - self.date_joined
         return delta.days
+
+    def unread_message_count(self):
+        from operations.models import UserMessage
+        return UserMessage.objects.filter(to_user=self.id, has_read=False).count()
+
+    def unread_messages(self):
+        from operations.models import UserMessage
+        return UserMessage.objects.filter(to_user=self.id, has_read=False).all()
 
     def __str__(self):
         return self.__unicode__()

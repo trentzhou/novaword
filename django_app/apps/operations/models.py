@@ -7,7 +7,8 @@ from users.models import UserProfile
 
 
 class UserMessage(models.Model):
-    user = models.ForeignKey(UserProfile, verbose_name=u"收消息的用户")
+    to_user = models.IntegerField(default=0, verbose_name=u"收消息的用户")
+    from_user = models.ForeignKey(UserProfile, default=None, verbose_name=u"发送消息的用户")
     message = models.CharField(max_length=500, verbose_name=u"消息内容")
     has_read = models.BooleanField(default=False, verbose_name=u"已读")
     add_time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")
@@ -21,4 +22,4 @@ class UserMessage(models.Model):
         return self.__unicode__()
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.user, self.message)
+        return u"{0} - {1}".format(self.from_user, self.message)

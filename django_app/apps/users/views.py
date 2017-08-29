@@ -34,7 +34,9 @@ class IndexView(View):
         """
         if not request.user.is_authenticated():
             return redirect(reverse("user_login"))
-        return render(request, 'index.html', {})
+        return render(request, 'index.html', {
+            "page": "overview"
+        })
 
 
 class LoginView(View):

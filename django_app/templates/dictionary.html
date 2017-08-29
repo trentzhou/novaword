@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+        <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            {{ word.spelling }}
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">查单词</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+    <ul>
+        {% if word.pronounciation_us %}
+            <li>
+                美式发音 {{ word.pronounciation_us }}
+                {% if word.mp3_us_url %}
+                    <span class="ion ion-speakerphone" id="play_us"></span>
+                    <audio id="audio_us" preload="auto">
+                        <source src="{{ word.mp3_us_url }}" />
+                    </audio>
+                {% endif %}
+            </li>
+        {% endif %}
+        {% if word.pronounciation_uk %}
+            <li>
+                英式发音 {{ word.pronounciation_uk }}
+                {% if word.mp3_uk_url %}
+                    <span class="ion ion-speakerphone" id="play_uk"></span>
+                    <audio id="audio_uk" preload="auto">
+                        <source src="{{ word.mp3_uk_url }}" />
+                    </audio>
+                {% endif %}
+            </li>
+        {% endif %}
+        <li>{{ word.short_meaning }}</li>
+    </ul>
+    {{ word.detailed_meaning |safe }}
+
+    </section>
+
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+    $(function() {
+        $("#play_us").click(function() {
+            $("#audio_us").get(0).play();
+        });
+        $("#play_uk").click(function() {
+            $("#audio_uk").get(0).play();
+        })
+    });
+    </script>
+{% endblock %}
