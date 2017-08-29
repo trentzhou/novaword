@@ -20,7 +20,7 @@
             <li>
                 美式发音 {{ word.pronounciation_us }}
                 {% if word.mp3_us_url %}
-                    <span class="ion ion-speakerphone" id="play_us"></span>
+                    <span class="ion ion-speakerphone text-blue" id="play_us"></span>
                     <audio id="audio_us" preload="auto">
                         <source src="{{ word.mp3_us_url }}" />
                     </audio>
@@ -31,7 +31,7 @@
             <li>
                 英式发音 {{ word.pronounciation_uk }}
                 {% if word.mp3_uk_url %}
-                    <span class="ion ion-speakerphone" id="play_uk"></span>
+                    <span class="ion ion-speakerphone text-blue" id="play_uk"></span>
                     <audio id="audio_uk" preload="auto">
                         <source src="{{ word.mp3_uk_url }}" />
                     </audio>
