@@ -24,7 +24,7 @@ class SmsClient:
         for i in sign_param:
             sign_source = sign_source + i[0] + "=" + i[1] + "&"
         sign_source = sign_source + self.smskey
-        sign = hashlib.sha256(sign_source).hexdigest()
+        sign = hashlib.sha256(sign_source.encode("utf-8")).hexdigest()
         return sign
 
     def send_code(self, mobile, templateId, params):
