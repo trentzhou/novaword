@@ -47,7 +47,8 @@ def send_mail(title, body, email_from, email_to):
     requests.post(url, files={}, data=params)
     return True
 
-def send_register_email(email, send_type="register", host="localhost:8000"):
+
+def save_email_verify_record(email, send_type):
     email_record = EmailVerifyRecord()
     if send_type == "update_email":
         code = random_str(4)
@@ -57,6 +58,11 @@ def send_register_email(email, send_type="register", host="localhost:8000"):
     email_record.email = email
     email_record.send_type = send_type
     email_record.save()
+    return code
+
+
+def send_register_email(email, send_type="register", host="localhost:8000"):
+    code = save_email_verify_record(email, send_type)
 
     email_title = ""
     email_body = ""

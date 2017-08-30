@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>谁能背过我 | 忘记密码</title>
+    <title>谁能背过我 | 验证码</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <!-- Bootstrap 3.3.7 -->
@@ -37,19 +37,13 @@
         </div>
         <!-- /.login-logo -->
         <div class="login-box-body">
-            <p class="login-box-msg">{{ login_title | default:"忘记密码" }}</p>
+            <p class="login-box-msg">{{ login_title | default:"验证码" }}</p>
 
-            <form action="{% url 'forget_password' %}" method="post">
-
-                {{forget_form.errors.email}}
-                <div class="form-group has-feedback {% if forget_form.errors.email %} has-error {% endif %}">
-                    <input type="text" name="email" value="{{forget_form.data.email}}" class="form-control" placeholder="注册时使用的电子邮件或手机号">
+            <form method="post" action="{% url 'verify_sms' %}">
+                <input type="hidden" name="mobile" value="{{ mobile }}" />
+                <div class="form-group has-feedback {% if verify_sms.errors.code %} has-error {% endif %}">
+                    <input type="text" name="code" value="{{verify_sms.data.code}}" class="form-control" placeholder="短信验证码">
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
-                </div>
-               
-                {{forget_form.errors.captcha}}
-                <div class="form-group captcha1 {% if forget_form.errors.captcha %} has-error {% endif %}">
-                    {{ forget_form.captcha }}
                 </div>
 
                 {% csrf_token %}
@@ -76,23 +70,6 @@
     <script src="{% static 'bower_components/jquery/dist/jquery.min.js' %}"></script>
     <!-- Bootstrap 3.3.7 -->
     <script src="{% static 'bower_components/bootstrap/dist/js/bootstrap.min.js' %}"></script>
-
-    <script>
-        $(function() {
-            $('#id_captcha_1').attr({
-                "placeholder": "验证码",
-                "class": "form-control"
-            });
-
-            $(".captcha1 img").click(function() {
-                // refresh captcha
-                $.get('/captcha/refresh?' + Math.random(), function(result) {
-                    $(".captcha1 img").attr({"src": result.image_url});
-                    $("#id_captcha_0").attr({"value": result.key});
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>

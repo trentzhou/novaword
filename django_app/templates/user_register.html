@@ -37,47 +37,111 @@
 
         <div class="register-box-body">
             <p class="login-box-msg">注册新账户</p>
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+                    <li class="{% ifequal method 'email' %}active{% endifequal %}">
+                        <a href="#register_mail" data-toggle="tab">邮箱注册</a>
+                    </li>
+                    <li class="{% ifequal method 'mobile' %}active{% endifequal %}">
+                        <a href="#register_mobile" data-toggle="tab">手机注册</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane {% ifequal method 'email' %}active{% endifequal %}" id="register_mail">
 
-            <form method="post">
-                {{register_form.errors.nickname}}
-                <div class="form-group has-feedback {% if register_form.errors.nickname %} has-error {% endif %}">
-                    <input type="text" name="nickname" value="{{register_form.data.nickname}}" class="form-control" placeholder="用户昵称">
-                    <span class="glyphicon glyphicon-user form-control-feedback"></span>
-                </div>
-                {{register_form.errors.email}}
-                <div class="form-group has-feedback {% if register_form.errors.email %} has-error {% endif %}">
-                    <input type="email" name="email" value="{{register_form.data.email}}" class="form-control" placeholder="电子邮件">
-                    <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
-                </div>
-                {{register_form.errors.password}}
-                <div class="form-group has-feedback {% if register_form.errors.password %} has-error {% endif %}">
-                    <input type="password" name="password" class="form-control" placeholder="密码">
-                    <span class="glyphicon glyphicon-lock form-control-feedback"></span>
-                </div>
-                {{register_form.errors.password_confirm}}
-                <div class="form-group has-feedback {% if register_form.errors.password_confirm %} has-error {% endif %}">
-                    <input type="password" name="password_confirm" class="form-control" placeholder="确认密码">
-                    <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
-                </div>
-                {{register_form.errors.captcha}}
-                <div class="form-group captcha1 {% if register_form.errors.captcha %} has-error {% endif %}">
-                    {{ register_form.captcha }}
-                </div>
+                        <form method="post">
+                            {{register_form.errors.nickname}}
+                            <div class="form-group has-feedback {% if register_form.errors.nickname %} has-error {% endif %}">
+                                <input type="text" name="nickname" value="{{register_form.data.nickname}}" class="form-control" placeholder="用户昵称">
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                            {{register_form.errors.email}}
+                            <div class="form-group has-feedback {% if register_form.errors.email %} has-error {% endif %}">
+                                <input type="email" name="email" value="{{register_form.data.email}}" class="form-control" placeholder="电子邮件">
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                            {{register_form.errors.password}}
+                            <div class="form-group has-feedback {% if register_form.errors.password %} has-error {% endif %}">
+                                <input type="password" name="password" class="form-control" placeholder="密码">
+                                <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                            </div>
+                            {{register_form.errors.password_confirm}}
+                            <div class="form-group has-feedback {% if register_form.errors.password_confirm %} has-error {% endif %}">
+                                <input type="password" name="password_confirm" class="form-control" placeholder="确认密码">
+                                <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
+                            </div>
+                            {{register_form.errors.captcha}}
+                            <div class="form-group captcha1 {% if register_form.errors.captcha %} has-error {% endif %}">
+                                {{ register_form.captcha }}
+                            </div>
 
-                {% csrf_token %}
+                            {% csrf_token %}
 
-                <div class="row">
-                    <!-- /.col -->
-                    <div class="col-xs-12">
-                        {% if msg %}
-                            <div class="bg-red alert">{{ msg }}</div>
-                        {% endif %}
+                            <div class="row">
+                                <!-- /.col -->
+                                <div class="col-xs-12">
+                                    {% if msg %}
+                                        <div class="bg-red alert">{{ msg }}</div>
+                                    {% endif %}
 
-                        <button type="submit" class="btn btn-primary btn-block btn-flat">注册</button>
+                                    <button type="submit" class="btn btn-primary btn-block btn-flat">注册</button>
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </form>
+
                     </div>
-                    <!-- /.col -->
+
+                    <div class="tab-pane{% ifequal method 'mobile' %}active{% endifequal %}" id="register_mobile">
+
+                        <form method="post" action="{% url 'user_register_mobile' %}">
+                            {{register_mobile_form.errors.nickname}}
+                            <div class="form-group has-feedback {% if register_mobile_form.errors.nickname %} has-error {% endif %}">
+                                <input type="text" name="nickname" value="{{register_mobile_form.data.nickname}}" class="form-control" placeholder="用户昵称">
+                                <span class="glyphicon glyphicon-user form-control-feedback"></span>
+                            </div>
+                            {{register_mobile_form.errors.mobile}}
+                            <div class="form-group has-feedback {% if register_mobile_form.errors.mobile %} has-error {% endif %}" id="mobile_box">
+                                <input type="text" name="mobile" value="{{register_mobile_form.data.mobile}}" class="form-control" id="mobile" placeholder="手机号">
+                                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+                            </div>
+                            {{register_mobile_form.errors.password}}
+                            <div class="form-group has-feedback {% if register_mobile_form.errors.password %} has-error {% endif %}">
+                                <input type="password" name="password" class="form-control" placeholder="密码">
+                                <span class="glyphicon glyphicon-lock form-control-feedback"></span>
+                            </div>
+                            {{register_mobile_form.errors.password_confirm}}
+                            <div class="form-group has-feedback {% if register_mobile_form.errors.password_confirm %} has-error {% endif %}">
+                                <input type="password" name="password_confirm" class="form-control" placeholder="确认密码">
+                                <span class="glyphicon glyphicon-log-in form-control-feedback"></span>
+                            </div>
+                            {{register_mobile_form.errors.verification_code}}
+                            <div class="form-group has-feedback {% if register_mobile_form.errors.verification_code %} has-error {% endif %}">
+                                <input type="text" name="verification_code" value="{{register_mobile_form.data.verification_code}}" class="form-control" placeholder="短信验证码">
+                                <span class="glyphicon glyphicon-barcode form-control-feedback"></span>
+                            </div>
+
+                            <a class="btn btn-primary btn-block margin-bottom" id="get_verification_code">获取短信验证码</a>
+
+                            {% csrf_token %}
+
+                            <div class="row">
+                                <!-- /.col -->
+                                <div class="col-xs-12">
+                                    {% if msg %}
+                                        <div class="bg-red alert">{{ msg }}</div>
+                                    {% endif %}
+
+                                    <button type="submit" class="btn btn-primary btn-block btn-flat">注册</button>
+                                </div>
+                                <!-- /.col -->
+                            </div>
+                        </form>
+
+                    </div>
                 </div>
-            </form>
+            </div>
+
 
             <a href="{% url 'user_login' %}" class="text-center">已有账户？马上登录</a>
         </div>
@@ -103,6 +167,47 @@
                     $(".captcha1 img").attr({"src": result.image_url});
                     $("#id_captcha_0").attr({"value": result.key});
                 });
+            });
+
+            function isNumber(n) {
+                return !isNaN(parseFloat(n)) && isFinite(n);
+            }
+
+            $("#get_verification_code").click(function() {
+                var mobile = $("#mobile").val();
+                // check whether mobile number is valid
+                if ((mobile.length == 11) && (isNumber(mobile))) {
+                    // make the ajax request
+                    $("#mobile_box").removeClass("has-error");
+                    $.ajax({
+                        cache: false,
+                        type: "POST",
+                        data: {"mobile": mobile},
+                        beforeSend:function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        },
+                        url: "{% url 'user_verification_sms' %}",
+                        async: true,
+                        success: function(data) {
+                            //alert(data);
+                        }
+                    });
+
+                    var countDown = 60;
+                    var handle = setInterval(function() {
+                        $("#get_verification_code").html("" + countDown + "秒后 获取验证码");
+                        countDown--;
+                        if (countDown == 0) {
+                            clearInterval(handle);
+                            $("#get_verification_code").html("获取短信验证码")
+                            $("#get_verification_code").removeClass("disabled");
+                        }
+                    }, 1000);
+                    $("#get_verification_code").addClass("disabled");
+                } else {
+                    $("#mobile_box").addClass("has-error");
+                }
+
             });
         });
     </script>
