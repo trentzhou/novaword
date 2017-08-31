@@ -10,12 +10,16 @@ from utils.lookup_word_in_db import find_word
 
 class MessageView(View):
     def get(self, request, message_id):
-        raise Http404()
+        return render(request, 'todo.html', {
+            "page": "messages"
+        })
 
 
 class MessageListView(View):
     def get(self, request):
-        raise Http404()
+        return render(request, 'todo.html', {
+            "page": "messages"
+        })
 
 
 class DictionaryView(View):
@@ -33,3 +37,10 @@ class DictionaryFormView(View):
     def post(self, request):
         spelling = request.POST.get("spelling", "")
         return HttpResponseRedirect(reverse("operations.dictionary", kwargs={"spelling":spelling}))
+
+
+class HighscoreView(View):
+    def get(self, request):
+        return render(request, 'todo.html', {
+            "page": "highscore"
+        })

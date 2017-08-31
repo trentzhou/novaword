@@ -39,5 +39,8 @@ urlpatterns = [
     url(r'^modify_password/$', ModifyPasswordView.as_view(), name="modify_password"),
     url(r'^activate/(?P<activate_code>.*)/$', AcivateUserView.as_view(), name="user_active"),
     url(r'^op/', include('operations.urls')),
-    url(r'^captcha/', include('captcha.urls'))
+    url(r'^captcha/', include('captcha.urls')),
+    url(r'^users/', include('users.urls')),
+    url(r'^learn/', include('learn.urls')),
+    url(r'^testings/', include('testings.urls')),
 ]

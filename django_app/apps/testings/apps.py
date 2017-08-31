@@ -3,5 +3,5 @@ from django.apps import AppConfig
 
 
 class TestsConfig(AppConfig):
-    name = 'tests'
+    name = 'testings'
     verbose_name = u"测试"

@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('quiz_format', models.IntegerField(choices=[(1, '\u770b\u82f1\u6587\u9009\u4e2d\u6587'), (2, '\u770b\u4e2d\u6587\u9009\u82f1\u6587'), (3, '\u62fc\u5199')], verbose_name='\u6d4b\u8bd5\u5f62\u5f0f')),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tests.Quiz', verbose_name='\u6d4b\u8bd5')),
+                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testings.Quiz', verbose_name='\u6d4b\u8bd5')),
                 ('word', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='learn.Word', verbose_name='\u5355\u8bcd')),
             ],
             options={
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('is_correct', models.BooleanField(default=False)),
-                ('quiz_question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tests.QuizQuestion', verbose_name='\u95ee\u9898')),
+                ('quiz_question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testings.QuizQuestion', verbose_name='\u95ee\u9898')),
             ],
         ),
         migrations.CreateModel(
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('start_time', models.DateTimeField(default=datetime.datetime.now, verbose_name='\u5f00\u59cb\u65f6\u95f4')),
                 ('finish_time', models.DateTimeField(null=True, verbose_name='\u5b8c\u6210\u65f6\u95f4')),
-                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tests.Quiz', verbose_name='\u6d4b\u8bd5')),
+                ('quiz', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testings.Quiz', verbose_name='\u6d4b\u8bd5')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='\u7528\u6237')),
             ],
             options={
@@ -74,6 +74,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='quizquestionresult',
             name='quiz_result',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tests.QuizResult', verbose_name='\u6d4b\u8bd5\u7ed3\u679c'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='testings.QuizResult', verbose_name='\u6d4b\u8bd5\u7ed3\u679c'),
         ),
     ]

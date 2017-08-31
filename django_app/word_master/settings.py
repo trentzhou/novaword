@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'word_master',
     'users',
     'learn',
-    'tests',
+    'testings',
     'operations',
     'xadmin',
     'crispy_forms',
@@ -74,6 +74,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
+                'utils.context_processors.get_user_messages'
             ],
         },
     },

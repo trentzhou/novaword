@@ -261,3 +261,17 @@ class ModifyPasswordView(View):
         else:
             email = request.POST.get("email", "")
             return render(request, "password_reset.html", {"email":email, "reset_form":modify_form})
+
+
+class UserInfoView(View):
+    def get(self, request):
+        return render(request, 'todo.html', {
+            "page": "profile"
+        })
+
+
+class ClassListView(View):
+    def get(self, request):
+        return render(request, 'todo.html', {
+            "page": "classes"
+        })
