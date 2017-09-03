@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+{% block extra_head %}
+    <link href="{% static 'jquery.fileapi/jcrop/jquery.Jcrop.min.css' %}" rel="stylesheet" type="text/css"/>
+    <style type="text/css">
+        .js-fileapi-wrapper {
+            cursor: pointer;
+            display: inline-block;
+            *zoom: 1;
+            *display: inline;
+            position: relative;
+            overflow: hidden;
+            vertical-align: middle;
+        }
+
+        .js-fileapi-wrapper input {
+            top: -10px;
+            right: -40px;
+            z-index: 2;
+            position: absolute;
+            cursor: pointer;
+            opacity: 0;
+            filter: alpha(opacity=0);
+            font-size: 50px;
+            cursor: pointer;
+        }
+
+        .js-fileapi-wrapper .progress {
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: .5;
+            position: absolute;
+        }
+
+        .progress .bar {
+            width: 0;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            position: absolute;
+            background-color: #f60;
+        }
+
+        .progress-small .bar {
+            width: 0;
+            height: 100%;
+            position: static;
+            border-radius: 10px;
+            background-color: orange;
+        }
+
+
+    </style>
+{% endblock %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            个人设置
+            <small>显示和修改个人设置</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="#"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">个人设置</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        <!--------------------------
+            | Your Page Content Here |
+            -------------------------->
+        <!-- Small boxes (Stat box) -->
+        <div class="row" style="margin-top:20px;">
+            <div class="col-md-5">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">
+                            个人设置
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <table class="table table-bordered">
+                                <tr>
+                                    <td>昵称</td>
+                                    <td><span class="nickname">{{ request.user.nick_name }}</span></td>
+                                    <td>
+                                        <a class="btn btn-primary" id="btn_show_nickname_dialog">修改昵称</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>密码</td>
+                                    <td>**********</td>
+                                    <td>
+                                        <a class="btn btn-primary" id="btn_show_password_dialog">修改密码</a>
+                                    </td>
+                                </tr>
+
+                                <tr id="upload-avatar" class="upload-avatar">
+                                    <td>头像</td>
+                                    <td>
+                                        <div class="userpic"
+                                             {% if request.user.avatar %}style="background-image: url('{{ MEDIA_URL }}{{ request.user.avatar }}'); width: 96px; height: 96px; background-size: 96px 96px"{% endif %}>
+                                            <div class="js-preview userpic__preview"></div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="btn btn-primary js-fileapi-wrapper">
+                                            <div class="js-browse">
+                                                修改头像
+                                                <input type="file" name="avatar">
+                                            </div>
+                                            <div class="js-upload" style="display: none;">
+                                                <div class="progress progress-success">
+                                                    <div class="js-progress bar"></div>
+                                                </div>
+                                                <span class="btn-txt">正在上传...</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>邮箱</td>
+                                    <td><span class="email">{{ request.user.email }}</span></td>
+                                    <td>
+                                        <a class="btn btn-primary" id="btn_show_email_dialog">修改邮箱</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>手机号</td>
+                                    <td><span class="mobile">{{ request.user.mobile_phone }}</span></td>
+                                    <td>
+                                        <a class="btn btn-primary" id="btn_show_mobile_dialog">修改手机号</a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+
+            <div class="col-md-7">
+                <div id="cropper-preview" style="display:none;">
+                    <div class="panel panel-info">
+                        <div class="panel-heading">
+                            <h3 class="panel-title"> 裁剪图片 </h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="js-img margin-bottom"></div>
+                            <p>
+                            <a class="js-upload btn btn-primary">上传</a>
+                            <a class="btn btn-primary pull-right" onclick="$('#cropper-preview').fadeOut()">取消</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+    <!-- /.content -->
+
+    <!-- dialogs -->
+
+    <div class="modal fade" id="dialog-change-nickname">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改昵称</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <form>
+                        <div class="form-group">
+                            <label for="nickname" class="col-lg-4 control-label">新昵称</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" id="nickname" placeholder="昵称">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="btn_change_nickname">修改昵称</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+
+    <div class="modal fade" id="dialog-change-email">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改邮箱</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <form>
+                        <div class="form-group">
+                            <label for="email" class="col-lg-4 control-label">新电子邮箱</label>
+                            <div class="col-lg-8">
+                                <input type="email" class="form-control" id="email" placeholder="电子邮箱地址">
+                            </div>
+                            <a class="btn btn-primary" id="get_email_verification">发送邮箱验证码</a>
+                        </div>
+                        <div class="form-group">
+                            <label for="email_code" class="col-lg-4 control-label">邮箱验证码</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" id="email_code" placeholder="邮箱验证码">
+                            </div>
+                        </div>
+                        <p id="email-message"></p>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="btn_activate_mail">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+
+
+    <div class="modal fade" id="dialog-change-password">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改密码</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <form>
+                        <div class="form-group">
+                            <label for="old_password" class="col-lg-4 control-label">原来的密码</label>
+                            <div class="col-lg-8">
+                                <input type="password" class="form-control" id="old_password" placeholder="原来的密码">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="password" class="col-lg-4 control-label">新密码</label>
+                            <div class="col-lg-8">
+                                <input type="password" class="form-control" id="password" placeholder="新密码">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirm_password" class="col-lg-4 control-label">确认新密码</label>
+                            <div class="col-lg-8">
+                                <input type="password" class="form-control" id="confirm_password" placeholder="确认新密码">
+                            </div>
+                        </div>
+                        <p id="password_message"></p>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="btn_change_password">修改密码</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+
+    <div class="modal fade" id="dialog-change-mobile">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">修改手机号</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <form>
+                        <div class="form-group">
+                            <label for="mobile" class="col-lg-4 control-label">新手机号</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" id="mobile" placeholder="新手机号">
+                            </div>
+                        </div>
+                        <a class="btn btn-primary" id="get_mobile_verification">获取短信验证码</a>
+                        <div class="form-group">
+                            <label for="mobile_verification_code" class="col-lg-4 control-label">短信验证码</label>
+                            <div class="col-lg-8">
+                                <input type="text" class="form-control" id="mobile_verification_code" placeholder="短信验证码">
+                            </div>
+                        </div>
+                        <p id="mobile_message"></p>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="confirm_mobile">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+
+{% endblock %}
+
+{% block extra_script %}
+
+    <!-- Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. -->
+    <script>
+        window.FileAPI = {
+            debug: false // debug mode
+            , staticPath: "{% static 'jquery.fileapi/FileAPI/' %}" // path to *.swf
+        };
+    </script>
+    <script src="{% static 'jquery.fileapi/FileAPI/FileAPI.min.js' %}"></script>
+    <script src="{% static 'jquery.fileapi/FileAPI/FileAPI.exif.js' %}"></script>
+    <script src="{% static 'jquery.fileapi/jquery.fileapi.js' %}"></script>
+    <script src="{% static 'jquery.fileapi/jcrop/jquery.Jcrop.min.js' %}"></script>
+
+    <script type="text/javascript">
+
+        jQuery(function ($) {
+            $('#cropper-preview').on('click', '.js-upload', function () {
+                $('#upload-avatar').fileapi('upload');
+                $('#cropper-preview').fadeOut();
+            });
+            $('#upload-avatar').fileapi({
+                url: '{% url "user.avatar_upload" %}',
+                accept: 'image/*',
+                imageSize: {
+                    minWidth: 100,
+                    minHeight: 100
+                },
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                elements: {
+                    active: {
+                        show: '.js-upload',
+                        hide: '.js-browse'
+                    },
+                    preview: {
+                        el: '.js-preview',
+                        width: 96,
+                        height: 96
+                    },
+                    progress: '.js-progress'
+                },
+
+                onFileComplete: function (evt, ui) {
+                    var error = ui.error;
+                    var result = ui.result; // server response
+                    try {
+                        $(".avatar").attr("src", result.avatar);
+                    } catch (err) {
+                        console.log("Change avatar error: ", err.message);
+                    }
+                },
+
+                onSelect: function (evt, ui) {
+                    var file = ui.all[0];
+                    if (file) {
+                        $('#cropper-preview').show();
+
+                        $('.js-img').cropper({
+                            file: file,
+                            bgColor: '#fff',
+                            maxSize: [$('#cropper-preview').width() - 40, $(window).height() - 100],
+                            minSize: [100, 100],
+                            selection: '90%',
+                            aspectRatio: 1,
+                            onSelect: function (coords) {
+                                $('#upload-avatar').fileapi('crop', file, coords);
+                            }
+                        });
+                    }
+                },
+
+                onComplete: function (evt, xhr) {
+                    try {
+                        var result = FileAPI.parseJSON(xhr.xhr.responseText);
+                        $('#avatar-hidden').attr("value", result.images.filename);
+                    } catch (er) {
+                        FileAPI.log('PARSE ERROR:', er.message);
+                    }
+                }
+            });
+
+            $("#btn_show_nickname_dialog").click(function() {
+                $("#nickname").val("{{ request.user.nick_name }}")
+                $("#dialog-change-nickname").modal("toggle");
+            });
+
+            $('#btn_change_nickname').click(function() {
+                var nickname = $("#nickname").val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'user.ajax_change_nick_name' %}",
+                    beforeSend:function(xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                    },
+                    async: true,
+                    data: {
+                        "nick_name": nickname
+                    },
+                    success: function(data) {
+                        try {
+                            if (data.status == "success") {
+                                $(".nickname").text(data.nickname);
+                                $("#dialog-change-nickname").modal("toggle");
+                            }
+                        } catch (ex) {
+                            console.log(ex);
+                        }
+                    }
+                });
+            });
+
+            $('#btn_show_password_dialog').click(function() {
+                $("#old_password").val();
+                $("#password").val();
+                $("#confirm_password").val();
+                $("#password_message").text("");
+                $("#dialog-change-password").modal("toggle");
+            });
+
+            $("#btn_change_password").click(function() {
+                var old_password = $("#old_password").val();
+                var password = $("#password").val();
+                var confirm_password = $("#confirm_password").val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'user.ajax_change_password' %}",
+                    beforeSend:function(xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                    },
+                    async: true,
+                    data: {
+                        "old_password": old_password,
+                        "password": password,
+                        "confirm_password": confirm_password
+                    },
+                    success: function(data) {
+                        try {
+                            if (data.status == "success") {
+                                $("#dialog-change-password").modal("toggle");
+                            } else {
+                                $("#password_message").text(data.error)
+                            }
+                        } catch (ex) {
+                            console.log(ex);
+                        }
+                    }
+                });
+            });
+
+            $('#btn_show_email_dialog').click(function() {
+                $("#email-message").text("");
+                $("#email").val("{{ request.user.email }}");
+                $("#email_code").val("");
+                $("#dialog-change-email").modal("toggle");
+            });
+
+            $('#get_email_verification').click(function() {
+                var email = $("#email").val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'user.ajax_get_email_verification' %}",
+                    beforeSend:function(xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                    },
+                    async: true,
+                    data: {
+                        "email": email
+                    },
+                    success: function(data) {
+                        try {
+                            if (data.status == "success") {
+                                $("#email-message").text("验证码已经发送到邮箱。请查收。");
+                            } else {
+                                $("#email-message").text(data.error);
+                            }
+                        } catch (ex) {
+                            console.log(ex);
+                        }
+                    }
+                });
+            });
+
+            $('#btn_activate_mail').click(function() {
+                var email = $("#email").val();
+                var verification_code = $("#email_code").val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'user.ajax_update_email' %}",
+                    beforeSend:function(xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                    },
+                    async: true,
+                    data: {
+                        "email": email,
+                        "verification_code": verification_code
+                    },
+                    success: function(data) {
+                        try {
+                            if (data.status == "success") {
+                                $(".email").text(data.email)
+                                $("#dialog-change-email").modal("toggle");
+                            } else {
+                                $("#email-message").text("验证错误");
+                            }
+                        } catch (ex) {
+                            console.log(ex);
+                        }
+                    }
+                });
+            });
+
+            $("#btn_show_mobile_dialog").click(function() {
+                $("#mobile").val("{{ request.user.mobile_phone }}");
+                $("#dialog-change-mobile").modal("toggle");
+            });
+
+            $("#get_mobile_verification").click(function() {
+                var mobile = $("#mobile").val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'user_verification_sms' %}",
+                    beforeSend:function(xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                    },
+                    async: true,
+                    data: {
+                        "mobile": mobile
+                    },
+                    success: function(data) {
+                        try {
+                            if (data.status == "fail") {
+                                $("#mobile_message").text(data.error);
+                            } else {
+                                $("#mobile_message").text("验证码已经通过短信送到手机上。请查收。");
+                            }
+                        } catch (ex) {
+                            console.log(ex);
+                        }
+                    }
+                });
+            });
+
+            $("#confirm_mobile").click(function() {
+                var mobile = $("#mobile").val();
+                var code = $("#mobile_verification_code").val();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'user.ajax_change_mobile' %}",
+                    beforeSend:function(xhr, settings) {
+                        xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                    },
+                    async: true,
+                    data: {
+                        "mobile": mobile,
+                        "code": code
+                    },
+                    success: function(data) {
+                        try {
+                            if (data.status == "fail") {
+                                $("#mobile_message").text(data.error);
+                            } else {
+                                // good
+                                $(".mobile").text(data.mobile);
+                                $("#dialog-change-mobile").modal("toggle");
+                            };
+                        } catch (ex) {
+                            console.log(ex);
+                        }
+                    }
+                });
+            })
+        });
+    </script>
+{% endblock %}

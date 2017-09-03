@@ -6,13 +6,14 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import make_password
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.views.generic import View
 #from django.http import HttpResponse
 from django.shortcuts import render, redirect
 
 from operations.models import UserMessage
-from users.forms import LoginForm, RegisterForm, ForgetForm, ModifyPasswordForm, RegisterMobileForm, VerifySmsForm
+from users.forms import LoginForm, RegisterForm, ForgetForm, ModifyPasswordForm, RegisterMobileForm, VerifySmsForm, \
+    UploadImageForm, AjaxChangeNickNameForm, AjaxGetEmailVerificationForm, AjaxUpdateEmailForm, AjaxChangePasswordForm
 from users.models import UserProfile, EmailVerifyRecord
 from utils.email_send import send_register_email, save_email_verify_record
 from utils.wilddog_sms import is_valid_phone_number, SmsClient
@@ -171,9 +172,10 @@ class UserVirificationSmsView(View):
             result = c.send_code(str(mobile), "100000", None)
             return HttpResponse(result)
         else:
-            return HttpResponse(json.dumps({
-                "status": "failed"
-            }), status=200)
+            return JsonResponse({
+                "status": "fail",
+                "error": u"手机号不正确"
+            })
 
 
 class AcivateUserView(View):
@@ -265,7 +267,7 @@ class ModifyPasswordView(View):
 
 class UserInfoView(View):
     def get(self, request):
-        return render(request, 'todo.html', {
+        return render(request, 'user_profile.html', {
             "page": "profile"
         })
 
@@ -275,3 +277,124 @@ class ClassListView(View):
         return render(request, 'todo.html', {
             "page": "classes"
         })
+
+
+class AvatarUploadView(View):
+    def post(self, request):
+        image_form = UploadImageForm(request.POST, request.FILES, instance=request.user)
+        if image_form.is_valid():
+            image_form.save()
+            return JsonResponse({
+                "status": "success",
+                "avatar": request.user.avatar.url
+            })
+        else:
+            return HttpResponse('{"status":"fail"}', content_type='application/json')
+
+
+class AjaxChangeNickNameView(View):
+    def post(self, request):
+        form = AjaxChangeNickNameForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({
+                "status": "success",
+                "nickname": request.user.nick_name
+            })
+        else:
+            return JsonResponse({"status": "fail"})
+
+
+class AjaxGetEmailVerificationView(View):
+    def post(self, request):
+        form = AjaxGetEmailVerificationForm(request.POST)
+        if form.is_valid():
+            if form.data["email"] == request.user.email:
+                return JsonResponse({
+                    "status": "fail",
+                    "error": "邮箱根本没变，别耍我。"
+                })
+            else:
+                if UserProfile.objects.filter(email=form.data["email"]).count():
+                    return JsonResponse({
+                        "status": "fail",
+                        "error": "邮箱已经被别人使用。请使用别的邮箱。"
+                    })
+                else:
+                    send_register_email(form.data["email"], send_type="update_email", host=request.get_host())
+                    return JsonResponse({
+                        "status": "success"
+                    })
+        else:
+            return JsonResponse({
+                "status": "fail",
+                "error": "邮箱格式不正确"
+            })
+
+
+class AjaxUpdateEmailView(View):
+    def post(self, request):
+        form = AjaxUpdateEmailForm(request.POST)
+        if form.is_valid():
+            request.user.email = form.data["email"]
+            request.user.save()
+            return JsonResponse({
+                "status": "success",
+                "email": request.user.email
+            })
+        else:
+            return JsonResponse({
+                "status": "fail",
+                "error": form.errors
+            })
+
+
+class AjaxChangePasswordView(View):
+    def post(self, request):
+        form = AjaxChangePasswordForm(request.POST)
+        if form.is_valid():
+            if not request.user.check_password(form.data["old_password"]):
+                return JsonResponse({
+                    "status": "fail",
+                    "error": u"密码输入错误"
+                })
+            else:
+                request.user.password = make_password(form.data["password"])
+                request.user.save()
+                return JsonResponse({
+                    "status": "success"
+                })
+        else:
+            return JsonResponse({
+                "status": "fail",
+                "error": u"输入错误"
+            })
+
+
+class AjaxChangeMobileView(View):
+    def post(self, request):
+        form = VerifySmsForm(request.POST)
+        if form.is_valid():
+            if form.data["mobile"] == request.user.mobile_phone:
+                return JsonResponse({
+                    "status": "fail",
+                    "error": u"手机号没有变化，不用改"
+                })
+            else:
+                # check whether the phone number is being used
+                if UserProfile.objects.filter(mobile_phone=form.data["mobile"]).count():
+                    return JsonResponse({
+                        "status": "fail",
+                        "error": u"这个手机号已经被别人使用了。"
+                    })
+                request.user.mobile_phone = form.data["mobile"]
+                request.user.save()
+                return JsonResponse({
+                    "status": "success",
+                    "mobile": request.user.mobile_phone
+                })
+        else:
+            return JsonResponse({
+                "status": "fail",
+                "error": u"验证码错误"
+            })

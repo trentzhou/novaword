@@ -6,7 +6,8 @@ from captcha.fields import CaptchaField
 
 from utils.wilddog_sms import SmsClient
 from word_master.settings import WILDDOG_APP_ID, WILDDOG_API_KEY
-from .models import UserProfile
+from .models import UserProfile, EmailVerifyRecord
+
 
 class LoginForm(forms.Form):
     username = forms.CharField(required=True)
@@ -57,6 +58,22 @@ class VerifySmsForm(forms.Form):
     mobile = forms.IntegerField(required=True)
     code = forms.IntegerField(required=True)
 
+    def is_valid(self):
+        # check verification code
+        c = SmsClient(WILDDOG_APP_ID, WILDDOG_API_KEY)
+        result = c.check_code(self.data['mobile'], self.data['code'])
+        verification_good = False
+        try:
+            result = json.loads(result)
+            if result["status"] == "ok":
+                verification_good = True
+        except:
+            verification_good = False
+        if not verification_good:
+            self.add_error("code", u"验证码错误")
+        return super(VerifySmsForm, self).is_valid()
+
+
 class ForgetForm(forms.Form):
     email = forms.CharField(required=True)
     captcha = CaptchaField(error_messages={"invalid": u"验证码错误"})
@@ -77,3 +94,35 @@ class UploadImageForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['avatar']
+
+
+class AjaxChangeNickNameForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['nick_name']
+
+
+class AjaxGetEmailVerificationForm(forms.Form):
+    email = forms.EmailField(required=True)
+
+
+class AjaxUpdateEmailForm(forms.Form):
+    email = forms.EmailField(required=True)
+    verification_code = forms.CharField(required=True)
+
+    def is_valid(self):
+        query = EmailVerifyRecord.objects.filter(email=self.data["email"], code=self.data["verification_code"])
+        if not query.count():
+            self.add_error("verification_code", u"验证码错误")
+        return super(AjaxUpdateEmailForm, self).is_valid()
+
+
+class AjaxChangePasswordForm(forms.Form):
+    old_password = forms.CharField(required=True)
+    password = forms.CharField(required=True)
+    confirm_password = forms.CharField(required=True)
+
+    def is_valid(self):
+        if self.data["password"] != self.data["confirm_password"]:
+            self.add_error("confirm_password", u"密码不一致")
+        return super(AjaxChangePasswordForm, self).is_valid()
