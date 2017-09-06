@@ -76,6 +76,11 @@ class WordUnit(models.Model):
     def __unicode__(self):
         return u"{0} - {1}".format(self.book.description, self.description)
 
+    def is_planned(self, user):
+        if LearningPlan.objects.filter(unit=self, user=user).count():
+            return True
+        return False
+
 
 class WordInUnit(models.Model):
     word = models.ForeignKey(Word, verbose_name=u"单词")

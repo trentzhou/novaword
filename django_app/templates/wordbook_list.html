@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            单词书
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">单词书列表</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+        <table class="table table-responsive" id="wordbook_table">
+            <thead>
+                <td>书名</td>
+                <td>单词最长学习时间</td>
+                <td>单元最长学习时间</td>
+                <td>最多几个单元同时学习</td>
+            </thead>
+            <tbody>
+                {% for book in wordbooks %}
+                    <tr>
+                        <td><a href="{% url 'learn.book_detail' book.id %}">{{ book.description }}</a></td>
+                        <td>{{ book.max_word_learn_time }}</td>
+                        <td>{{ book.max_unit_learn_time }}</td>
+                        <td>{{ book.max_working_units }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <td>书名</td>
+                <td>单词最长学习时间</td>
+                <td>单元最长学习时间</td>
+                <td>最多几个单元同时学习</td>
+            </tfoot>
+        </table>
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+    $(function() {
+        $("#wordbook_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            }
+        });
+    });
+    </script>
+{% endblock %}

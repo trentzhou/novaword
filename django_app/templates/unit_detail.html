@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            单元详情
+            <small>
+                <a href="{% url 'learn.book_detail' unit.book.id %}">{{ unit.book.description }}</a>
+
+                {{ unit.description }}
+            </small>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li>
+                <a href="{% url 'learn.books' %}">单词书</a>
+            </li>
+            <li class="active">单元</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        <div class="box">
+            <div class="box-header">
+                <h3>
+                    {% if not unit.is_planned %}
+                        <button class="btn btn-success" id="btn-toggle-plan">已在学习计划中</button>
+                    {% else %}
+                        <button class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</button>
+                    {% endif %}
+                </h3>
+
+            </div>
+            <div class="box-body">
+                <table class="table table-responsive" id="word_table">
+                    <thead>
+                        <td>拼写</td>
+                        <td>美式音标</td>
+                        <td>英式音标</td>
+                        <td>解释</td>
+                    </thead>
+                    {% for word in words %}
+                        <tr>
+                            <td>{{ word.spelling }}</td>
+                            <td>
+                                {% if word.mp3_us_url %}
+                                    <span class="ion ion-speakerphone text-blue" onclick="$('#audio_us_{{ forloop.counter }}').get(0).play()"></span>
+                                    <audio id="audio_us_{{ forloop.counter }}" preload="none">
+                                        <source src="{{ word.mp3_us_url }}" />
+                                    </audio>
+                                {% endif %}
+                                {{ word.pronounciation_us }}
+                            </td>
+                            <td>
+                                {% if word.mp3_uk_url %}
+                                    <span class="ion ion-speakerphone text-blue" onclick="$('#audio_uk_{{ forloop.counter }}').get(0).play()"></span>
+                                    <audio id="audio_uk_{{ forloop.counter }}" preload="none">
+                                        <source src="{{ word.mp3_uk_url }}" />
+                                    </audio>
+                                {% endif %}
+                                {{ word.pronounciation_uk }}
+                            </td>
+                            <td>{{ word.short_meaning }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+    $(function () {
+        {% if unit.is_planned %}
+            var isPlanned = true;
+        {% else %}
+            var isPlanned = false;
+        {% endif %}
+
+        $("#btn-toggle-plan").click(function () {
+            var url = "{% url 'learn.ajax_add_learning_plan' %}";
+            if (isPlanned)
+                url = "{% url 'learn.ajax_del_learning_plan' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": {{ unit.id }}
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "success") {
+                            isPlanned = !isPlanned;
+                            if (isPlanned) {
+                                $("#btn-toggle-plan").removeClass("btn-warning");
+                                $("#btn-toggle-plan").addClass("btn-success");
+                                $("#btn-toggle-plan").text("已在学习计划中");
+                            } else {
+                                $("#btn-toggle-plan").removeClass("btn-success");
+                                $("#btn-toggle-plan").addClass("btn-warning");
+                                $("#btn-toggle-plan").text("不在学习计划中");
+                            }
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+        $("#word_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            }
+        });
+    });
+    </script>
+{% endblock %}
