@@ -32,7 +32,7 @@
         <div class="box">
             <div class="box-header">
                 <h3>
-                    {% if unit.is_planned %}
+                    {% if is_planned %}
                         <button class="btn btn-success" id="btn-toggle-plan">已在学习计划中</button>
                     {% else %}
                         <button class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</button>
@@ -86,7 +86,7 @@
 
     <script>
     $(function () {
-        {% if unit.is_planned %}
+        {% if is_planned %}
             var isPlanned = true;
         {% else %}
             var isPlanned = false;

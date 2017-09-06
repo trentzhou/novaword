@@ -1,13 +1,15 @@
 from django.conf.urls import url
 
 from learn.views import BookListView, UnitListView, LearningView, ReviewView, BookDetailView, UnitDetailView, \
-    AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan
+    AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
+    AjaxAddBookToLearningPlanView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
     url(r'^books/(?P<book_id>\d+)$', BookDetailView.as_view(), name="learn.book_detail"),
     url(r'^units/$', UnitListView.as_view(), name="learn.units"),
     url(r'^units/(?P<unit_id>\d+)$', UnitDetailView.as_view(), name="learn.unit_detail"),
+    url(r'^ajax-add-book-learning-plan/$', AjaxAddBookToLearningPlanView.as_view(), name="learn.ajax_add_book_learning_plan"),
     url(r'^ajax-add-learning-plan/$', AjaxAddUnitToLearningPlanView.as_view(), name="learn.ajax_add_learning_plan"),
     url(r'^ajax-del-learning-plan/$', AjaxDeleteUnitFromLearningPlanView.as_view(), name="learn.ajax_del_learning_plan"),
     url(r'^ajax-query-learning-plan/(?P<unit_id>\d+)/$', AjaxIsUnitInLearningPlan.as_view(), name="learn.ajax_query_learning_plan"),

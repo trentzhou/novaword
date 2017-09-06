@@ -46,7 +46,27 @@ class UnitDetailView(View):
         return render(request, 'unit_detail.html', {
             "page": "units",
             "unit": unit,
-            "words": (word.word for word in words)
+            "words": (word.word for word in words),
+            "is_planned": unit.is_planned(request.user)
+        })
+
+
+class AjaxAddBookToLearningPlanView(View):
+    def post(self, request):
+        book_id = request.POST.get("book_id", None)
+        if not book_id:
+            return JsonResponse({
+                "status": "failure"
+            })
+        units = WordUnit.objects.filter(book_id=book_id).all()
+        for unit in units:
+            if not LearningPlan.objects.filter(unit=unit, user=request.user).count():
+                plan = LearningPlan()
+                plan.unit = unit
+                plan.user = request.user
+                plan.save()
+        return JsonResponse({
+            "status": "success"
         })
 
 
