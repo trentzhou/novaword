@@ -19,6 +19,9 @@ class Unit(object):
         self.book = book
         self.unit = unit
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
         return u"{0}{1}".format(self.book, self.unit)
 
@@ -45,8 +48,11 @@ class Word(object):
             if o:
                 self.units.append(o)
 
+    def __str__(self):
+        return self.__unicode__()
+
     def __unicode__(self):
-        return u"'{0}' in unit [{1}]".format(self.spelling, ",".join(unicode(x) for x in self.units))
+        return u"'{0}' in unit [{1}]".format(self.spelling, ",".join(str(x) for x in self.units))
 
 
 def parse_wordbook(bookname):
@@ -60,7 +66,7 @@ def parse_wordbook(bookname):
             word = Word.create_word(line)
             if word:
                 for unit in word.units:
-                    unit_title = unicode(unit)
+                    unit_title = str(unit)
                     if unit_title not in unit_map:
                         unit_map[unit_title] = []
                     unit_map[unit_title].append(word)
@@ -98,7 +104,7 @@ def parse_wordbook(bookname):
                 for index, word in enumerate(unit_map[unit_title]):
                     word_obj = find_word(word.spelling)
                     if not word_obj:
-                        print u"Cannot find word {0} from iciba.com".format(unicode(word))
+                        print(u"Cannot find word {0} from iciba.com".format(str(word)))
                         # create a new Word object
                         word_obj = W()
                         word_obj.spelling = word.spelling
