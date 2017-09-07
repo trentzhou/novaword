@@ -50,26 +50,26 @@
                     </thead>
                     {% for word in words %}
                         <tr>
-                            <td>{{ word.spelling }}</td>
+                            <td><a href="{% url 'operations.dictionary' word.word.spelling %}">{{ word.word.spelling }}</a></td>
                             <td>
-                                {% if word.mp3_us_url %}
+                                {% if word.word.mp3_us_url %}
                                     <span class="ion ion-speakerphone text-blue" onclick="$('#audio_us_{{ forloop.counter }}').get(0).play()"></span>
                                     <audio id="audio_us_{{ forloop.counter }}" preload="none">
                                         <source src="{{ word.mp3_us_url }}" />
                                     </audio>
                                 {% endif %}
-                                {{ word.pronounciation_us }}
+                                {{ word.word.pronounciation_us }}
                             </td>
                             <td>
-                                {% if word.mp3_uk_url %}
+                                {% if word.word.mp3_uk_url %}
                                     <span class="ion ion-speakerphone text-blue" onclick="$('#audio_uk_{{ forloop.counter }}').get(0).play()"></span>
                                     <audio id="audio_uk_{{ forloop.counter }}" preload="none">
                                         <source src="{{ word.mp3_uk_url }}" />
                                     </audio>
                                 {% endif %}
-                                {{ word.pronounciation_uk }}
+                                {{ word.word.pronounciation_uk }}
                             </td>
-                            <td>{{ word.short_meaning }}</td>
+                            <td>{{ word.simple_meaning }}</td>
                         </tr>
                     {% endfor %}
                 </table>

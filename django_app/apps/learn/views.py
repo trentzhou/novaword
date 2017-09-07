@@ -31,8 +31,11 @@ class BookDetailView(View):
 class UnitListView(View):
     # list all units which are in the learning plan
     def get(self, request):
-        return render(request, 'todo.html', {
-            "page": "units"
+        plans = LearningPlan.objects.filter(user=request.user).all()
+        units = [x.unit for x in plans]
+        return render(request, 'unit_list.html', {
+            "page": "units",
+            "units": units
         })
 
 
@@ -46,7 +49,7 @@ class UnitDetailView(View):
         return render(request, 'unit_detail.html', {
             "page": "units",
             "unit": unit,
-            "words": (word.word for word in words),
+            "words": words,
             "is_planned": unit.is_planned(request.user)
         })
 

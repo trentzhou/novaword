@@ -9,9 +9,9 @@ from users.models import UserProfile
 class Word(models.Model):
     spelling = models.CharField(blank=False, max_length=100,
                                 verbose_name=u"拼写")
-    pronounciation_us = models.CharField(blank=False, max_length=100,
+    pronounciation_us = models.CharField(blank=True, max_length=100,
                                          verbose_name=u"美式发音")
-    pronounciation_uk = models.CharField(blank=False, max_length=100,
+    pronounciation_uk = models.CharField(blank=True, max_length=100,
                                          verbose_name=u"英式发音")
     mp3_us_url = models.URLField(blank=True,
                                  verbose_name=u"美式发音mp3")
@@ -86,6 +86,7 @@ class WordInUnit(models.Model):
     word = models.ForeignKey(Word, verbose_name=u"单词")
     unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
     order = models.IntegerField(default=1, verbose_name=u"顺序")
+    simple_meaning = models.CharField(default="", verbose_name=u"简单解释", max_length=100)
 
     class Meta:
         verbose_name = u"单元单词"

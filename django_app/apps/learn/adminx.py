@@ -37,7 +37,7 @@ class WordUnitAdmin(object):
 
 
 class WordInUnitAdmin(object):
-    list_display = ['word', 'unit', 'order']
+    list_display = ['word', 'unit', 'order', 'simple_meaning']
     search_fields = list_display
     list_filter = list_display
     model_icon = 'fa fa-chain'

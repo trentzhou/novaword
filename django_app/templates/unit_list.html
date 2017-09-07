@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            要学习的单元
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">单元</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        <ol>
+            {% for unit in units %}
+                <li>
+                    <a href="{% url 'learn.unit_detail' unit.id %}">{{ unit.description }}</a>
+                </li>
+            {% endfor %}
+        </ol>
+
+    </section>
+{% endblock %}
