@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            联系用户
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">联系用户</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+    {% if message %}
+        <p>{{ message }}</p>
+
+        <a class="btn btn-primary" href="{% url 'operations.message_list' %}">返回消息列表</a>
+    {% else %}
+        <div class="user-block margin-bottom">
+            {% if user.avatar %}
+                <img src="{{ MEDIA_URL }}{{ user.avatar }}" class="img-circle img-sm" />
+            {% else %}
+                <img src="{% static 'AdminLTE/img/avatar2.png' %}" class="img-circle img-sm" />
+            {% endif %}
+            <span class="username">{{ user.nick_name }}</span>
+        </div>
+        <form method="post">
+            <div class="form-group has-feedback ">
+                <input type="text" name="title" class="form-control" placeholder="消息标题">
+                <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
+            </div>
+
+            <div class="form-group">
+              <label>消息内容</label>
+              <textarea class="form-control" rows="3" placeholder="消息内容" name="message"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">发送留言</button>
+            {% csrf_token %}
+        </form>
+    {% endif %}
+    </section>
+{% endblock %}

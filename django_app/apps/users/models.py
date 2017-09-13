@@ -63,10 +63,28 @@ class EmailVerifyRecord(models.Model):
         return '{0}({1})'.format(self.code, self.email)
 
 
+class Organization(models.Model):
+    name = models.CharField(blank=False, max_length=100, verbose_name=u"组织名")
+    description = models.CharField(blank=True, max_length=300, verbose_name=u"详细描述")
+    create_time = models.DateTimeField(default=datetime.now, verbose_name=u"创建时间")
+
+    class Meta:
+        verbose_name = u"学校"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return self.name
+
+
 class Group(models.Model):
     name = models.CharField(blank=False, max_length=100, verbose_name=u"组名")
+    organization = models.ForeignKey(Organization, verbose_name=u"学校", null=True, default=None)
     description = models.CharField(blank=True, max_length=300,
                                    verbose_name=u"详细描述")
+    is_admin = models.BooleanField(default=False, verbose_name=u"是不是学校管理员")
     create_time = models.DateTimeField(default=datetime.now,
                                        verbose_name=u"创建时间")
     password = models.CharField(blank=True, max_length=100,
@@ -86,7 +104,12 @@ class Group(models.Model):
 class UserGroup(models.Model):
     user = models.ForeignKey(UserProfile, verbose_name=u"用户")
     group = models.ForeignKey(Group, verbose_name=u"用户组")
-    role = models.IntegerField(choices=((1, u"学生"), (2, u"老师")),
+    role = models.IntegerField(choices=
+                               (
+                                   (1, u"学生"),
+                                   (2, u"老师"),
+                                   (3, u"管理员")
+                               ),
                                default=1,
                                verbose_name=u"组内的角色")
     join_time = models.DateField(default=datetime.now,

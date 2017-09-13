@@ -27,7 +27,7 @@ class Unit(object):
 
 
 class Word(object):
-    word_regex = re.compile(r'([a-zA-Z\, \'\?\.!]+)(.*) \((.*)\)')
+    word_regex = re.compile(r'([a-zA-Z\, \'\?\.!\-]+)(.*) \((.*)\)')
 
     @staticmethod
     def create_word(line):

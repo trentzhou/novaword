@@ -31,7 +31,7 @@ class BookDetailView(View):
 class UnitListView(View):
     # list all units which are in the learning plan
     def get(self, request):
-        plans = LearningPlan.objects.filter(user=request.user).all()
+        plans = LearningPlan.objects.filter(user=request.user).order_by("unit__book", "unit__order").all()
         units = [x.unit for x in plans]
         return render(request, 'unit_list.html', {
             "page": "units",

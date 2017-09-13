@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            我的班级
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">班级</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        {% if groups %}
+            <ol>
+                {% for group in groups %}
+                    <li>
+                        <a href="{% url 'user.group_detail' group.group.id %}">{{ group.group.organization }} - {{ group.group }}</a>
+                    </li>
+                {% endfor %}
+            </ol>
+        {% else %}
+            <p>我还没有加入任何班级</p>
+        {% endif %}
+    <p>
+        <a class="btn btn-primary" href="{% url 'user.groups' %}">查看所有班级</a>
+    </p>
+
+    </section>
+{% endblock %}

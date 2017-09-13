@@ -20,7 +20,7 @@
         <ol>
             {% for unit in units %}
                 <li>
-                    <a href="{% url 'learn.unit_detail' unit.id %}">{{ unit.description }}</a>
+                    <a href="{% url 'learn.unit_detail' unit.id %}">{{ unit }}</a>
                 </li>
             {% endfor %}
         </ol>

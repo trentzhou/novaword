@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            班级列表
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">班级列表</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        {% if groups %}
+        <table class="table table-responsive" id="group_table">
+            <thead>
+                <td>学校</td>
+                <td>班级</td>
+            </thead>
+            {% for group in groups %}
+                <tr>
+                    <td>{{ group.organization }}</td>
+                    <td>
+                        <a href="{% url 'user.group_detail' group.id %}">{{ group }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+            <p>还没有任何班级</p>
+        {% endif %}
+
+    </section>
+{% endblock %}
+
+
+{% block extra_script %}
+
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+    $(function () {
+        $("#group_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            }
+        });
+    });
+    </script>
+{% endblock %}

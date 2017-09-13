@@ -6,7 +6,7 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import make_password
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, Http404
 from django.views.generic import View
 #from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -14,7 +14,8 @@ from django.shortcuts import render, redirect
 from operations.models import UserMessage
 from users.forms import LoginForm, RegisterForm, ForgetForm, ModifyPasswordForm, RegisterMobileForm, VerifySmsForm, \
     UploadImageForm, AjaxChangeNickNameForm, AjaxGetEmailVerificationForm, AjaxUpdateEmailForm, AjaxChangePasswordForm
-from users.models import UserProfile, EmailVerifyRecord
+from users.models import UserProfile, EmailVerifyRecord, UserGroup, Group
+from utils import parse_bool
 from utils.email_send import send_register_email, save_email_verify_record
 from utils.wilddog_sms import is_valid_phone_number, SmsClient
 from word_master.settings import WILDDOG_API_KEY, WILDDOG_APP_ID
@@ -398,3 +399,189 @@ class AjaxChangeMobileView(View):
                 "status": "fail",
                 "error": u"验证码错误"
             })
+
+
+class UserContactView(View):
+    def get(self, request, user_id):
+        user = UserProfile.objects.filter(id=user_id).get()
+        return render(request, 'user_contact.html', {
+            "user": user
+        })
+
+    def post(self, request, user_id):
+        title = request.POST.get("title", "")
+        text = request.POST.get("message", "")
+        m = UserMessage()
+        m.message_type = UserMessage.MSG_TYPE_USER
+        m.title = title
+        m.message = text
+        m.from_user = request.user
+        m.to_user = user_id
+        m.save()
+        return render(request, 'user_contact.html', {
+            "message": u"消息发送成功"
+        })
+
+
+class MyGroupView(View):
+    def get(self, request):
+        my_groups = UserGroup.objects.filter(user=request.user).all()
+        return render(request, 'user_groups.html', {
+            "page": "groups",
+            "groups": my_groups
+        })
+
+
+class GroupListView(View):
+    def get(self, request):
+        groups = Group.objects.filter(is_admin=False).order_by("organization").all()
+        return render(request, 'group_list.html', {
+            "page": "groups",
+            "groups": groups
+        })
+
+
+class GroupDetailView(View):
+    def get(self, request, group_id):
+        group = Group.objects.filter(id=group_id).get()
+        if not group:
+            raise Http404()
+        my_role = None
+        my_membership = UserGroup.objects.filter(user=request.user, group_id=group_id).all()
+        if my_membership:
+            my_role = my_membership[0]
+        members = UserGroup.objects.filter(group_id=group_id).all()
+        return render(request, 'group_detail.html', {
+            "group": group,
+            "page": "groups",
+            "members": members,
+            "my_role": my_role
+        })
+
+
+class AjaxJoinGroupView(View):
+    def post(self, request):
+        group_id = request.POST.get("group_id", None)
+        is_teacher = parse_bool(request.POST.get("is_teacher", False))
+        if not group_id:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "bad input"
+            })
+        target_users = []
+        # find group administrators
+        admin_users = UserGroup.objects.filter(Q(role=2)|Q(role=3), group_id=group_id).all()
+
+        if admin_users:
+            for admin in admin_users:
+                target_users.append(admin.user)
+        else:
+            # no admin user found. tell site admin
+            target_users = UserProfile.objects.filter(is_staff=True)
+        # put a message to all target users
+        for target in target_users:
+            msg = UserMessage()
+            msg.to_user = target.id
+            msg.from_user = None    # system message
+            msg.title = u"用户{0}请求加入班级".format(request.user.nick_name)
+            msg.message_type = UserMessage.MSG_TYPE_JOIN_GROUP
+            msg.message = json.dumps({
+                "group_id": group_id,
+                "user_id": request.user.id,
+                "is_teacher": is_teacher
+            })
+            msg.save()
+        return JsonResponse({
+            "status": "success"
+        })
+
+class AjaxLeaveGroupView(View):
+    def post(self, request):
+        group_id = request.POST.get("group_id", None)
+        if not group_id:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "bad input"
+            })
+        target_users = []
+        # find group administrators
+        admin_users = UserGroup.objects.filter(Q(role=2) | Q(role=3), group_id=group_id).all()
+
+        if admin_users:
+            for admin in admin_users:
+                target_users.append(admin.user)
+        else:
+            # no admin user found. tell site admin
+            target_users = UserProfile.objects.filter(is_staff=True)
+        # put a message to all target users
+        for target in target_users:
+            msg = UserMessage()
+            msg.to_user = target.id
+            msg.from_user = None  # system message
+            msg.title = u"用户{0}请求退出班级".format(request.user)
+            msg.message_type = UserMessage.MSG_TYPE_LEAVE_GROUP
+            msg.message = json.dumps({
+                "group_id": group_id,
+                "user_id": request.user.id
+            })
+            msg.save()
+        return JsonResponse({
+            "status": "success"
+        })
+
+
+class AjaxApproveJoinGroupView(View):
+    def post(self, request):
+        user_id = request.POST.get("user_id", 0)
+        group_id = request.POST.get("group_id", 0)
+        role = request.POST.get("role", 1)
+        try:
+            user = UserProfile.objects.filter(id=user_id).get()
+            group = Group.objects.filter(id=group_id).get()
+            if not UserGroup.objects.filter(user=user, group=group).count():
+                ug = UserGroup()
+                ug.user = user
+                ug.group = group
+                ug.role = role
+                ug.save()
+            return JsonResponse({
+                "status": "success"
+            })
+        except Exception as e:
+            return JsonResponse({
+                "status": "fail"
+            })
+
+
+class AjaxApproveLeaveGroupView(View):
+    def post(self, request):
+        user_id = request.POST.get("user_id", 0)
+        group_id = request.POST.get("group_id", 0)
+
+        try:
+            UserGroup.objects.filter(user_id=user_id, group_id=group_id).delete()
+            return JsonResponse({
+                "status": "success"
+            })
+        except Exception as e:
+            return JsonResponse({
+                "status": "fail"
+            })
+
+
+class AjaxRejectRequestView(View):
+    def post(self, request):
+        user_id = request.POST.get("user_id", 0)
+        message_type = request.POST.get("message_type", UserMessage.MSG_TYPE_USER)
+        if user_id:
+            # create a message to tell the user
+            m = UserMessage()
+            m.from_user = request.user
+            m.to_user = user_id
+            m.title = u"申请被拒绝"
+            request_type = UserMessage(message_type=int(message_type)).get_message_type_display()
+            m.message = u"你的{0}申请审核未通过。如有疑问，请和我私信联系。".format(request_type)
+            m.save()
+        return JsonResponse({
+            "status": "success"
+        })

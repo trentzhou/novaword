@@ -103,11 +103,11 @@ desired effect
                                                             <img src="{% if message.from_user.avatar %}{{ MEDIA_URL }}{{ message.from_user.avatar }}{% else %}{% static 'AdminLTE/img/avatar2.png' %}{% endif %}" class="img-circle" alt="User Image">
                                                         </div>
                                                         <h4>
-                                                            <span class="nickname">{{ message.from_user.nick_name }}</span>
+                                                            <span class="nickname">{{ message.from_user.nick_name|default:"系统" }}</span>
                                                             <small><i class="fa fa-clock-o"></i>{{ message.add_time }}</small>
                                                         </h4>
                                                         <!-- The message -->
-                                                        <p>{{ message.message }}</p>
+                                                        <p>{{ message.title|default:"无标题" }}</p>
                                                     </a>
                                                 </li>
 
@@ -237,8 +237,8 @@ desired effect
                         </li>
 
                         <li class="header">交流</li>
-                        <li {% ifequal page "classes" %} class="active" {% endifequal %}>
-                            <a href="{% url 'users.classes' %}"><i class="ion ion-ios-people"></i> <span>班级</span></a>
+                        <li {% ifequal page "groups" %} class="active" {% endifequal %}>
+                            <a href="{% url 'user.my_groups' %}"><i class="ion ion-ios-people"></i> <span>班级</span></a>
                         </li>
                         <li {% ifequal page "messages" %} class="active" {% endifequal %}>
                             <a href="{% url 'operations.message_list' %}"><i class="fa fa-comments"></i> <span>消息</span></a>

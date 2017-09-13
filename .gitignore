@@ -11,5 +11,5 @@ venv/
 *xxx*
 *.env
 .idea/
-.vscode/
+*/.vscode/
 media/

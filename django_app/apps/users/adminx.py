@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import EmailVerifyRecord, Group, UserGroup
+from .models import EmailVerifyRecord, Group, UserGroup, Organization
 
 
 class BaseSetting(object):
@@ -21,10 +21,17 @@ class EmailVerifyRecordAdmin(object):
     model_icon = 'fa fa-envelope'
 
 
+class OrganizationAdmin(object):
+    list_display = ['name', 'description', 'create_time']
+    search_fields = ['name', 'description']
+    list_filter = ['name', 'description', 'create_time']
+    model_icon = 'fa fa-building'
+
+
 class GroupAdmin(object):
-    list_display = ['name', 'description', 'create_time', 'password']
-    search_fields = ['name', 'description', 'password']
-    list_filter = ['name', 'description', 'create_time', 'password']
+    list_display = ['name', 'description', 'organization', 'is_admin', 'create_time', 'password']
+    search_fields = ['name', 'description', 'organization', 'password']
+    list_filter = ['name', 'description', 'organization', 'is_admin', 'create_time', 'password']
     model_icon = 'fa fa-list'
 
 
@@ -36,6 +43,7 @@ class UserGroupAdmin(object):
 
 
 xadmin.site.register(EmailVerifyRecord, EmailVerifyRecordAdmin)
+xadmin.site.register(Organization, OrganizationAdmin)
 xadmin.site.register(Group, GroupAdmin)
 xadmin.site.register(UserGroup, UserGroupAdmin)
 xadmin.site.register(xadmin.views.BaseAdminView, BaseSetting)
