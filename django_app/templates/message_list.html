@@ -36,7 +36,7 @@
                             {% else %}
                                 <img src="{% static 'AdminLTE/img/avatar2.png' %}" class="img-circle img-sm" />
                             {% endif %}
-                            <span class="username">{{ message.from_user|default:"系统" }}</span>
+                            <span class="username">{{ message.from_user.nick_name|default:"系统" }}</span>
                         </a>
                     </td>
                     <td>
