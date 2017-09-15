@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 
 from operations.models import UserMessage
-from users.models import UserProfile, Group, UserGroup
+from users.models import UserProfile, Group, UserGroup, Organization
 from utils.lookup_word_in_db import find_word
 
 
@@ -27,11 +27,13 @@ class MessageView(View):
             text = message.message
             data.update(json.loads(text))
             if message.message_type == UserMessage.MSG_TYPE_JOIN_GROUP:
-                return self.render_msg_join_group(request, message, data)
+                return self.render_msg_join_group(request, data)
             elif message.message_type == UserMessage.MSG_TYPE_LEAVE_GROUP:
-                return self.render_msg_leave_group(request, message, data)
+                return self.render_msg_leave_group(request, data)
+            elif message.message_type == UserMessage.MSG_TYPE_CREATE_GROUP:
+                return self.render_msg_create_group(request, data)
 
-    def render_msg_join_group(self, request, message, data):
+    def render_msg_join_group(self, request, data):
         user = UserProfile.objects.filter(id=data["user_id"]).get()
         group = Group.objects.filter(id=data["group_id"]).get()
         if data.get("is_teacher", False):
@@ -45,7 +47,7 @@ class MessageView(View):
         })
         return render(request, 'message_join_group.html', data)
 
-    def render_msg_leave_group(self, request, message, data):
+    def render_msg_leave_group(self, request, data):
         user = UserProfile.objects.filter(id=data["user_id"]).get()
         group = Group.objects.filter(id=data["group_id"]).get()
 
@@ -54,6 +56,12 @@ class MessageView(View):
             "group": group
         })
         return render(request, 'message_leave_group.html', data)
+
+    def render_msg_create_group(self, request, data):
+        organization_id = data["organization_id"]
+        organization = Organization.objects.filter(id=organization_id).get()
+        data["organization"] = organization
+        return render(request, 'message_create_group.html', data)
 
     def post(self, request, message_id):
         # this should actually be delete

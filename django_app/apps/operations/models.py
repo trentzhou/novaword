@@ -19,6 +19,7 @@ class UserMessage(models.Model):
     MSG_TYPE_JOIN_GROUP_OK          = 8
     MSG_TYPE_LEAVE_GROUP            = 9
     MSG_TYPE_LEAVE_GROUP_OK         = 10
+    MSG_TYPE_APPROVED               = 100
     MSG_TYPE_REJECTED               = 110
 
     to_user = models.IntegerField(default=0, verbose_name=u"收消息的用户")
@@ -38,6 +39,7 @@ class UserMessage(models.Model):
                                            (8, u"成功加入班级"),
                                            (9, u"申请退出班级"),
                                            (10, u"成功退出班级"),
+                                           (100, u"请求被批准"),
                                            (110, u"请求被拒绝"),
                                        ),
                                        default=0)

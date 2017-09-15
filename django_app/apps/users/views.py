@@ -4,6 +4,7 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse, Http404
@@ -14,8 +15,8 @@ from django.shortcuts import render, redirect
 from operations.models import UserMessage
 from users.forms import LoginForm, RegisterForm, ForgetForm, ModifyPasswordForm, RegisterMobileForm, VerifySmsForm, \
     UploadImageForm, AjaxChangeNickNameForm, AjaxGetEmailVerificationForm, AjaxUpdateEmailForm, AjaxChangePasswordForm
-from users.models import UserProfile, EmailVerifyRecord, UserGroup, Group
-from utils import parse_bool
+from users.models import UserProfile, EmailVerifyRecord, UserGroup, Group, Organization
+from utils import parse_bool, find_group_admin_users, find_organization_admin_users
 from utils.email_send import send_register_email, save_email_verify_record
 from utils.wilddog_sms import is_valid_phone_number, SmsClient
 from word_master.settings import WILDDOG_API_KEY, WILDDOG_APP_ID
@@ -234,6 +235,7 @@ class VerifySmsView(View):
         else:
             return render(request, "verify_sms.html", {"verify_sms": verify_sms_form})
 
+
 class ResetPasswordView(View):
     def get(self, request, activate_code):
         record = EmailVerifyRecord.objects.filter(code=activate_code).get()
@@ -266,21 +268,14 @@ class ModifyPasswordView(View):
             return render(request, "password_reset.html", {"email":email, "reset_form":modify_form})
 
 
-class UserInfoView(View):
+class UserInfoView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'user_profile.html', {
             "page": "profile"
         })
 
 
-class ClassListView(View):
-    def get(self, request):
-        return render(request, 'todo.html', {
-            "page": "classes"
-        })
-
-
-class AvatarUploadView(View):
+class AvatarUploadView(LoginRequiredMixin, View):
     def post(self, request):
         image_form = UploadImageForm(request.POST, request.FILES, instance=request.user)
         if image_form.is_valid():
@@ -293,7 +288,7 @@ class AvatarUploadView(View):
             return HttpResponse('{"status":"fail"}', content_type='application/json')
 
 
-class AjaxChangeNickNameView(View):
+class AjaxChangeNickNameView(LoginRequiredMixin, View):
     def post(self, request):
         form = AjaxChangeNickNameForm(request.POST, instance=request.user)
         if form.is_valid():
@@ -306,7 +301,7 @@ class AjaxChangeNickNameView(View):
             return JsonResponse({"status": "fail"})
 
 
-class AjaxGetEmailVerificationView(View):
+class AjaxGetEmailVerificationView(LoginRequiredMixin, View):
     def post(self, request):
         form = AjaxGetEmailVerificationForm(request.POST)
         if form.is_valid():
@@ -333,7 +328,7 @@ class AjaxGetEmailVerificationView(View):
             })
 
 
-class AjaxUpdateEmailView(View):
+class AjaxUpdateEmailView(LoginRequiredMixin, View):
     def post(self, request):
         form = AjaxUpdateEmailForm(request.POST)
         if form.is_valid():
@@ -350,7 +345,7 @@ class AjaxUpdateEmailView(View):
             })
 
 
-class AjaxChangePasswordView(View):
+class AjaxChangePasswordView(LoginRequiredMixin, View):
     def post(self, request):
         form = AjaxChangePasswordForm(request.POST)
         if form.is_valid():
@@ -372,7 +367,7 @@ class AjaxChangePasswordView(View):
             })
 
 
-class AjaxChangeMobileView(View):
+class AjaxChangeMobileView(LoginRequiredMixin, View):
     def post(self, request):
         form = VerifySmsForm(request.POST)
         if form.is_valid():
@@ -401,7 +396,7 @@ class AjaxChangeMobileView(View):
             })
 
 
-class UserContactView(View):
+class UserContactView(LoginRequiredMixin, View):
     def get(self, request, user_id):
         user = UserProfile.objects.filter(id=user_id).get()
         return render(request, 'user_contact.html', {
@@ -423,7 +418,7 @@ class UserContactView(View):
         })
 
 
-class MyGroupView(View):
+class MyGroupView(LoginRequiredMixin, View):
     def get(self, request):
         my_groups = UserGroup.objects.filter(user=request.user).all()
         return render(request, 'user_groups.html', {
@@ -432,16 +427,18 @@ class MyGroupView(View):
         })
 
 
-class GroupListView(View):
+class GroupListView(LoginRequiredMixin, View):
     def get(self, request):
         groups = Group.objects.filter(is_admin=False).order_by("organization").all()
+        organizations = Organization.objects.all()
         return render(request, 'group_list.html', {
             "page": "groups",
-            "groups": groups
+            "groups": groups,
+            "organizations": organizations
         })
 
 
-class GroupDetailView(View):
+class GroupDetailView(LoginRequiredMixin, View):
     def get(self, request, group_id):
         group = Group.objects.filter(id=group_id).get()
         if not group:
@@ -459,7 +456,7 @@ class GroupDetailView(View):
         })
 
 
-class AjaxJoinGroupView(View):
+class AjaxJoinGroupView(LoginRequiredMixin, View):
     def post(self, request):
         group_id = request.POST.get("group_id", None)
         is_teacher = parse_bool(request.POST.get("is_teacher", False))
@@ -495,7 +492,8 @@ class AjaxJoinGroupView(View):
             "status": "success"
         })
 
-class AjaxLeaveGroupView(View):
+
+class AjaxLeaveGroupView(LoginRequiredMixin, View):
     def post(self, request):
         group_id = request.POST.get("group_id", None)
         if not group_id:
@@ -503,22 +501,13 @@ class AjaxLeaveGroupView(View):
                 "status": "fail",
                 "reason": "bad input"
             })
-        target_users = []
-        # find group administrators
-        admin_users = UserGroup.objects.filter(Q(role=2) | Q(role=3), group_id=group_id).all()
-
-        if admin_users:
-            for admin in admin_users:
-                target_users.append(admin.user)
-        else:
-            # no admin user found. tell site admin
-            target_users = UserProfile.objects.filter(is_staff=True)
+        target_users = find_group_admin_users(int(group_id))
         # put a message to all target users
         for target in target_users:
             msg = UserMessage()
             msg.to_user = target.id
             msg.from_user = None  # system message
-            msg.title = u"用户{0}请求退出班级".format(request.user)
+            msg.title = u"用户{0}请求退出班级".format(request.user.nick_name)
             msg.message_type = UserMessage.MSG_TYPE_LEAVE_GROUP
             msg.message = json.dumps({
                 "group_id": group_id,
@@ -530,7 +519,51 @@ class AjaxLeaveGroupView(View):
         })
 
 
-class AjaxApproveJoinGroupView(View):
+class AjaxCreateGroupView(LoginRequiredMixin, View):
+    def post(self, request):
+        group_name = request.POST.get("group_name", None)
+        group_description = request.POST.get("group_description", None)
+        organization_id = request.POST.get("organization_id", None)
+
+        # validate
+        if not group_name or not group_description or not organization_id:
+            return JsonResponse({
+                "status": "fail",
+                "reason": u"错误：输入不正确"
+            })
+        # check if the name is already being used
+        if Group.objects.filter(organization_id=organization_id, name=group_name).count():
+            return JsonResponse({
+                "status": "fail",
+                "reason": u"错误：班级名称已经被使用"
+            })
+        # find the organization
+        try:
+            target_users = find_organization_admin_users(int(organization_id))
+            for target in target_users:
+                msg = UserMessage()
+                msg.to_user = target.id
+                msg.from_user = None  # system message
+                msg.title = u"用户{0}请求创建班级".format(request.user.nick_name)
+                msg.message_type = UserMessage.MSG_TYPE_CREATE_GROUP
+                msg.message = json.dumps({
+                    "organization_id": organization_id,
+                    "user_id": request.user.id,
+                    "group_name": group_name,
+                    "group_description": group_description
+                })
+                msg.save()
+                return JsonResponse({
+                    "status": "success"
+                })
+        except:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "bad request"
+            })
+
+
+class AjaxApproveJoinGroupView(LoginRequiredMixin, View):
     def post(self, request):
         user_id = request.POST.get("user_id", 0)
         group_id = request.POST.get("group_id", 0)
@@ -544,6 +577,14 @@ class AjaxApproveJoinGroupView(View):
                 ug.group = group
                 ug.role = role
                 ug.save()
+
+                m = UserMessage()
+                m.from_user = request.user
+                m.message_type = UserMessage.MSG_TYPE_USER
+                m.title = u"你已经成功加入班级" + group.name
+                m.message = u"快去班级看看吧。"
+                m.to_user = user_id
+                m.save()
             return JsonResponse({
                 "status": "success"
             })
@@ -553,13 +594,21 @@ class AjaxApproveJoinGroupView(View):
             })
 
 
-class AjaxApproveLeaveGroupView(View):
+class AjaxApproveLeaveGroupView(LoginRequiredMixin, View):
     def post(self, request):
         user_id = request.POST.get("user_id", 0)
         group_id = request.POST.get("group_id", 0)
 
         try:
-            UserGroup.objects.filter(user_id=user_id, group_id=group_id).delete()
+            deleted, _ = UserGroup.objects.filter(user_id=user_id, group_id=group_id).delete()
+            if deleted:
+                m = UserMessage()
+                m.from_user = request.user
+                m.message_type = UserMessage.MSG_TYPE_USER
+                m.title = u"你已经成功退出班级"
+                m.message = u""
+                m.to_user = user_id
+                m.save()
             return JsonResponse({
                 "status": "success"
             })
@@ -569,7 +618,49 @@ class AjaxApproveLeaveGroupView(View):
             })
 
 
-class AjaxRejectRequestView(View):
+class AjaxApproveCreateGroupView(LoginRequiredMixin, View):
+    def post(self, request):
+        user_id = request.POST.get("user_id", 0)
+        group_name = request.POST.get("group_name", None)
+        group_description = request.POST.get("group_description", None)
+        organization_id = request.POST.get("organization_id", None)
+
+        # No validation. We assume they are all valid
+        try:
+            # create the group
+            group = Group()
+            group.organization_id = organization_id
+            group.name = group_name
+            group.description = group_description
+            group.save()
+
+            # add admin user
+            user_group = UserGroup()
+            user_group.user_id = user_id
+            user_group.group = group
+            user_group.role = 3         # 管理员
+            user_group.save()
+
+            # send a message to user
+            m = UserMessage()
+            m.message_type = UserMessage.MSG_TYPE_USER
+            m.title = u"你申请的班级已经创建： {0}".format(group.name)
+            m.message = u"你申请的班级已经创建，可以在 “班级” “全部班级” 中找到。"
+            m.to_user = user_id
+            m.from_user = request.user
+            m.save()
+
+            return JsonResponse({
+                "status": "success"
+            })
+        except:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "bad request"
+            })
+
+
+class AjaxRejectRequestView(LoginRequiredMixin, View):
     def post(self, request):
         user_id = request.POST.get("user_id", 0)
         message_type = request.POST.get("message_type", UserMessage.MSG_TYPE_USER)

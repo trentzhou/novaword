@@ -40,7 +40,50 @@
             <p>还没有任何班级</p>
         {% endif %}
 
+        <a class="btn btn-primary" id="btn_create_group">申请创建新班级</a>
     </section>
+
+    <!-- 创建班级对话框 -->
+    <div class="modal fade" id="dialog-create-group">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">创建班级</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+
+                    <div class="form-group">
+                        <label>学校</label>
+                        <select id="organization" class="form-control">
+                            {% for org in organizations %}
+                                <option value="{{ org.id }}">{{ org.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="group-name-div">
+                        <label>班级名称</label>
+                        <input id="group_name" class="form-control" type="input" placeholder="班级名称">
+                    </div>
+
+                    <div class="form-group">
+                        <label>班级简介</label>
+                        <textarea id="group_description" class="form-control" rows="3" placeholder="班级简介"></textarea>
+                    </div>
+
+                    <p id="create_group_msg"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="confirm_create">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
 {% endblock %}
 
 
@@ -55,6 +98,46 @@
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
             }
+        });
+
+        $("#btn_create_group").click(function() {
+            // show dialog
+            $("#dialog-create-group").modal();
+        });
+
+        $("#confirm_create").click(function() {
+            if (!$("#group_name").val()) {
+                $("#group-name-div").addClass("has-error");
+                return;
+            } else {
+                $("#group-name-div").removeClass("has-error");
+            }
+             $.ajax({
+                type: "POST",
+                url: "{% url 'user.create_group' %}",
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "group_name": $("#group_name").val(),
+                    "group_description": $("#group_description").val(),
+                    "organization_id": $("#organization").val()
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "success") {
+                            $("#create_group_msg").text("已经发消息提醒管理员批准。请耐心等待。");
+                            $("#confirm_join").addClass("disabled");
+                        } else if (data.status == "fail") {
+                            var error = data.reason
+                            $("#create_group_msg").text(error);
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
         });
     });
     </script>
