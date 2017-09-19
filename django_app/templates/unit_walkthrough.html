@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+{% block content %}
+        <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            单词学习
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">单词学习</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+    <div class="box">
+
+        <div class="box-body">
+
+            <div id="word_browser">
+
+                <div class="btn-group">
+                    <a class="btn btn-primary" id="btn-prev">上一个</a>
+                    <a class="btn btn-primary" id="btn-next">下一个</a>
+                </div>
+
+                <h2 id="word-spelling"></h2>
+
+                <div>
+                    <a id="container_us" class="btn">
+                        美 <span class="ion ion-speakerphone text-blue" id="play_us"></span> <span id="pronounciation_us"></span>
+                        <audio id="audio_us">
+                            <source id="audio_us_src" />
+                        </audio>
+                    </a>
+
+                    <a id="container_uk" class="btn">
+                        英 <span class="ion ion-speakerphone text-blue" id="play_uk"></span> <span id="pronounciation_uk"></span>
+                        <audio id="audio_uk">
+                            <source id="audio_uk_src" />
+                        </audio>
+                    </a>
+                </div>
+                <div id="simple-meaning"></div>
+                <div id="simple-meaning-in-dict"></div>
+
+            </div>
+
+            <div id="links">
+                <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
+                <a class="btn btn-primary" href="{% url 'learn.unit_learn' unit.id %}">强化练习</a>
+                <a class="btn btn-primary" id="btn-walkthrough">继续浏览</a>
+            </div>
+        </div>
+    </div>
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+    $(function() {
+        var unit_words = null;
+        var current_index = 0;
+        var url = "{% url 'learn.ajax_unit_data' unit.id %}";
+
+        $.get(url, function(result) {
+            console.log(result);
+            unit_words = result["words"];
+            start_walk_through();
+        });
+
+        function start_walk_through() {
+
+            current_index = 0;
+            show_links(false);
+            show_word(unit_words[0]);
+        }
+
+        function show_links(show) {
+            if (show) {
+                $("#links").show();
+                $("#word_browser").hide();
+            } else {
+                $("#word_browser").show();
+                $("#links").hide();
+            }
+        }
+
+        function show_word(word) {
+            // spelling
+            $("#word-spelling").text(word.spelling);
+            // show pronounciation
+            if (word.pronounciation_us) {
+                $("#container_us").show();
+                $("#pronounciation_us").text(word.pronounciation_us);
+                $("#audio_us_src").attr("src", word.mp3_us_url);
+            } else {
+                $("#container_us").hide();
+            }
+            if (word.pronounciation_uk) {
+                $("#container_uk").show();
+                $("#pronounciation_uk").text(word.pronounciation_uk);
+                $("#audio_uk_src").attr("src", word.mp3_uk_url);
+            } else {
+                $("#container_uk").hide();
+            }
+            // simple meaning
+            $("#simple-meaning").text(word.simple_meaning);
+            //$("#simple-meaning-in-dict").text(word.short_meaning_in_dict);
+        }
+
+        function show_prev() {
+            if ($("#links").is(':visible')) {
+                show_links(false);
+                return;
+            }
+            if (current_index > 0) {
+                current_index--;
+                show_links(false);
+                show_word(unit_words[current_index]);
+            } else {
+                // finished browsing all words
+                show_links(true);
+            }
+        }
+
+        function show_next() {
+            if ($("#links").is(':visible')) {
+                show_links(false);
+                return;
+            }
+            if (current_index < unit_words.length - 1) {
+                current_index++;
+                show_links(false);
+                show_word(unit_words[current_index]);
+            } else {
+                // finished browsing all words
+                show_links(true);
+            }
+        }
+
+        $("#btn-walkthrough").click(start_walk_through);
+
+        $("#btn-prev").click(show_prev);
+
+        $("#btn-next").click(show_next);
+
+        $(document).keydown(function(event) {
+            if (event.which == 39) {
+                show_next();
+            } else if (event.which == 37) {
+                show_prev();
+            }
+        });
+
+        $("#container_us").click(function() {
+            var us = $("#audio_us").get(0);
+            us.load();
+            us.play();
+        });
+
+        $("#container_uk").click(function() {
+            var uk = $("#audio_uk").get(0);
+            uk.load();
+            uk.play();
+        });
+
+    });
+    </script>
+{% endblock %}

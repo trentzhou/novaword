@@ -97,7 +97,8 @@
         $("#group_table").DataTable({
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
-            }
+            },
+            "pageLength": 50
         });
 
         $("#btn_create_group").click(function() {

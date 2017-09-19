@@ -33,10 +33,12 @@
             <div class="box-header">
                 <h3>
                     {% if is_planned %}
-                        <button class="btn btn-success" id="btn-toggle-plan">已在学习计划中</button>
+                        <a class="btn btn-success" id="btn-toggle-plan">已在学习计划中</a>
                     {% else %}
-                        <button class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</button>
+                        <a class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</a>
                     {% endif %}
+
+                    <a class="btn btn-primary" id="btn-walkthrough" href="{% url 'learn.unit_walkthrough' unit.id %}">开始学习</a>
                 </h3>
 
             </div>
@@ -129,7 +131,8 @@
         $("#word_table").DataTable({
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
-            }
+            },
+            "pageLength": 50
         });
     });
     </script>

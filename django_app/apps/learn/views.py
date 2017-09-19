@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
@@ -54,7 +55,7 @@ class UnitDetailView(View):
         })
 
 
-class AjaxAddBookToLearningPlanView(View):
+class AjaxAddBookToLearningPlanView(LoginRequiredMixin, View):
     def post(self, request):
         book_id = request.POST.get("book_id", None)
         if not book_id:
@@ -73,7 +74,7 @@ class AjaxAddBookToLearningPlanView(View):
         })
 
 
-class AjaxAddUnitToLearningPlanView(View):
+class AjaxAddUnitToLearningPlanView(LoginRequiredMixin, View):
     def post(self, request):
         unit_id = request.POST.get("unit_id", None)
         if not unit_id:
@@ -90,7 +91,7 @@ class AjaxAddUnitToLearningPlanView(View):
         })
 
 
-class AjaxDeleteUnitFromLearningPlanView(View):
+class AjaxDeleteUnitFromLearningPlanView(LoginRequiredMixin, View):
     def post(self, request):
         unit_id = request.POST.get("unit_id", None)
         if not unit_id:
@@ -103,7 +104,7 @@ class AjaxDeleteUnitFromLearningPlanView(View):
         })
 
 
-class AjaxIsUnitInLearningPlan(View):
+class AjaxIsUnitInLearningPlan(LoginRequiredMixin, View):
     def get(self, request, unit_id):
         if LearningPlan.objects.filter(unit_id=unit_id, user=request.user).get():
             return JsonResponse({
@@ -115,15 +116,75 @@ class AjaxIsUnitInLearningPlan(View):
             })
 
 
-class LearningView(View):
+class LearningView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'todo.html', {
             "page": "learning"
         })
 
-class ReviewView(View):
+
+class ReviewView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'todo.html', {
             "page": "review"
         })
 
+
+class AjaxUnitDataView(View):
+    def get(self, request, unit_id):
+        words_in_unit = WordInUnit.objects.filter(unit_id=unit_id).order_by("order").all()
+        if not words_in_unit:
+            return JsonResponse({
+                "status": "failure"
+            })
+        result = []
+        for w in words_in_unit:
+            result.append({
+                "simple_meaning": w.simple_meaning,
+                "spelling": w.word.spelling,
+                "pronounciation_us": w.word.pronounciation_us,
+                "pronounciation_uk": w.word.pronounciation_uk,
+                "mp3_us_url": w.word.mp3_us_url,
+                "mp3_uk_url": w.word.mp3_uk_url,
+                "short_meaning_in_dict": w.word.short_meaning,
+                "detailed_meaning_in_dict": w.word.detailed_meanings
+            })
+        return JsonResponse({
+            "words": result
+        })
+
+
+class UnitWalkThroughView(LoginRequiredMixin, View):
+    def get(self, request, unit_id):
+        try:
+            unit = WordUnit.objects.filter(id=unit_id).get()
+            return render(request, 'unit_walkthrough.html', {
+                "page": "learning",
+                "unit": unit
+            })
+        except KeyError:
+            raise Http404()
+
+
+class UnitLearnView(LoginRequiredMixin, View):
+    def get(self, request, unit_id):
+        try:
+            unit = WordUnit.objects.filter(id=unit_id).get()
+            return render(request, 'unit_learn.html', {
+                "page": "learning",
+                "unit": unit
+            })
+        except:
+            raise Http404()
+
+
+class UnitTestView(LoginRequiredMixin, View):
+    def get(self, request, unit_id):
+        try:
+            unit = WordUnit.objects.filter(id=unit_id).get()
+            return render(request, 'unit_test.html', {
+                "page": "learning",
+                "unit": unit
+            })
+        except:
+            raise Http404()
