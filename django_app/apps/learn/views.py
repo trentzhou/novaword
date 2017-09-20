@@ -3,7 +3,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
-from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan
+from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord
 
 
 class BookListView(View):
@@ -188,3 +188,30 @@ class UnitTestView(LoginRequiredMixin, View):
             })
         except:
             raise Http404()
+
+
+class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
+    def post(self, request):
+        unit_id = request.POST.get("unit_id", None)
+        type = request.POST.get("type", None)
+        correct_rate = request.POST.get("correct_rate", 0)
+
+        if not unit_id or not type:
+            return JsonResponse({
+                "status": "fail"
+            })
+        try:
+            unit = WordUnit.objects.filter(id=unit_id).get()
+            record = LearningRecord()
+            record.user = request.user
+            record.unit = unit
+            record.type = type
+            record.correct_rate = correct_rate
+            record.save()
+            return JsonResponse({
+                "status": "success"
+            })
+        except:
+            return JsonResponse({
+                "status": "fail"
+            })

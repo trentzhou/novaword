@@ -38,7 +38,9 @@
                         <a class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</a>
                     {% endif %}
 
-                    <a class="btn btn-primary" id="btn-walkthrough" href="{% url 'learn.unit_walkthrough' unit.id %}">开始学习</a>
+                    <a class="btn btn-primary" href="{% url 'learn.unit_walkthrough' unit.id %}">开始学习</a>
+                    <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
+                    <a class="btn btn-primary" href="{% url 'learn.unit_learn' unit.id %}">强化练习</a>
                 </h3>
 
             </div>

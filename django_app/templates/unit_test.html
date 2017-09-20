@@ -3,17 +3,289 @@
         <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            还没做好
+            单元测试
         </h1>
         <ol class="breadcrumb">
             <li>
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
-            <li class="active">TODO</li>
+            <li class="active">单元测试</li>
         </ol>
     </section>
 
     <!-- Main content -->
     <section class="content container-fluid">
+    <div class="box">
+        <div class="box-body">
+            <div id="choose">
+                <h2 id="spelling"></h2>
+                <div id="count"></div>
+                请选择正确的中文解释：
+                <ul class="todo-list" id="choices">
+                    <li id="option1" class="candidate"></li>
+                    <li id="option2" class="candidate"></li>
+                    <li id="option3" class="candidate"></li>
+                    <li id="option4" class="candidate"></li>
+                </ul>
+            </div>
+
+            <div id="explain">
+                <div>
+                    <h2 id="word_spelling"></h2>
+                    <a id="container_us" class="btn">
+                        美 <span class="ion ion-speakerphone text-blue" id="play_us"></span> <span id="pronounciation_us"></span>
+                        <audio id="audio_us">
+                            <source id="audio_us_src" />
+                        </audio>
+                    </a>
+
+                    <a id="container_uk" class="btn">
+                        英 <span class="ion ion-speakerphone text-blue" id="play_uk"></span> <span id="pronounciation_uk"></span>
+                        <audio id="audio_uk">
+                            <source id="audio_uk_src" />
+                        </audio>
+                    </a>
+                </div>
+                <div id="simple-meaning"></div>
+                <div id="simple-meaning-in-dict"></div>
+
+                <a id="btn-continue" class="btn btn-primary">继续</a>
+            </div>
+
+            <div id="congratulations">
+                <h2>恭喜你，完成了测试！</h2>
+                <div id="result-stat"></div>
+                <a href="{% url 'learn.units' %}" class="btn btn-primary">返回单元</a>
+                <a class="btn btn-primary" id="btn_start_over">再来一次</a>
+            </div>
+        </div>
+    </div>
     </section>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+    $(function() {
+        var unit_words = null;
+        var url = "{% url 'learn.ajax_unit_data' unit.id %}";
+        var word_index = -1;
+        var waiting_answer = false;
+        var correct_div_id = "";
+
+        $("#congratulations").hide();
+
+        $.get(url, function(result) {
+            unit_words = result["words"];
+            for (var i = 0; i < unit_words.length; i++) {
+                var word = unit_words[i];
+                word.correct = false;
+                word.index = i;
+            }
+            continue_quiz();
+        });
+
+        function shuffle(array) {
+            var currentIndex = array.length, temporaryValue, randomIndex;
+
+            // While there remain elements to shuffle...
+            while (0 !== currentIndex) {
+
+                // Pick a remaining element...
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex -= 1;
+
+                // And swap it with the current element.
+                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+
+          return array;
+        }
+
+
+        function show_quiz(index) {
+            // show a quiz for a given word
+            var word = unit_words[index];
+            word_index = index;
+            // find 3 wrong explanations
+            var candidate_set = []
+            candidate_set.push(word.simple_meaning);
+            while (candidate_set.length < 4) {
+                var index = Math.floor(Math.random() * unit_words.length);
+                var candidate = unit_words[index];
+                var meaning = candidate.simple_meaning;
+                if (candidate_set.indexOf(meaning) < 0) {
+                    candidate_set.push(meaning);
+                }
+            }
+            // shuffle the candidates
+            shuffle(candidate_set);
+            var correct_index = 0;
+            for (var i = 0; i < candidate_set.length; i++) {
+                if (candidate_set[i] == word.simple_meaning) {
+                    correct_index = i;
+                    break;
+                }
+            }
+            correct_div_id = ["option1", "option2", "option3", "option4"][correct_index];
+            // render it
+            $("#option1").text("A. " + candidate_set[0]);
+            $("#option2").text("B. " + candidate_set[1]);
+            $("#option3").text("C. " + candidate_set[2]);
+            $("#option4").text("D. " + candidate_set[3]);
+
+            $("#spelling").text(word.spelling);
+            waiting_answer = true;
+            $("#explain").hide();
+            $("#congratulations").hide();
+            $("#choose").show();
+        }
+
+        function show_explain(index) {
+            $("#explain").show();
+            $("#choose").hide();
+            $("#congratulations").hide();
+            var word = unit_words[index];
+            $("#word_spelling").text(word.spelling);
+            // show pronounciation
+            if (word.pronounciation_us) {
+                $("#container_us").show();
+                $("#pronounciation_us").text(word.pronounciation_us);
+                $("#audio_us_src").attr("src", word.mp3_us_url);
+            } else {
+                $("#container_us").hide();
+            }
+            if (word.pronounciation_uk) {
+                $("#container_uk").show();
+                $("#pronounciation_uk").text(word.pronounciation_uk);
+                $("#audio_uk_src").attr("src", word.mp3_uk_url);
+            } else {
+                $("#container_uk").hide();
+            }
+            // simple meaning
+            $("#simple-meaning").text(word.simple_meaning);
+        }
+
+        $(".candidate").click(function() {
+            if (waiting_answer) {
+                $(".result").remove();
+                // is correct?
+                var is_correct = false;
+                if (this.id == correct_div_id)
+                    is_correct = true;
+                if (is_correct) {
+                    unit_words[word_index].correct = true;
+                    $(this).append('<span class="fa fa-check text-green pull-right result"></span>');
+                } else {
+                    unit_words[word_index].correct = false;
+                    $(this).append('<span class="fa fa-remove text-red pull-right result"></span>');
+                }
+                waiting_answer = false;
+                // 2 seconds later, show word meanings
+                setTimeout(function() {
+                    show_explain(word_index);
+                }, 1000);
+            }
+
+        });
+
+        function continue_quiz() {
+            word_index++;
+            if (word_index >= unit_words.length) {
+                // we have finished learning all words.
+                finish_learning();
+            } else {
+                // show count
+                var count = "共" + unit_words.length + "个单词。" +
+                    "已完成" + word_index + "个";
+                $("#count").text(count);
+                show_quiz(word_index);
+            }
+        }
+
+        function finish_learning() {
+            // finish learning
+            $("#congratulations").show();
+            $("#choose").hide();
+            $("#explain").hide();
+            // calculate correct rate
+            var correct_count = 0;
+            for (var i = 0; i < unit_words.length; i++) {
+                if (unit_words[i].correct)
+                    correct_count++;
+            }
+            var correct_rate = Math.floor(correct_count * 100 / unit_words.length);
+
+            var stat = "共" + unit_words.length + "个单词，答对" + correct_count + "个。正确率" + correct_rate + "%。";
+            $("#result-stat").text(stat);
+            // save learning record
+            $.ajax({
+                type: "POST",
+                url: "{% url 'learn.save_record' %}",
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": {{ unit.id }},
+                    "type": 2,
+                    "correct_rate": correct_rate
+                },
+                success: function(data) {
+                    try {
+                        console.log("record saved");
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        }
+
+        $("#btn-continue").click(continue_quiz);
+
+        $("#btn_start_over").click(function() {
+            word_index = -1;
+            continue_quiz();
+        });
+
+        $("#container_us").click(function() {
+            var us = $("#audio_us").get(0);
+            us.load();
+            us.play();
+        });
+
+        $("#container_uk").click(function() {
+            var uk = $("#audio_uk").get(0);
+            uk.load();
+            uk.play();
+        });
+
+        $(document).keypress(function(event) {
+            if (waiting_answer) {
+                var key = event.which;
+                if (key == 65 || key == 97) {
+                    // A
+                    $("#option1").click();
+                } else if (key == 66 || key == 98) {
+                    // B
+                    $("#option2").click();
+                } else if (key == 67 || key == 99) {
+                    // C
+                    $("#option3").click();
+                } else if (key == 68 || key == 100) {
+                    // D
+                    $("#option4").click();
+                }
+            } else {
+                if (event.which == 32) {
+                    if ($("#btn-continue").is(":visible")) {
+                        $("#btn-continue").click();
+                    }
+                }
+            }
+        });
+
+    });
+    </script>
 {% endblock %}
