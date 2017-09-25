@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
@@ -172,7 +173,9 @@ class UnitLearnView(LoginRequiredMixin, View):
             unit = WordUnit.objects.filter(id=unit_id).get()
             return render(request, 'unit_learn.html', {
                 "page": "learning",
-                "unit": unit
+                "unit": unit,
+                "title": u"单元学习",
+                "type": 1
             })
         except:
             raise Http404()
@@ -182,9 +185,11 @@ class UnitTestView(LoginRequiredMixin, View):
     def get(self, request, unit_id):
         try:
             unit = WordUnit.objects.filter(id=unit_id).get()
-            return render(request, 'unit_test.html', {
+            return render(request, 'unit_learn.html', {
                 "page": "learning",
-                "unit": unit
+                "unit": unit,
+                "title": u"单元测试",
+                "type": 2
             })
         except:
             raise Http404()
@@ -215,3 +220,17 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             return JsonResponse({
                 "status": "fail"
             })
+
+
+class UnitReviewView(View):
+    def get(self, request, unit_id):
+        try:
+            unit = WordUnit.objects.filter(id=unit_id).get()
+            return render(request, 'unit_learn.html', {
+                "page": "learning",
+                "unit": unit,
+                "type": 3,
+                "title": u"单元复习"
+            })
+        except KeyError:
+            raise Http404()

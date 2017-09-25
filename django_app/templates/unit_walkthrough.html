@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
         <!-- Content Header (Page header) -->
     <section class="content-header">
@@ -23,6 +24,7 @@
 
                 <a class="btn btn-primary" id="btn-prev">上一个</a>
                 <a class="btn btn-primary" id="btn-next">下一个</a>
+                <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
 
                 <h2 id="word-spelling"></h2>
 

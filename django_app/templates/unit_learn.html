@@ -3,24 +3,27 @@
         <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            强化练习
+            {{ title|default:"单元学习" }}
         </h1>
         <ol class="breadcrumb">
             <li>
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
-            <li class="active">强化练习</li>
+            <li class="active">{{ title|default:"单元学习" }}</li>
         </ol>
     </section>
 
     <!-- Main content -->
     <section class="content container-fluid">
+
+    <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
+    <a class="btn btn-primary" id="btn_start_over">再来一次</a>
     <div class="box">
         <div class="box-body">
             <div id="choose">
                 <h2 id="spelling"></h2>
                 <div id="count"></div>
-                请选择正确的中文解释：
+                <div id="prompt"></div>
                 <ul class="todo-list" id="choices">
                     <li id="option1" class="candidate"></li>
                     <li id="option2" class="candidate"></li>
@@ -54,8 +57,8 @@
             </div>
 
             <div id="congratulations">
-                <h2>恭喜你，单元学习完成啦！</h2>
-                <a href="{% url 'learn.units' %}" class="btn btn-primary">返回单元</a>
+                <h2 id="congrat-title"></h2>
+                <div id="result-stat"></div>
             </div>
         </div>
     </div>
@@ -67,9 +70,16 @@
     $(function() {
         var unit_words = null;
         var url = "{% url 'learn.ajax_unit_data' unit.id %}";
-        var word_index = 0;
+        var word_index = -1;
         var waiting_answer = false;
         var correct_div_id = "";
+        var learn_type = {{ type|default:1 }};    // 1 for learn, 2 for test, 3 for review;
+        var quiz_type = {{ quiz_type|default:3 }};// 1: chinese to english; 2: english to chinese; 3: random;
+
+        if (learn_type == 2) {
+            // 测试的时候不许看答案
+            $("#btn-showme").hide();
+        }
 
         $("#congratulations").hide();
 
@@ -83,6 +93,7 @@
             continue_quiz();
         });
 
+        // 打乱次序
         function shuffle(array) {
             var currentIndex = array.length, temporaryValue, randomIndex;
 
@@ -106,14 +117,23 @@
         function show_quiz(index) {
             // show a quiz for a given word
             var word = unit_words[index];
+            var c2e = false;    // chinese to english
+            if (quiz_type == 2)
+                c2e = true;
+            else if (quiz_type == 3) {
+                if (Math.floor(Math.random() * 100) % 2 == 0)
+                    c2e = true;
+            }
             word_index = index;
             // find 3 wrong explanations
             var candidate_set = []
-            candidate_set.push(word.simple_meaning);
+            candidate_set.push(c2e? word.spelling: word.simple_meaning);
             while (candidate_set.length < 4) {
                 var index = Math.floor(Math.random() * unit_words.length);
                 var candidate = unit_words[index];
                 var meaning = candidate.simple_meaning;
+                if (c2e)
+                    meaning = candidate.spelling;
                 if (candidate_set.indexOf(meaning) < 0) {
                     candidate_set.push(meaning);
                 }
@@ -122,7 +142,7 @@
             shuffle(candidate_set);
             var correct_index = 0;
             for (var i = 0; i < candidate_set.length; i++) {
-                if (candidate_set[i] == word.simple_meaning) {
+                if (candidate_set[i] == word.simple_meaning || candidate_set[i] == word.spelling) {
                     correct_index = i;
                     break;
                 }
@@ -134,15 +154,19 @@
             $("#option3").text("C. " + candidate_set[2]);
             $("#option4").text("D. " + candidate_set[3]);
 
-            $("#spelling").text(word.spelling);
+            $("#spelling").text(c2e? word.simple_meaning: word.spelling);
+            $("#prompt").text(c2e? "请选择正确的单词：": "请选择正确的中文解释：");
+            $(".candidate").removeClass("danger").removeClass("info");
             waiting_answer = true;
             $("#explain").hide();
+            $("#congratulations").hide();
             $("#choose").show();
         }
 
         function show_explain(index) {
             $("#explain").show();
             $("#choose").hide();
+            $("#congratulations").hide();
             var word = unit_words[index];
             $("#word_spelling").text(word.spelling);
             // show pronounciation
@@ -173,10 +197,12 @@
                     is_correct = true;
                 if (is_correct) {
                     unit_words[word_index].correct = true;
-                    $(this).append('<span class="fa fa-check text-green pull-right result"></span>');
+                    $(this).addClass("info");
+                    $(this).append('<span class="fa fa-check text-yellow pull-right result"></span>');
                 } else {
                     unit_words[word_index].correct = false;
-                    $(this).append('<span class="fa fa-remove text-red pull-right result"></span>');
+                    $(this).addClass("danger");
+                    $(this).append('<span class="fa fa-remove text-danger pull-right result"></span>');
                 }
                 waiting_answer = false;
                 // 2 seconds later, show word meanings
@@ -187,7 +213,7 @@
 
         });
 
-        function continue_quiz() {
+        function continue_quiz_for_learn() {
             // find an incorrect word
             var incorrect = [];
             for (var i = 0; i < unit_words.length; i++) {
@@ -207,11 +233,55 @@
             }
         }
 
+        function continue_quiz_for_test() {
+            word_index++;
+            if (word_index >= unit_words.length) {
+                // we have finished learning all words.
+                finish_learning();
+            } else {
+                // show count
+                var count = "共" + unit_words.length + "个单词。" +
+                    "已完成" + word_index + "个";
+                $("#count").text(count);
+                show_quiz(word_index);
+            }
+        }
+
+        function continue_quiz() {
+            if (learn_type == 2) {
+                continue_quiz_for_test();
+            } else {
+                continue_quiz_for_learn();
+            }
+        }
+
         function finish_learning() {
             // finish learning
             $("#congratulations").show();
             $("#choose").hide();
             $("#explain").hide();
+
+            var title = "恭喜你，单元学习完成啦！";
+            if (learn_type == 2)
+                title = "恭喜你，测试完成啦！";
+            else if (learn_type == 3)
+                title = "恭喜你，复习完成啦";
+            $("#congrat-title").text(title);
+            var correct_rate = 100;
+
+            if (learn_type == 2) {
+                // 如果是测试，那么显示正确率。
+                var correct_count = 0;
+                for (var i = 0; i < unit_words.length; i++) {
+                    if (unit_words[i].correct)
+                        correct_count++;
+                }
+                correct_rate = Math.floor(correct_count * 100 / unit_words.length);
+
+                var stat = "共" + unit_words.length + "个单词，答对" + correct_count + "个。正确率" + correct_rate + "%。";
+                $("#result-stat").text(stat);
+            }
+
             // save learning record
             $.ajax({
                 type: "POST",
@@ -222,8 +292,8 @@
                 async: true,
                 data: {
                     "unit_id": {{ unit.id }},
-                    "type": 1,
-                    "correct_rate": 100
+                    "type": learn_type,
+                    "correct_rate": correct_rate
                 },
                 success: function(data) {
                     try {
@@ -241,6 +311,14 @@
         });
 
         $("#btn-continue").click(continue_quiz);
+
+        $("#btn_start_over").click(function() {
+            word_index = -1;
+            for (var i = 0; i < unit_words.length; i++) {
+                unit_words[i].correct = false;
+            }
+            continue_quiz();
+        });
 
         $("#container_us").click(function() {
             var us = $("#audio_us").get(0);

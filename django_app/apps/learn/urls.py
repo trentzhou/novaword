@@ -3,7 +3,7 @@ from django.conf.urls import url
 from learn.views import BookListView, UnitListView, LearningView, ReviewView, BookDetailView, UnitDetailView, \
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
     AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
-    AjaxSaveLearnRecordView
+    AjaxSaveLearnRecordView, UnitReviewView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -20,5 +20,6 @@ urlpatterns = [
     url(r'^unit_walkthrough/(?P<unit_id>\d+)/$', UnitWalkThroughView.as_view(), name="learn.unit_walkthrough"),
     url(r'^unit_learn/(?P<unit_id>\d+)/$', UnitLearnView.as_view(), name="learn.unit_learn"),
     url(r'^unit_test/(?P<unit_id>\d+)/$', UnitTestView.as_view(), name="learn.unit_test"),
+    url(r'^unit_review/(?P<unit_id>\d+)/$', UnitReviewView.as_view(), name="learn.unit_review"),
     url(r'^ajax-save-learn-record/$', AjaxSaveLearnRecordView.as_view(), name="learn.save_record"),
 ]
