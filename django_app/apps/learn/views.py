@@ -35,6 +35,10 @@ class UnitListView(View):
     def get(self, request):
         plans = LearningPlan.objects.filter(user=request.user).order_by("unit__book", "unit__order").all()
         units = [x.unit for x in plans]
+        for u in units:
+            u.learn_times = u.learn_count(request.user)
+            u.review_times = u.review_count(request.user)
+
         return render(request, 'unit_list.html', {
             "page": "units",
             "units": units
@@ -48,9 +52,11 @@ class UnitDetailView(View):
             raise Http404()
 
         words = WordInUnit.objects.filter(unit=unit).all()
+        records = LearningRecord.objects.filter(unit=unit, user=request.user).order_by("-learn_time").all()
         return render(request, 'unit_detail.html', {
             "page": "units",
             "unit": unit,
+            "records": records,
             "words": words,
             "is_planned": unit.is_planned(request.user)
         })
@@ -119,8 +125,11 @@ class AjaxIsUnitInLearningPlan(LoginRequiredMixin, View):
 
 class LearningView(LoginRequiredMixin, View):
     def get(self, request):
-        return render(request, 'todo.html', {
-            "page": "learning"
+        records = LearningRecord.objects.filter(user=request.user).order_by("-learn_time").all()
+
+        return render(request, 'learn_records.html', {
+            "page": "learning",
+            "records": records
         })
 
 

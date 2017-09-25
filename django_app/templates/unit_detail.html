@@ -29,19 +29,21 @@
     <!-- Main content -->
     <section class="content container-fluid">
 
+        {% if is_planned %}
+            <a class="btn btn-success" id="btn-toggle-plan">已在学习计划中</a>
+        {% else %}
+            <a class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</a>
+        {% endif %}
+
+        <a class="btn btn-primary" href="{% url 'learn.unit_walkthrough' unit.id %}">浏览单词</a>
+        <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
+        <a class="btn btn-primary" href="{% url 'learn.unit_learn' unit.id %}">强化练习</a>
+        <a class="btn btn-primary" href="{% url 'learn.unit_review' unit.id %}">单元复习</a>
+
         <div class="box">
             <div class="box-header">
                 <h3>
-                    {% if is_planned %}
-                        <a class="btn btn-success" id="btn-toggle-plan">已在学习计划中</a>
-                    {% else %}
-                        <a class="btn btn-warning" id="btn-toggle-plan">不在学习计划中</a>
-                    {% endif %}
-
-                    <a class="btn btn-primary" href="{% url 'learn.unit_walkthrough' unit.id %}">浏览单词</a>
-                    <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
-                    <a class="btn btn-primary" href="{% url 'learn.unit_learn' unit.id %}">强化练习</a>
-                    <a class="btn btn-primary" href="{% url 'learn.unit_review' unit.id %}">单元复习</a>
+                    单词
                 </h3>
 
             </div>
@@ -78,6 +80,33 @@
                         </tr>
                     {% endfor %}
                 </table>
+
+                {% if records %}
+                    <div class="box">
+                        <div class="box-header">
+                            <h3>学习历史</h3>
+                        </div>
+                        <div class="box-body">
+                            <table class="table table-responsive" id="record_table">
+                                <thead>
+                                    <td>单元</td>
+                                    <td>类型</td>
+                                    <td>时间</td>
+                                </thead>
+                                <tbody>
+                                    {% for record in records %}
+                                        <tr>
+                                            <td><a href="{% url 'learn.unit_detail' record.unit.id %}">{{ record.unit }}</a></td>
+                                            <td>{{ record.get_type_display }}</td>
+                                            <td>{{ record.learn_time }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                {% endif %}
             </div>
         </div>
 
@@ -132,6 +161,12 @@
             });
         });
         $("#word_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "pageLength": 50
+        });
+        $("#record_table").DataTable({
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
             },

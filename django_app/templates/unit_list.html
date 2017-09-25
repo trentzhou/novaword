@@ -16,14 +16,26 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
-
-        <ol>
-            {% for unit in units %}
-                <li>
-                    <a href="{% url 'learn.unit_detail' unit.id %}">{{ unit }}</a>
-                </li>
-            {% endfor %}
-        </ol>
+        {% if units %}
+            <table class="table table-responsive" id="unit_table">
+                <thead>
+                    <td>单元</td>
+                    <td>已学习次数</td>
+                    <td>已复习次数</td>
+                </thead>
+                <tbody>
+                {% for unit in units %}
+                    <tr>
+                        <td><a href="{% url 'learn.unit_detail' unit.id %}">{{ unit }}</a></td>
+                        <td>{{ unit.learn_times }}</td>
+                        <td>{{ unit.review_times }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            您现在还没有任何计划要学习的单元，快去找找看<a href="{% url 'learn.books' %}">哪些书</a>感兴趣吧。
+        {% endif %}
 
     </section>
 {% endblock %}

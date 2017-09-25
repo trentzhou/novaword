@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            学习记录
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">学习记录</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+        {% if records %}
+            <a href="{% url 'learn.units' %}" class="btn btn-primary">我要学习的单元</a>
+            <table class="table table-responsive" id="record_table">
+                <thead>
+                    <td>单元</td>
+                    <td>类型</td>
+                    <td>时间</td>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                        <tr>
+                            <td><a href="{% url 'learn.unit_detail' record.unit.id %}">{{ record.unit }}</a></td>
+                            <td>{{ record.get_type_display }}</td>
+                            <td>{{ record.learn_time }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            您还没有学习任何记录，快去看看有<a href="{% url 'learn.units' %}">哪些单元</a>可以学习吧。
+        {% endif %}
+
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+    $(function() {
+
+        $("#record_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "pageLength": 50
+        });
+    });
+    </script>
+{% endblock %}

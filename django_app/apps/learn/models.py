@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 from django.db import models
+from django.db.models import Q
+
 from users.models import UserProfile
 
 
@@ -80,6 +82,12 @@ class WordUnit(models.Model):
         if LearningPlan.objects.filter(unit=self, user=user).count():
             return True
         return False
+
+    def learn_count(self, user):
+        return self.learningrecord_set.filter(Q(type=1)|Q(type=2), user=user).count()
+
+    def review_count(self, user):
+        return self.learningrecord_set.filter(user=user, type=3).count()
 
 
 class WordInUnit(models.Model):

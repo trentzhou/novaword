@@ -9,6 +9,9 @@
             <li>
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
+            <li>
+                <a href="{% url 'learn.unit_detail' unit.id %}">单元</a>
+            </li>
             <li class="active">{{ title|default:"单元学习" }}</li>
         </ol>
     </section>

@@ -221,9 +221,6 @@ desired effect
                         <li {% ifequal page "learning" %} class="active" {% endifequal %}>
                             <a href="{% url 'learn.learning' %}"><i class="fa fa-battery-half"></i> <span>学习</span></a>
                         </li>
-                        <li {% ifequal page "review" %} class="active" {% endifequal %}>
-                            <a href="{% url 'learn.review' %}"><i class="fa fa-battery-full"></i> <span>复习</span></a>
-                        </li>
                         <li {% ifequal page "testings" %} class="active" {% endifequal %}>
                             <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> <span>测试</span></a>
                         </li>
