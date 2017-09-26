@@ -24,6 +24,7 @@
                     <th>单元</th>
                     <th>类型</th>
                     <th>时间</th>
+                    <th>正确率</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -32,6 +33,7 @@
                             <td><a href="{% url 'learn.unit_detail' record.unit.id %}">{{ record.unit }}</a></td>
                             <td>{{ record.get_type_display }}</td>
                             <td>{{ record.learn_time }}</td>
+                            <td>{{ record.correct_rate }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

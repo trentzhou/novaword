@@ -101,7 +101,6 @@
                                 <tr>
                                     <th>单元</th>
                                     <th>学习次数</th>
-                                    <th>测试正确率</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
@@ -114,7 +113,6 @@
                                         <a href="{% url 'learn.unit_detail' u.unit_id %}">{{ u.unit__description }}</a>
                                     </td>
                                     <td>{{ u.learn_count }}</td>
-                                    <td>100</td>
                                     <td>
                                         <a class="btn btn-primary" href="{% url 'learn.unit_review' u.unit_id %}">复习</a>
                                         <a class="btn btn-primary" href="{% url 'learn.unit_test' u.unit_id %}">测试</a>
