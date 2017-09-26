@@ -22,10 +22,12 @@
     <section class="content container-fluid">
         <table class="table table-responsive" id="wordbook_table">
             <thead>
-                <td>书名</td>
-                <td>单词最长学习时间</td>
-                <td>单元最长学习时间</td>
-                <td>最多几个单元同时学习</td>
+            <tr>
+                <th>书名</th>
+                <th>单词最长学习时间</th>
+                <th>单元最长学习时间</th>
+                <th>最多几个单元同时学习</th>
+            </tr>
             </thead>
             <tbody>
                 {% for book in wordbooks %}

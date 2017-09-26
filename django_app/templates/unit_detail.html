@@ -50,10 +50,12 @@
             <div class="box-body">
                 <table class="table table-responsive" id="word_table">
                     <thead>
-                        <td>拼写</td>
-                        <td>美式音标</td>
-                        <td>英式音标</td>
-                        <td>解释</td>
+                    <tr>
+                        <th>拼写</th>
+                        <th>美式音标</th>
+                        <th>英式音标</th>
+                        <th>解释</th>
+                    </tr>
                     </thead>
                     {% for word in words %}
                         <tr>
@@ -89,9 +91,11 @@
                         <div class="box-body">
                             <table class="table table-responsive" id="record_table">
                                 <thead>
-                                    <td>单元</td>
-                                    <td>类型</td>
-                                    <td>时间</td>
+                                <tr>
+                                    <th>单元</th>
+                                    <th>类型</th>
+                                    <th>时间</th>
+                                </tr>
                                 </thead>
                                 <tbody>
                                     {% for record in records %}

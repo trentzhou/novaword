@@ -20,9 +20,11 @@
             <a href="{% url 'learn.units' %}" class="btn btn-primary">我要学习的单元</a>
             <table class="table table-responsive" id="record_table">
                 <thead>
-                    <td>单元</td>
-                    <td>类型</td>
-                    <td>时间</td>
+                <tr>
+                    <th>单元</th>
+                    <th>类型</th>
+                    <th>时间</th>
+                </tr>
                 </thead>
                 <tbody>
                     {% for record in records %}

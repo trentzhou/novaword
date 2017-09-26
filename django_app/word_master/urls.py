@@ -18,8 +18,9 @@ from django.conf.urls import url, include
 from django.views.static import serve
 
 import xadmin
+from learn.views import LearningOverviewView
 
-from users.views import IndexView, LoginView, LogoutView, \
+from users.views import LoginView, LogoutView, \
     RegisterView, AcivateUserView, ForgetPasswordView, ResetPasswordView, ModifyPasswordView, RegisterMobileView, \
     UserVirificationSmsView, VerifySmsView
 from word_master.settings import MEDIA_ROOT
@@ -27,9 +28,9 @@ from word_master.settings import MEDIA_ROOT
 urlpatterns = [
     url(r'^xadmin/', xadmin.site.urls),
     url(r'^media/(?P<path>.*)$',  serve, {"document_root":MEDIA_ROOT}),
-    url(r'^$', IndexView.as_view(), name="index"),
-    url(r'^login/$', LoginView.as_view(), name="user_login"),
-    url(r'^logout/$', LogoutView.as_view(), name="user_logout"),
+    url(r'^$', LearningOverviewView.as_view(), name="index"),
+    url(r'^accounts/login/$', LoginView.as_view(), name="user_login"),
+    url(r'^accounts/logout/$', LogoutView.as_view(), name="user_logout"),
     url(r'^register/$', RegisterView.as_view(), name="user_register"),
     url(r'^register_mobile/$', RegisterMobileView.as_view(), name="user_register_mobile"),
     url(r'^send_verification_sms/$', UserVirificationSmsView.as_view(), name="user_verification_sms"),

@@ -44,8 +44,10 @@
                 {% if members %}
                     <table class="table table-responsive" id="members_table">
                         <thead>
-                            <td>用户</td>
-                            <td>权限</td>
+                        <tr>
+                            <th>用户</th>
+                            <th>权限</th>
+                        </tr>
                         </thead>
                         {% for member in members %}
                             <tr>

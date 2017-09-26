@@ -32,19 +32,16 @@ class CustomBackend(ModelBackend):
             return None
 
 
-class IndexView(View):
+class IndexView(LoginRequiredMixin, View):
     def get(self, request):
         """
         Get index
         :param django.http.HttpRequest request:
         :return django.http.HttpResponse:
         """
-        if not request.user.is_authenticated():
-            return redirect(reverse("user_login"))
         return render(request, 'index.html', {
             "page": "overview"
         })
-
 
 class LoginView(View):
     def get(self, request):

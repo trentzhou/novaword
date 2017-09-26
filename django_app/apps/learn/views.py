@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Count, Max
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord
+from testings.models import QuizResult
 
 
 class BookListView(View):
@@ -121,6 +123,28 @@ class AjaxIsUnitInLearningPlan(LoginRequiredMixin, View):
             return JsonResponse({
                 "result": "no"
             })
+
+
+class LearningOverviewView(LoginRequiredMixin, View):
+    def get(self, request):
+        learn_count = LearningRecord.objects.filter(user=request.user).count()
+        quiz_count = QuizResult.objects.filter(user=request.user).count()
+        erroneous_words = 0
+        # get recent learned units
+        recent_units = LearningRecord.objects\
+            .filter(user=request.user)\
+            .values("unit_id").annotate(learn_count=Count("unit_id"))\
+            .order_by("learn_count")\
+            .values("unit_id", "unit__book_id", "unit__book__description", "unit__description", "learn_count").all()
+        mastered_unit_count = sum(1 for x in recent_units if x["learn_count"] > 5)
+        return render(request, 'index.html', {
+            "page": "overview",
+            "learn_count": learn_count,
+            "quiz_count": quiz_count,
+            "erroneous_words": erroneous_words,
+            "recent_units": recent_units[:5],
+            "mastered_unit_count": mastered_unit_count
+        })
 
 
 class LearningView(LoginRequiredMixin, View):

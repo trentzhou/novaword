@@ -27,14 +27,14 @@
                 <!-- small box -->
                 <div class="small-box bg-aqua">
                     <div class="inner">
-                        <h3>56</h3>
+                        <h3>{{ learn_count }}</h3>
 
                         <p>学习次数</p>
                     </div>
                     <div class="icon">
                         <i class="fa fa-flask"></i>
                     </div>
-                    <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
+                    <a href="{% url 'learn.learning' %}" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
                 </div>
             </div>
             <!-- ./col -->
@@ -42,7 +42,7 @@
                 <!-- small box -->
                 <div class="small-box bg-green">
                     <div class="inner">
-                        <h3>14</h3>
+                        <h3>{{ mastered_unit_count }}</h3>
 
                         <p>掌握单元</p>
                     </div>
@@ -57,14 +57,14 @@
                 <!-- small box -->
                 <div class="small-box bg-yellow">
                     <div class="inner">
-                        <h3>12</h3>
+                        <h3>{{ quiz_count }}</h3>
 
                         <p>完成测试</p>
                     </div>
                     <div class="icon">
                         <i class="fa fa-binoculars"></i>
                     </div>
-                    <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
+                    <a href="{% url 'testings.index' %}" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
                 </div>
             </div>
             <!-- ./col -->
@@ -72,7 +72,7 @@
                 <!-- small box -->
                 <div class="small-box bg-red">
                     <div class="inner">
-                        <h3>69</h3>
+                        <h3>{{ erroneous_words }}</h3>
 
                         <p>易错单词</p>
                     </div>
@@ -86,27 +86,7 @@
         </div>
         <!-- /.row -->
 
-        <div class="row">
-            <div class="col-xs-12">
-                <div class="box">
-                    <div class="box-header">
-                        <h3 class="box-title">今日任务</h3>
-                    </div>
-                    <!-- /.box-header -->
-                    <div class="box-body no-padding">
-                        <ul class="nav nav-stacked">
-                            <li>
-                                <a href="#"><del>复习 8年级上学期 Unit 9</del></a>
-                            </li>
-                            <li>
-                                <a href="#">学习 8年级上学期 Unit 10</a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- /.row -->
+        {% if recent_units %}
 
         <div class="row">
             <div class="col-xs-12">
@@ -117,45 +97,30 @@
                     <!-- /.box-header -->
                     <div class="box-body table-responsive no-padding">
                         <table class="table table-hover">
-                            <tr>
-                                <th>单元</th>
-                                <th>学习次数</th>
-                                <th>测试正确率</th>
-                                <th>操作</th>
-                            </tr>
-                            <tr>
-                                <td>
-                                    8年级上学期<br/>
-                                    Unit 10
-                                </td>
-                                <td>
-                                    学习0次<br/>
-                                    复习0次
-                                </td>
-                                <td>0%</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-default">去学习</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    8年级上学期<br/>
-                                    Unit 9
-                                </td>
-                                <td>
-                                    学习1次<br/>
-                                    复习0次
-                                </td>
-                                <td>0</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-default">去测试</button>
-                                        <button type="button" class="btn btn-default">去复习</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            <thead>
+                                <tr>
+                                    <th>单元</th>
+                                    <th>学习次数</th>
+                                    <th>测试正确率</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+
+                            {% for u in recent_units %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'learn.book_detail' u.unit__book_id %}">{{ u.unit__book__description }}</a>
+                                        -
+                                        <a href="{% url 'learn.unit_detail' u.unit_id %}">{{ u.unit__description }}</a>
+                                    </td>
+                                    <td>{{ u.learn_count }}</td>
+                                    <td>100</td>
+                                    <td>
+                                        <a class="btn btn-primary" href="{% url 'learn.unit_review' u.unit_id %}">复习</a>
+                                        <a class="btn btn-primary" href="{% url 'learn.unit_test' u.unit_id %}">测试</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         </table>
                     </div>
                     <!-- /.box-body -->
@@ -164,6 +129,8 @@
             </div>
         </div>
         <!-- /.row -->
+        {% endif %}
+
     </section>
     <!-- /.content -->
 {% endblock %}
