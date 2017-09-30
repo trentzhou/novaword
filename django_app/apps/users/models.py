@@ -98,7 +98,7 @@ class Group(models.Model):
         return self.__unicode__()
 
     def __unicode__(self):
-        return self.name
+        return "{0} - {1}".format(self.organization, self.name)
 
 
 class UserGroup(models.Model):

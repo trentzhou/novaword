@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block content %}
+    <section class="content-header">
+        <h1>
+            考卷
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">考卷</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+        <div class="margin-bottom">
+            <a class="btn btn-primary" href="{% url 'testings.create_quiz' %}">新建考卷</a>
+        </div>
+        <div class="nav-tabs-custom">
+            <ul class="nav nav-tabs">
+                <li class="active">
+                    <a href="#authored_quiz" data-toggle="tab">我创建的考卷</a>
+                </li>
+
+                <li>
+                    <a href="#shared_quiz" data-toggle="tab">分享给我的考卷</a>
+                </li>
+
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="authored_quiz">
+                {% if quiz_created_by_me %}
+                    <table class="table table-responsive" id="quiz_created_by_me_table">
+                        <thead>
+                        <tr>
+                            <th>描述</th>
+                            <th>考卷最大答题时间</th>
+                            <th>单词最大答题时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for quiz in quiz_created_by_me %}
+                            <tr>
+                                <td>{{ quiz.description }}</td>
+                                <td>{{ quiz.max_total_time }}</td>
+                                <td>{{ quiz.max_word_time }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    暂时还没有
+                {% endif %}
+                </div>
+
+                <div class="tab-pane" id="shared_quiz">
+                {% if quiz_shared_to_me %}
+                    <table class="table table-responsive" id="quiz_shared_to_me_table">
+                        <thead>
+                        <tr>
+                            <th>描述</th>
+                            <th>考卷最大答题时间</th>
+                            <th>单词最大答题时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for quiz in quiz_shared_to_me %}
+                            <tr>
+                                <td>{{ quiz.description }}</td>
+                                <td>{{ quiz.max_total_time }}</td>
+                                <td>{{ quiz.max_word_time }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    暂时还没有
+                {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </section>
+{% endblock %}

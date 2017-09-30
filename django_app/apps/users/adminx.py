@@ -25,7 +25,7 @@ class OrganizationAdmin(object):
     list_display = ['name', 'description', 'create_time']
     search_fields = ['name', 'description']
     list_filter = ['name', 'description', 'create_time']
-    model_icon = 'fa fa-building'
+    model_icon = 'fa fa-institution'
 
 
 class GroupAdmin(object):

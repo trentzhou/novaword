@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+    <section class="content-header">
+        <h1>
+            新建考卷
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">新建考卷</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        <div class="box">
+            <form role="form" method="post">
+                <div class="box-body">
+                    <div class="form-group">
+                        <label for="description">描述</label>
+                        <input type="text" class="form-control" id="description" name="description" placeholder="考卷描述">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_total_time">考卷最长答题时间（秒）</label>
+                        <input type="number"
+                               class="form-control"
+                               id="max_total_time"
+                               name="max_total_time"
+                               placeholder="考卷最长答题时间"
+                               value="7200">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_word_time">单词最长答题时间（秒）</label>
+                        <input type="number"
+                               class="form-control"
+                               id="max_word_time"
+                               name="max_word_time"
+                               placeholder="单词最长答题时间"
+                               value="1200">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="book">单词书</label>
+                        <select class="form-control" name="book_id">
+                            {% for book in wordbooks %}
+                                <option value="{{ book.id }}">{{ book }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                {% csrf_token %}
+
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary">确定</button>
+                </div>
+
+            </form>
+        </div>
+
+    </section>
+{% endblock %}
