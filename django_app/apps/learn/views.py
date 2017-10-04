@@ -174,6 +174,7 @@ class AjaxUnitDataView(View):
         result = []
         for w in words_in_unit:
             result.append({
+                "id": w.id,
                 "simple_meaning": w.simple_meaning,
                 "spelling": w.word.spelling,
                 "pronounciation_us": w.word.pronounciation_us,

@@ -44,7 +44,7 @@
                         <tbody>
                         {% for quiz in quiz_created_by_me %}
                             <tr>
-                                <td>{{ quiz.description }}</td>
+                                <td><a href="{% url 'testings.edit_quiz' quiz.id %}">{{ quiz.description }}</a></td>
                                 <td>{{ quiz.max_total_time }}</td>
                                 <td>{{ quiz.max_word_time }}</td>
                             </tr>

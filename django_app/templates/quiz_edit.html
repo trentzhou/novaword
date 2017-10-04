@@ -1,4 +1,11 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/word_master.css' %}">
+{% endblock %}
+
 {% block content %}
         <!-- Content Header (Page header) -->
     <section class="content-header">
@@ -9,11 +16,348 @@
             <li>
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
-            <li class="active">TODO</li>
+            <li>
+                <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> 考卷</a>
+            </li>
+            <li class="active">编辑考卷</li>
         </ol>
     </section>
 
     <!-- Main content -->
     <section class="content container-fluid">
+
+        <div class="box">
+            <div class="box-header"><h3>考卷里的单词</h3></div>
+            <div class="box-body">
+                <table class="table table-responsive" id="table_quiz_words">
+                    <thead>
+                    <tr>
+                        <th>拼写</th>
+                        <th>解释</th>
+                        <th>考题形式</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="box-footer">
+                <a class="btn btn-primary" id="btn_quiz_finish">保存</a>
+                <a class="btn btn-primary" id="btn_quiz_select_all">全选</a>
+                <a class="btn btn-primary" id="btn_quiz_delete_selected">删除选中的单词</a>
+            </div>
+
+        </div>
+
+        <div class="box">
+            <div class="box-header"><h3>选择单词</h3></div>
+            <div class="box-body">
+                选择单元：
+                <select id="select_unit">
+                    {% for unit in units %}
+                        <option value="{{ unit.id }}">{{ unit }}</option>
+                    {% endfor %}
+                </select>
+                <table class="table table-bordered table-responsive" id="table_unit_words">
+                    <thead>
+                    <tr>
+                        <th>拼写</th>
+                        <th>解释</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="box-footer">
+                <a class="btn btn-primary" id="btn_add_selected_words">把选中的单词添加到考卷</a>
+                <a class="btn btn-primary" id="btn_select_all_words">全部选中</a>
+            </div>
+        </div>
+
+        <div class="box">
+            <div class="box-header"><h3>分享至班级</h3></div>
+            <div class="box-body">
+                已经分享给这些班级：
+                <ul id="shared_group_list">
+                    {% for group in quiz.groups.all %}
+                        <li>
+                            <a href="{% url 'user.group_detail' group.id %}">{{ group.description }}</a>
+                        </li>
+
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="box-footer">
+                <a class="btn btn-primary" id="select_shared_groups">选择要分享的班级</a>
+            </div>
+        </div>
+
     </section>
+
+
+    <!-- 创建班级对话框 -->
+    <div class="modal fade" id="dialog-select-groups">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">选择班级</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+
+                    <div class="form-group">
+                        {% for group in groups %}
+                            <div class="checkbox">
+                            <label>
+                                <input type="checkbox" value="{{ group.group_id }}" id="checkbox_{{ group.group_id }}" class="check_group"> {{ group.group__description }}
+                            </label>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="confirm_select">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+
+{% endblock %}
+
+{% block extra_script %}
+
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+    $(function() {
+        var table_unit_words = null;
+        var table_quiz_words = null;
+        var shared_groups = {
+        {% for group in quiz.groups.all %}
+            "{{ group.id }}": true,
+        {% endfor %}
+        };
+
+        for (var gid in shared_groups) {
+            var checkbox_id = "#checkbox_" + gid;
+            $(checkbox_id)[0].checked = true;
+        }
+
+        function load_unit_words() {
+            var unit_id = $("#select_unit")[0].selectedOptions[0].value;
+            console.log("Loading unit words for " + unit_id);
+            var url = "{% url 'learn.ajax_unit_data' 0 %}";
+            url = url.replace("0", unit_id);
+            $.get(url, function (result) {
+                table_unit_words.clear();
+                var unit_words = result["words"];
+                for (var i = 0; i < unit_words.length; i++) {
+                    var word = unit_words[i];
+                    table_unit_words.row.add(word).draw(false);
+                }
+            });
+        }
+
+        function load_quiz_words() {
+            url = "{% url 'testings.ajax_get_quiz_data' quiz.id %}";
+            $.get(url, function(result) {
+                table_quiz_words.clear();
+                for (var i = 0; i < result.data.length; i++) {
+                    var word = result.data[i];
+                    table_quiz_words.row.add(word).draw(false);
+                }
+            });
+        }
+
+        function set_table_quiz_changed(value) {
+            if (value) {
+                $("#btn_quiz_finish").removeClass("disabled");
+                $("#btn_quiz_finish").removeClass("btn-primary");
+                $("#btn_quiz_finish").addClass("btn-danger");
+            } else {
+                $("#btn_quiz_finish").removeClass("btn-danger");
+                $("#btn_quiz_finish").addClass("btn-primary");
+                $("#btn_quiz_finish").addClass("disabled");
+            }
+        }
+
+        load_unit_words();
+        load_quiz_words();
+        set_table_quiz_changed(false);
+
+        $("#select_unit").change(load_unit_words);
+
+        // initialize tables
+        table_unit_words = $("#table_unit_words").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "columns": [
+                {"data": "spelling"},
+                {"data": "simple_meaning"}
+            ],
+            "paging": false
+        });
+
+        table_quiz_words = $("#table_quiz_words").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "columns": [
+                {"data": "spelling"},
+                {"data": "simple_meaning"},
+                {
+                    "data": "quiz_format",
+                    "render": function(data, type, row) {
+                        console.log("Rendering quiz word: " + data);
+                        var format_table = [
+                            "随机", "看英文选中文", "看中文选英文", "填空"
+                        ]
+                        return format_table[data];
+                    }
+                }
+            ],
+            "paging": false
+        });
+
+        $('#table_unit_words tbody').on( 'click', 'tr', function () {
+            $(this).toggleClass('selected');
+        } );
+
+        function add_word_to_quiz_table(word) {
+            var quiz_words = table_quiz_words.rows().data();
+            for (var i = 0; i < quiz_words.length; i++) {
+                var quiz_word = quiz_words[i];
+                if (word.spelling === quiz_word.spelling)
+                    return;
+            }
+            word.quiz_format = 0;
+            table_quiz_words.row.add(word).draw(false);
+            set_table_quiz_changed(true);
+        }
+
+        $("#btn_add_selected_words").click(function() {
+            var selected_rows = table_unit_words.rows('.selected').data();
+            for (var i = 0; i < selected_rows.length; i++) {
+                var row = selected_rows[i];
+                add_word_to_quiz_table(row);
+            }
+            $("#table_unit_words tr").removeClass('selected');
+        });
+
+        $("#btn_select_all_words").click(function() {
+            $("#table_unit_words tr").toggleClass('selected');
+        });
+
+        $("#btn_quiz_finish").click(function() {
+            var words = table_quiz_words.rows().data();
+            console.log("We have " + words.length + " to upload");
+
+            var data = {
+                "words": [],
+                "quiz_id": {{ quiz.id }}
+            };
+            // add words to data
+            for (var i = 0; i < words.length; i++) {
+                var word = words[i];
+                data.words.push(word);
+            }
+            var url = "{% url 'testings.ajax_save_quiz' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data) {
+                    try {
+                        console.log(data);
+                        set_table_quiz_changed(false);
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+
+        $('#table_quiz_words tbody').on( 'click', 'tr', function () {
+            $(this).toggleClass('selected');
+        } );
+
+        $("#btn_quiz_select_all").click(function() {
+            $("#table_quiz_words tr").toggleClass('selected');
+        });
+
+        $("#btn_quiz_delete_selected").click(function() {
+            table_quiz_words.rows(".selected").remove().draw(false);
+            set_table_quiz_changed(true);
+        });
+
+        $("#select_shared_groups").click(function() {
+            $("#dialog-select-groups").modal();
+        });
+
+        $(".check_group").on('change', function() {
+            var group_id = this.value;
+            var checked = this.checked;
+            if (!checked) {
+                delete(shared_groups[group_id]);
+            } else {
+                shared_groups[group_id] = true;
+            }
+            console.log("Now shared groups is " + shared_groups);
+        });
+
+        $("#confirm_select").click(function() {
+            var group_ids = Object.keys(shared_groups);
+            var data = {
+                "quiz_id": {{ quiz.id }},
+                "group_ids": group_ids
+            }
+            var url = "{% url 'testings.ajax_share_quiz' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data) {
+                    try {
+                        console.log(data);
+                        $("#dialog-select-groups").modal("toggle");
+                        // TODO: update the groups
+                        $("#shared_group_list").html("");
+                        for (var i = 0; i < data.groups.length; i++) {
+                            var group = data.groups[i];
+                            var group_url = "{% url 'user.group_detail' 0 %}";
+                            group_url = group_url.replace("0", group.id);
+                            var html = '<li><a href="' + group_url + '">' + group.description +'</li>';
+                            $("#shared_group_list").append(html);
+                        }
+
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+    });
+    </script>
 {% endblock %}

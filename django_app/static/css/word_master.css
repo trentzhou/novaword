@@ -14,3 +14,8 @@
     padding-right: 85px;
     height: 40px;
 }
+
+.selected {
+    background-color: #337ab7;
+    color: #fff;
+}
