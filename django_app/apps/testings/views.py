@@ -110,7 +110,7 @@ class AjaxGetQuizDataView(View):
 class AjaxSaveQuiz(View):
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = json.loads(request.body.decode("utf-8"))
             quiz_id = data["quiz_id"]
             words = data["words"]
             word_ids = [x["id"] for x in words]
@@ -138,7 +138,7 @@ class AjaxSaveQuiz(View):
 class AjaxShareQuizView(View):
     def post(self, request):
         try:
-            data = json.loads(request.body)
+            data = json.loads(request.body.decode("utf-8"))
             quiz_id = data["quiz_id"]
             group_ids = data["group_ids"]
 
@@ -149,7 +149,7 @@ class AjaxShareQuizView(View):
                 "status": "ok",
                 "groups": [{"id": x.id, "description": x.description} for x in quiz.groups.all()]
             })
-        except:
+        except IndexError:
             return JsonResponse({
                 "status": "fail"
             })
