@@ -9,7 +9,7 @@ from django.views.generic import View
 
 from learn.models import WordBook, WordUnit
 from testings.forms import CreateQuizForm
-from testings.models import Quiz, QuizQuestion
+from testings.models import Quiz, QuizQuestion, QuizResult
 from users.models import UserGroup, Group
 from utils import parse_bool
 
@@ -20,7 +20,7 @@ class TestIndexView(LoginRequiredMixin, View):
         quiz_created_by_me = Quiz.objects.filter(author=request.user).all()
         # shared to me
         my_groups = UserGroup.objects.filter(user=request.user).values("group")
-        quiz_shared_to_me = Quiz.objects.filter(groups__in=my_groups).all()
+        quiz_shared_to_me = Quiz.objects.filter(groups__in=my_groups).distinct()
 
         return render(request, 'quiz_list.html', {
             "page": "testings",
@@ -107,13 +107,48 @@ class AjaxGetQuizDataView(View):
             })
 
 
-class AjaxSaveQuiz(View):
+class AjaxSaveQuizInfo(View):
+    def post(self, request):
+        try:
+            data = json.loads(request.body.decode("utf-8"))
+            quiz_id = data["quiz_id"]
+            description = data.get("description", None)
+            max_total_time = data.get("max_total_time", None)
+            max_word_time = data.get("max_word_time", None)
+
+            # update the quiz name
+            quiz = Quiz.objects.filter(id=quiz_id).get()
+            if description:
+                quiz.description = description
+            if max_total_time:
+                quiz.max_total_time = max_total_time
+            if max_word_time:
+                quiz.max_word_time = max_word_time
+            quiz.save()
+
+            return JsonResponse({
+                "status": "ok"
+            })
+        except:
+            return JsonResponse({
+                "status": "fail"
+            })
+
+class AjaxSaveQuizWords(View):
     def post(self, request):
         try:
             data = json.loads(request.body.decode("utf-8"))
             quiz_id = data["quiz_id"]
             words = data["words"]
             word_ids = [x["id"] for x in words]
+            description = data.get("description", None)
+
+            if description:
+                # update the quiz name
+                quiz = Quiz.objects.filter(id=quiz_id).get()
+                if quiz.description != description:
+                    quiz.description = description
+                quiz.save()
 
             # delete all words whose id is not in word_ids
             QuizQuestion.objects.filter(Q(quiz_id=quiz_id) & ~Q(word_id__in=word_ids)).delete()
@@ -153,3 +188,37 @@ class AjaxShareQuizView(View):
             return JsonResponse({
                 "status": "fail"
             })
+
+
+class AjaxDeleteQuizView(View):
+    def post(self, request):
+        try:
+            quiz_id = request.POST["quiz_id"]
+
+            Quiz.objects.filter(id=quiz_id).delete()
+            return JsonResponse({
+                "status": "ok"
+            })
+        except IndexError:
+            return JsonResponse({
+                "status": "fail"
+            })
+
+
+class QuizStateView(View):
+    def get(self, request, quiz_id):
+        try:
+            quiz = Quiz.objects.filter(id=quiz_id).get()
+            quiz_results = QuizResult.objects.filter(user=request.user, quiz=quiz).all()
+
+            return render(request, 'quiz_state.html', {
+                "quiz_results": quiz_results,
+                "quiz": quiz
+            })
+        except:
+            raise Http404()
+
+
+class QuizTakeView(View):
+    def get(self, request, quiz_id):
+        pass

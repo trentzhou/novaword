@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+        <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            答卷状态
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li>
+                <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> 考卷</a>
+            </li>
+            <li class="active">答卷状态</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+    {% if not quiz_results %}
+        这张考卷还没有做过。捋起袖子，<a class="btn btn-primary" href="{% url 'testings.quiz_take' quiz.id %}">开始答题</a>
+    {% else %}
+        考卷已经做过。成绩如下：
+        <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>开始时间</th>
+                <th>结束时间</th>
+                <th>答对题数</th>
+            </tr>
+        </thead>
+        </table>
+        {% for state in quiz_results %}
+            <tr>
+            <td>{{ state.start_time }}</td>
+            <td>{{ state.finish_time }}</td>
+            <td>{{ state.correct_count }}</td>
+            </tr>
+        {% endfor %}
+        </ul>
+        <a class="btn btn-primary" href="{% url 'testings.quiz_take' quiz.id %}">再做一次</a>
+    {% endif %}
+    </section>
+{% endblock %}

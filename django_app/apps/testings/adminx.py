@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import Quiz, QuizQuestion, QuizResult, QuizQuestionResult
+from .models import Quiz, QuizQuestion, QuizResult
 
 
 class QuizAdmin(object):
@@ -30,25 +30,16 @@ class QuizQuestionAdmin(object):
 
 
 class QuizResultAdmin(object):
-    list_display = ['user', 'quiz', 'state', 'start_time', 'finish_time']
+    list_display = ['user', 'quiz', 'start_time', 'finish_time', 'correct_count']
     search_fields = ['user', 'quiz']
     list_filter = ['user__username',
                    'quiz__description',
-                   'state',
                    'start_time',
-                   'finish_time']
+                   'finish_time',
+                   'correct_count']
     model_icon = 'fa fa-bars'
-
-
-class QuizQuestionResultAdmin(object):
-    list_display = ['quiz_question', 'quiz_result', 'is_correct']
-    search_fields = list_display
-    list_filter = ['quiz_question__word__spelling',
-                   'quiz_result__quiz__description', 'is_correct']
-    model_icon = 'fa fa-pencil'
 
 
 xadmin.site.register(Quiz, QuizAdmin)
 xadmin.site.register(QuizQuestion, QuizQuestionAdmin)
 xadmin.site.register(QuizResult, QuizResultAdmin)
-xadmin.site.register(QuizQuestionResult, QuizQuestionResultAdmin)

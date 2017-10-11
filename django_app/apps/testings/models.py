@@ -54,18 +54,10 @@ class QuizQuestion(models.Model):
 class QuizResult(models.Model):
     user = models.ForeignKey(UserProfile, verbose_name=u"用户")
     quiz = models.ForeignKey(Quiz, verbose_name=u"测试")
-    state = models.CharField(null=False,
-                             blank=False,
-                             default="assigned",
-                             max_length=15,
-                             choices=(
-                                 ("assigned", u"未答题"),
-                                 ("in_progress", u"答题中"),
-                                 ("finished", u"完成")
-                             ))
     start_time = models.DateTimeField(default=datetime.now,
                                       verbose_name=u"开始时间")
     finish_time = models.DateTimeField(null=True, verbose_name=u"完成时间")
+    correct_count = models.IntegerField(default=0, verbose_name=u"答对题数")
 
     class Meta:
         verbose_name = u"答卷"
@@ -77,18 +69,3 @@ class QuizResult(models.Model):
     def __unicode__(self):
         return "{0} - {1}".format(self.user.username, self.quiz.description)
 
-
-class QuizQuestionResult(models.Model):
-    quiz_result = models.ForeignKey(QuizResult, verbose_name=u"测试结果")
-    quiz_question = models.ForeignKey(QuizQuestion, verbose_name=u"问题")
-    is_correct = models.BooleanField(default=False, verbose_name=u"答对了")
-
-    class Meta:
-        verbose_name = u"题目解答"
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return self.__unicode__()
-
-    def __unicode__(self):
-        return "{0} - {1}".format(self.quiz_question, self.quiz_result)

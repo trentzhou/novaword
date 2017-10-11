@@ -25,74 +25,120 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
+        <div class="row">
+            <section class="col-lg-7">
+                <div class="box">
+                    <div class="box-header"><h3>考卷信息</h3></div>
+                    <div class="form-horizontal">
+                        <div class="box-body">
 
-        <div class="box">
-            <div class="box-header"><h3>考卷里的单词</h3></div>
-            <div class="box-body">
-                <table class="table table-responsive" id="table_quiz_words">
-                    <thead>
-                    <tr>
-                        <th>拼写</th>
-                        <th>解释</th>
-                        <th>考题形式</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                            <div class="form-group">
+                                <label for="description" class="col-sm-2 control-label">标题</label>
 
-                    </tbody>
-                </table>
-            </div>
-            <div class="box-footer">
-                <a class="btn btn-primary" id="btn_quiz_finish">保存</a>
-                <a class="btn btn-primary" id="btn_quiz_select_all">全选</a>
-                <a class="btn btn-primary" id="btn_quiz_delete_selected">删除选中的单词</a>
-            </div>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="description" placeholder="标题" value="{{ quiz.description }}">
+                                </div>
+                            </div>
 
-        </div>
+                            <div class="form-group">
+                                <label for="max_total_time" class="col-sm-2 control-label">考卷最大答题时间</label>
 
-        <div class="box">
-            <div class="box-header"><h3>选择单词</h3></div>
-            <div class="box-body">
-                选择单元：
-                <select id="select_unit">
-                    {% for unit in units %}
-                        <option value="{{ unit.id }}">{{ unit }}</option>
-                    {% endfor %}
-                </select>
-                <table class="table table-bordered table-responsive" id="table_unit_words">
-                    <thead>
-                    <tr>
-                        <th>拼写</th>
-                        <th>解释</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                                <div class="col-sm-10">
+                                    <input type="number" class="form-control" id="max_total_time" placeholder="考卷最大答题时间" value="{{ quiz.max_total_time }}">
+                                </div>
+                            </div>
 
-                    </tbody>
-                </table>
-            </div>
-            <div class="box-footer">
-                <a class="btn btn-primary" id="btn_add_selected_words">把选中的单词添加到考卷</a>
-                <a class="btn btn-primary" id="btn_select_all_words">全部选中</a>
-            </div>
-        </div>
+                            <div class="form-group">
+                                <label for="max_word_time" class="col-sm-2 control-label">单词最大答题时间</label>
 
-        <div class="box">
-            <div class="box-header"><h3>分享至班级</h3></div>
-            <div class="box-body">
-                已经分享给这些班级：
-                <ul id="shared_group_list">
-                    {% for group in quiz.groups.all %}
-                        <li>
-                            <a href="{% url 'user.group_detail' group.id %}">{{ group.description }}</a>
-                        </li>
+                                <div class="col-sm-10">
+                                    <input type="number" class="form-control" id="max_word_time" placeholder="单词最大答题时间" value="{{ quiz.max_word_time }}">
+                                </div>
+                            </div>
 
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="box-footer">
-                <a class="btn btn-primary" id="select_shared_groups">选择要分享的班级</a>
-            </div>
+                        </div>
+
+                        <div class="box-footer">
+                            <a class="btn btn-primary" id="btn_save_quiz_info">保存</a>
+                            <a class="btn btn-danger" id="btn_delete_quiz">删除考卷</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="box">
+                    <div class="box-header"><h3>分享至班级</h3></div>
+                    <div class="box-body">
+                        已经分享给这些班级：
+                        <ul id="shared_group_list">
+                            {% for group in quiz.groups.all %}
+                                <li>
+                                    <a href="{% url 'user.group_detail' group.id %}">{{ group.description }}</a>
+                                </li>
+
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="box-footer">
+                        <a class="btn btn-primary" id="select_shared_groups">选择要分享的班级</a>
+                    </div>
+                </div>
+
+                <div class="box">
+                    <div class="box-header"><h3>考卷里的单词</h3></div>
+                    <div class="box-body">
+                        <table class="table table-responsive" id="table_quiz_words">
+                            <thead>
+                            <tr>
+                                <th>拼写</th>
+                                <th>解释</th>
+                                <th>考题形式</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="box-footer">
+                        <a class="btn btn-primary" id="btn_quiz_finish">保存</a>
+                        <a class="btn btn-primary" id="btn_quiz_select_all">全选</a>
+                        <a class="btn btn-primary" id="btn_quiz_delete_selected">删除选中的单词</a>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <section class="col-lg-5">
+
+                <div class="box">
+                    <div class="box-header"><h3>选择单词</h3></div>
+                    <div class="box-body">
+                        选择单元：
+                        <select id="select_unit">
+                            {% for unit in units %}
+                                <option value="{{ unit.id }}">{{ unit }}</option>
+                            {% endfor %}
+                        </select>
+                        <table class="table table-bordered table-responsive" id="table_unit_words">
+                            <thead>
+                            <tr>
+                                <th>拼写</th>
+                                <th>解释</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="box-footer">
+                        <a class="btn btn-primary" id="btn_add_selected_words">把选中的单词添加到考卷</a>
+                        <a class="btn btn-primary" id="btn_select_all_words">全部选中</a>
+                    </div>
+                </div>
+
+            </section>
+
         </div>
 
     </section>
@@ -135,6 +181,7 @@
 
     <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'jquery.toaster/jquery.toaster.js' %}"></script>
 
     <script>
     $(function() {
@@ -251,10 +298,41 @@
                 add_word_to_quiz_table(row);
             }
             $("#table_unit_words tr").removeClass('selected');
+            $.toaster({"priority": "info", "title": "OK", "message": "添加好了，记得要保存哦。"});
         });
 
         $("#btn_select_all_words").click(function() {
             $("#table_unit_words tr").toggleClass('selected');
+        });
+
+        $("#btn_save_quiz_info").click(function() {
+            var data = {
+                "quiz_id": {{ quiz.id }},
+                "description": $("#description").val(),
+                "max_total_time": $("#max_total_time").val(),
+                "max_word_time": $("#max_word_time").val()
+            }
+            var url = "{% url 'testings.ajax_save_quiz_info' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data) {
+                    try {
+                        console.log(data);
+                        $.toaster({"priority": "success", "title": "保存成功", "message": "-)"});
+                    } catch (ex) {
+                        $.toaster({"priority": "error", "title": "保存失败", "message": "-("});
+                        console.log(ex);
+                    }
+                }
+            });
         });
 
         $("#btn_quiz_finish").click(function() {
@@ -270,7 +348,7 @@
                 var word = words[i];
                 data.words.push(word);
             }
-            var url = "{% url 'testings.ajax_save_quiz' %}";
+            var url = "{% url 'testings.ajax_save_quiz_words' %}";
             $.ajax({
                 type: "POST",
                 url: url,
@@ -285,8 +363,10 @@
                     try {
                         console.log(data);
                         set_table_quiz_changed(false);
+                        $.toaster({"priority": "success", "title": "保存成功", "message": "-)"});
                     } catch (ex) {
                         console.log(ex);
+                        $.toaster({"priority": "error", "title": "保存失败", "message": "-("});
                     }
                 }
             });
@@ -352,6 +432,33 @@
                             $("#shared_group_list").append(html);
                         }
 
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+        $("#btn_delete_quiz").click(function() {
+            var url = "{% url 'testings.ajax_delete_quiz' %}";
+            var data = {"quiz_id": {{ quiz.id }}};
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: data,
+                dataType: "json",
+                success: function(data) {
+                    try {
+                        console.log(data);
+                        if (data.status == "ok") {
+                            window.location = "{% url 'testings.index' %}";
+                        } else {
+                            $.toaster({"priority": "error", "title": "出错了", "message": "-("});
+                        }
                     } catch (ex) {
                         console.log(ex);
                     }
