@@ -13,7 +13,11 @@
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
             <li>
-                <a href="{% url 'learn.unit_detail' unit.id %}">单元</a>
+                {% if quiz %}
+                    <a href="{% url 'testings.quiz_state' quiz.id %}">考卷</a>
+                {% else %}
+                    <a href="{% url 'learn.unit_detail' unit.id %}">单元</a>
+                {% endif %}
             </li>
             <li class="active">{{ title|default:"单元学习" }}</li>
         </ol>
@@ -22,7 +26,11 @@
     <!-- Main content -->
     <section class="content container-fluid">
 
-    <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
+    {% if quiz %}
+        <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
+    {% else %}
+        <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
+    {% endif %}
     <a class="btn btn-primary" id="btn_start_over">再来一次</a>
     <div class="box">
         <div class="box-body">
@@ -75,12 +83,15 @@
     <script>
     $(function() {
         var unit_words = null;
-        var url = "{% url 'learn.ajax_unit_data' unit.id %}";
+        var url = "{{ data_url }}";
         var word_index = -1;
         var waiting_answer = false;
         var correct_div_id = "";
         var learn_type = {{ type|default:1 }};    // 1 for learn, 2 for test, 3 for review;
         var quiz_type = {{ quiz_type|default:3 }};// 1: chinese to english; 2: english to chinese; 3: random;
+
+        var start_seconds = 0;
+        var finish_seconds = 0;
 
         if (learn_type == 2) {
             // 测试的时候不许看答案
@@ -90,13 +101,14 @@
         $("#congratulations").hide();
 
         $.get(url, function(result) {
-            unit_words = result["words"];
+            unit_words = result["data"];
             for (var i = 0; i < unit_words.length; i++) {
                 var word = unit_words[i];
                 word.correct = false;
                 word.index = i;
             }
             continue_quiz();
+            start_seconds = new Date().getTime()/1000;
         });
 
         // 打乱次序
@@ -266,6 +278,8 @@
             $("#congratulations").show();
             $("#choose").hide();
             $("#explain").hide();
+            finish_seconds = new Date().getTime()/1000;
+            var seconds_used = Math.floor(finish_seconds - start_seconds);
 
             var title = "恭喜你，单元学习完成啦！";
             if (learn_type == 2)
@@ -282,7 +296,9 @@
                     if (unit_words[i].correct)
                         correct_count++;
                 }
-                correct_rate = Math.floor(correct_count * 100 / unit_words.length);
+                correct_rate = 100;
+                if (unit_words.length > 0)
+                    correct_rate = Math.floor(correct_count * 100 / unit_words.length);
 
                 var stat = "共" + unit_words.length + "个单词，答对" + correct_count + "个。正确率" + correct_rate + "%。";
                 $("#result-stat").text(stat);
@@ -291,15 +307,22 @@
             // save learning record
             $.ajax({
                 type: "POST",
-                url: "{% url 'learn.save_record' %}",
+                url: "{{ save_url }}",
                 beforeSend:function(xhr, settings) {
                     xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
                 },
                 async: true,
                 data: {
+            {% if quiz %}
+                    "quiz_id": {{ quiz.id }},
+            {% else %}
                     "unit_id": {{ unit.id }},
+            {% endif %}
                     "type": learn_type,
-                    "correct_rate": correct_rate
+                    "correct_rate": correct_rate,
+                    "correct_count": correct_count,
+                    "word_count": unit_words.length,
+                    "seconds_used": seconds_used
                 },
                 success: function(data) {
                     try {
@@ -323,6 +346,7 @@
             for (var i = 0; i < unit_words.length; i++) {
                 unit_words[i].correct = false;
             }
+            start_seconds = new Date().getTime()/1000;
             continue_quiz();
         });
 

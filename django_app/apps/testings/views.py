@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 import json
+import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
@@ -10,8 +12,7 @@ from django.views.generic import View
 from learn.models import WordBook, WordUnit
 from testings.forms import CreateQuizForm
 from testings.models import Quiz, QuizQuestion, QuizResult
-from users.models import UserGroup, Group
-from utils import parse_bool
+from users.models import UserGroup
 
 
 class TestIndexView(LoginRequiredMixin, View):
@@ -134,6 +135,7 @@ class AjaxSaveQuizInfo(View):
                 "status": "fail"
             })
 
+
 class AjaxSaveQuizWords(View):
     def post(self, request):
         try:
@@ -209,11 +211,12 @@ class QuizStateView(View):
     def get(self, request, quiz_id):
         try:
             quiz = Quiz.objects.filter(id=quiz_id).get()
-            quiz_results = QuizResult.objects.filter(user=request.user, quiz=quiz).all()
+            quiz_results = QuizResult.objects.filter(user=request.user, quiz=quiz).order_by("-finish_time").all()
 
             return render(request, 'quiz_state.html', {
                 "quiz_results": quiz_results,
-                "quiz": quiz
+                "quiz": quiz,
+                "question_count": quiz.quizquestion_set.count()
             })
         except:
             raise Http404()
@@ -221,4 +224,42 @@ class QuizStateView(View):
 
 class QuizTakeView(View):
     def get(self, request, quiz_id):
-        pass
+        try:
+            quiz = Quiz.objects.filter(id=quiz_id).get()
+            return render(request, 'unit_learn.html', {
+                "page": "learning",
+                "quiz": quiz,
+                "title": u"答卷",
+                "type": 2,
+                "data_url": reverse('testings.ajax_get_quiz_data', kwargs={"quiz_id": quiz_id}),
+                "save_url": reverse('testings.ajax_save_quiz_result')
+            })
+        except:
+            raise Http404()
+
+
+class AjaxSaveQuizResultView(View):
+    def post(self, request):
+        quiz_id = request.POST.get("quiz_id", None)
+        correct_count = request.POST.get("correct_count", 0)
+        seconds_used = request.POST.get("seconds_used", 0)
+
+        if not quiz_id:
+            return JsonResponse({
+                "status": "fail"
+            })
+        try:
+            record = QuizResult()
+            record.user = request.user
+            record.quiz_id = quiz_id
+            record.finish_time = datetime.datetime.now()
+            record.correct_count = int(correct_count)
+            record.start_time = record.finish_time - datetime.timedelta(seconds=int(seconds_used))
+            record.save()
+            return JsonResponse({
+                "status": "success"
+            })
+        except:
+            return JsonResponse({
+                "status": "fail"
+            })

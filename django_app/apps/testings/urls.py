@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from testings.views import TestIndexView, CreateQuizView, EditQuizView, AjaxGetQuizDataView, AjaxSaveQuizWords, \
-    AjaxShareQuizView, AjaxSaveQuizInfo, AjaxDeleteQuizView, QuizStateView, QuizTakeView
+    AjaxShareQuizView, AjaxSaveQuizInfo, AjaxDeleteQuizView, QuizStateView, QuizTakeView, AjaxSaveQuizResultView
 
 urlpatterns = [
     url(r'^$', TestIndexView.as_view(), name="testings.index"),
@@ -14,4 +14,6 @@ urlpatterns = [
     url(r'^quiz/ajax-delete-quiz$', AjaxDeleteQuizView.as_view(), name="testings.ajax_delete_quiz"),
     url(r'^quiz/state/(?P<quiz_id>\d+)$', QuizStateView.as_view(), name="testings.quiz_state"),
     url(r'^quiz/take/(?P<quiz_id>\d+)$', QuizTakeView.as_view(), name="testings.quiz_take"),
+    url(r'^quiz/ajax-save-quiz-result', AjaxSaveQuizResultView.as_view(), name="testings.ajax_save_quiz_result"),
+
 ]

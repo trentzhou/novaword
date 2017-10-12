@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.urlresolvers import reverse
 from django.db.models import Count, Max
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
@@ -185,7 +186,7 @@ class AjaxUnitDataView(View):
                 "detailed_meaning_in_dict": w.word.detailed_meanings
             })
         return JsonResponse({
-            "words": result
+            "data": result
         })
 
 
@@ -209,7 +210,9 @@ class UnitLearnView(LoginRequiredMixin, View):
                 "page": "learning",
                 "unit": unit,
                 "title": u"单元学习",
-                "type": 1
+                "type": 1,
+                "data_url": reverse('learn.ajax_unit_data', kwargs={"unit_id": unit_id}),
+                "save_url": reverse('learn.save_record')
             })
         except:
             raise Http404()
@@ -223,7 +226,9 @@ class UnitTestView(LoginRequiredMixin, View):
                 "page": "learning",
                 "unit": unit,
                 "title": u"单元测试",
-                "type": 2
+                "type": 2,
+                "data_url": reverse('learn.ajax_unit_data', kwargs={"unit_id": unit_id}),
+                "save_url": reverse('learn.save_record')
             })
         except:
             raise Http404()
@@ -264,7 +269,9 @@ class UnitReviewView(View):
                 "page": "learning",
                 "unit": unit,
                 "type": 3,
-                "title": u"单元复习"
+                "title": u"单元复习",
+                "data_url": reverse('learn.ajax_unit_data', kwargs={"unit_id": unit_id}),
+                "save_url": reverse('learn.save_record')
             })
         except KeyError:
             raise Http404()

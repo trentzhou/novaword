@@ -30,14 +30,16 @@
                 <th>答对题数</th>
             </tr>
         </thead>
-        </table>
+        <tbody>
         {% for state in quiz_results %}
             <tr>
             <td>{{ state.start_time }}</td>
             <td>{{ state.finish_time }}</td>
-            <td>{{ state.correct_count }}</td>
+            <td>{{ state.correct_count }}/{{ question_count }}</td>
             </tr>
         {% endfor %}
+        </tbody>
+        </table>
         </ul>
         <a class="btn btn-primary" href="{% url 'testings.quiz_take' quiz.id %}">再做一次</a>
     {% endif %}
