@@ -12,13 +12,11 @@
             <li>
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
-            <li>
-                {% if quiz %}
-                    <a href="{% url 'testings.quiz_state' quiz.id %}">考卷</a>
-                {% else %}
-                    <a href="{% url 'learn.unit_detail' unit.id %}">单元</a>
-                {% endif %}
-            </li>
+            {% if quiz %}
+                <li><a href="{% url 'testings.quiz_state' quiz.id %}">考卷</a></li>
+            {% elif unit %}
+                <li><a href="{% url 'learn.unit_detail' unit.id %}">单元</a></li>
+            {% endif %}
             <li class="active">{{ title|default:"单元学习" }}</li>
         </ol>
     </section>
@@ -28,7 +26,7 @@
 
     {% if quiz %}
         <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
-    {% else %}
+    {% elif unit %}
         <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
     {% endif %}
     <a class="btn btn-primary" id="btn_start_over">再来一次</a>
@@ -146,7 +144,10 @@
             // find 3 wrong explanations
             var candidate_set = []
             candidate_set.push(c2e? word.spelling: word.simple_meaning);
-            while (candidate_set.length < 4) {
+            var option_count = 4;
+            if (unit_words.length < option_count)
+                option_count = unit_words.length;
+            while (candidate_set.length < option_count) {
                 var index = Math.floor(Math.random() * unit_words.length);
                 var candidate = unit_words[index];
                 var meaning = candidate.simple_meaning;
@@ -155,6 +156,10 @@
                 if (candidate_set.indexOf(meaning) < 0) {
                     candidate_set.push(meaning);
                 }
+            }
+            // a bit humor :-)
+            while (candidate_set.length < 4) {
+                candidate_set.push("^_^!!");
             }
             // shuffle the candidates
             shuffle(candidate_set);
@@ -280,6 +285,8 @@
             $("#explain").hide();
             finish_seconds = new Date().getTime()/1000;
             var seconds_used = Math.floor(finish_seconds - start_seconds);
+            var error_words = [];
+            var correct_words = [];
 
             var title = "恭喜你，单元学习完成啦！";
             if (learn_type == 2)
@@ -293,8 +300,12 @@
                 // 如果是测试，那么显示正确率。
                 var correct_count = 0;
                 for (var i = 0; i < unit_words.length; i++) {
-                    if (unit_words[i].correct)
+                    if (unit_words[i].correct) {
+                        correct_words.push(unit_words[i].id);
                         correct_count++;
+                    }
+                    else
+                        error_words.push(unit_words[i].id)
                 }
                 correct_rate = 100;
                 if (unit_words.length > 0)
@@ -304,6 +315,20 @@
                 $("#result-stat").text(stat);
             }
 
+            var data = {
+            {% if quiz %}
+                "quiz_id": {{ quiz.id }},
+            {% elif unit %}
+                "unit_id": {{ unit.id }},
+            {% endif %}
+                "type": learn_type,
+                "correct_rate": correct_rate,
+                "correct_count": correct_count,
+                "word_count": unit_words.length,
+                "seconds_used": seconds_used,
+                "error_words": error_words,
+                "correct_words": correct_words
+            };
             // save learning record
             $.ajax({
                 type: "POST",
@@ -312,18 +337,9 @@
                     xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
                 },
                 async: true,
-                data: {
-            {% if quiz %}
-                    "quiz_id": {{ quiz.id }},
-            {% else %}
-                    "unit_id": {{ unit.id }},
-            {% endif %}
-                    "type": learn_type,
-                    "correct_rate": correct_rate,
-                    "correct_count": correct_count,
-                    "word_count": unit_words.length,
-                    "seconds_used": seconds_used
-                },
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
                 success: function(data) {
                     try {
                         console.log("record saved");

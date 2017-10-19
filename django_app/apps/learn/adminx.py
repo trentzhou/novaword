@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import Word, WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord
+from .models import Word, WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord
 
 
 class WordAdmin(object):
@@ -57,9 +57,17 @@ class LearningRecordAdmin(object):
     model_icon = 'fa fa-tasks'
 
 
+class ErrorWordAdmin(object):
+    list_display = ['user', 'word', 'error_count', 'amend_count', 'latest_error_time']
+    search_fields = ['user', 'word', 'error_count', 'amend_count']
+    list_filter = list_display
+    model_icon = 'fa fa-bug'
+
+
 xadmin.site.register(Word, WordAdmin)
 xadmin.site.register(WordBook, WordBookAdmin)
 xadmin.site.register(WordUnit, WordUnitAdmin)
 xadmin.site.register(WordInUnit, WordInUnitAdmin)
 xadmin.site.register(LearningPlan, LearningPlanAdmin)
 xadmin.site.register(LearningRecord, LearningRecordAdmin)
+xadmin.site.register(ErrorWord, ErrorWordAdmin)

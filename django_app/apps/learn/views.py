@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
+import datetime
+import json
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
-from django.db.models import Count, Max
+from django.db.models import Count
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
-from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord
+from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord
 from testings.models import QuizResult
 
 
@@ -130,7 +133,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
     def get(self, request):
         learn_count = LearningRecord.objects.filter(user=request.user).count()
         quiz_count = QuizResult.objects.filter(user=request.user).count()
-        erroneous_words = 0
+        erroneous_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).count()
         # get recent learned units
         recent_units = LearningRecord.objects\
             .filter(user=request.user)\
@@ -236,9 +239,10 @@ class UnitTestView(LoginRequiredMixin, View):
 
 class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
     def post(self, request):
-        unit_id = request.POST.get("unit_id", None)
-        type = request.POST.get("type", None)
-        correct_rate = request.POST.get("correct_rate", 0)
+        data = json.loads(request.body.decode("utf-8"))
+        unit_id = data.get("unit_id", None)
+        type = data.get("type", None)
+        correct_rate = data.get("correct_rate", 0)
 
         if not unit_id or not type:
             return JsonResponse({
@@ -252,6 +256,19 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             record.type = type
             record.correct_rate = correct_rate
             record.save()
+            if "error_words" in data:
+                error_words = data["error_words"]
+                for w in error_words:
+                    error_records = ErrorWord.objects.filter(user=request.user, word_id=w).all()
+                    if len(error_records):
+                        error_record = error_records[0]
+                    else:
+                        error_record = ErrorWord()
+                    error_record.user = request.user
+                    error_record.word_id = w
+                    error_record.error_count += 1
+                    error_record.latest_error_time = datetime.datetime.now()
+                    error_record.save()
             return JsonResponse({
                 "status": "success"
             })
@@ -275,3 +292,64 @@ class UnitReviewView(View):
             })
         except KeyError:
             raise Http404()
+
+
+class ErrorWordListView(View):
+    def get(self, request):
+        error_words = ErrorWord.objects.filter(user=request.user).order_by("-latest_error_time").all()
+        return render(request, "error_word_list.html", {
+            "title": "error_words",
+            "error_words": error_words
+        })
+
+
+class AmendErrorWordView(View):
+    def get(self, request):
+        return render(request, 'unit_learn.html', {
+            "page": "learning",
+            "title": u"错词重测",
+            "type": 2,
+            "data_url": reverse('learn.ajax_error_words'),
+            "save_url": reverse('learn.ajax_amend_error_words')
+        })
+
+
+class AjaxErrorWordsView(View):
+    def get(self, request):
+        error_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).order_by("-latest_error_time").all()
+        result = []
+        for error_word in error_words:
+            w = error_word.word
+            result.append({
+                "id": w.id,
+                "simple_meaning": w.simple_meaning,
+                "spelling": w.word.spelling,
+                "pronounciation_us": w.word.pronounciation_us,
+                "pronounciation_uk": w.word.pronounciation_uk,
+                "mp3_us_url": w.word.mp3_us_url,
+                "mp3_uk_url": w.word.mp3_uk_url,
+                "short_meaning_in_dict": w.word.short_meaning,
+                "detailed_meaning_in_dict": w.word.detailed_meanings
+            })
+        return JsonResponse({
+            "data": result
+        })
+
+
+class AjaxAmendErrorWordsView(View):
+    def post(self, request):
+        data = json.loads(request.body.decode("utf-8"))
+        if "correct_words" in data:
+            for wid in data["correct_words"]:
+                error_record = ErrorWord.objects.filter(user=request.user, word_id=wid).get()
+                error_record.amend_count += 1
+                error_record.save()
+        if "error_words" in data:
+            for wid in data["error_words"]:
+                error_record = ErrorWord.objects.filter(user=request.user, word_id=wid).get()
+                error_record.error_count += 1
+                error_record.latest_error_time = datetime.datetime.now()
+                error_record.save()
+        return JsonResponse({
+            "status": "success"
+        })

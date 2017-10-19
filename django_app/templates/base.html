@@ -225,6 +225,10 @@ desired effect
                             <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> <span>测试</span></a>
                         </li>
 
+                        <li {% ifequal page "error_words" %} class="active" {% endifequal %}>
+                            <a href="{% url 'learn.error_word_list' %}"><i class="fa fa-bug"></i> <span>错题集</span></a>
+                        </li>
+
                         <li class="header">单词</li>
                         <li {% ifequal page "books" %} class="active" {% endifequal %}>
                             <a href="{% url 'learn.books' %}"><i class="fa fa-cubes"></i> <span>单词书</span></a>

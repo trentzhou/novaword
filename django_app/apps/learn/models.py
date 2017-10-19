@@ -143,3 +143,21 @@ class LearningRecord(models.Model):
 
     def __unicode__(self):
         return u"{0} - {1}".format(self.user.username, self.unit)
+
+
+class ErrorWord(models.Model):
+    user = models.ForeignKey(UserProfile, verbose_name=u"用户")
+    word = models.ForeignKey(WordInUnit, verbose_name=u"单词")
+    error_count = models.IntegerField(default=0, verbose_name=u"错误次数")
+    amend_count = models.IntegerField(default=0, verbose_name=u"纠正次数")
+    latest_error_time = models.DateTimeField(default=datetime.now, verbose_name=u"最近一次答错时间")
+
+    class Meta:
+        verbose_name = u"错误记录"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return u"{0}错误{1}次".format(self.word, self.error_count)

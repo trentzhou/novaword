@@ -9,7 +9,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
 
-from learn.models import WordBook, WordUnit
+from learn.models import WordBook, WordUnit, ErrorWord
 from testings.forms import CreateQuizForm
 from testings.models import Quiz, QuizQuestion, QuizResult
 from users.models import UserGroup
@@ -240,9 +240,10 @@ class QuizTakeView(View):
 
 class AjaxSaveQuizResultView(View):
     def post(self, request):
-        quiz_id = request.POST.get("quiz_id", None)
-        correct_count = request.POST.get("correct_count", 0)
-        seconds_used = request.POST.get("seconds_used", 0)
+        data = json.loads(request.body.decode("utf-8"))
+        quiz_id = data.get("quiz_id", None)
+        correct_count = data.get("correct_count", 0)
+        seconds_used = data.get("seconds_used", 0)
 
         if not quiz_id:
             return JsonResponse({
@@ -256,6 +257,20 @@ class AjaxSaveQuizResultView(View):
             record.correct_count = int(correct_count)
             record.start_time = record.finish_time - datetime.timedelta(seconds=int(seconds_used))
             record.save()
+
+            if "error_words" in data:
+                error_words = data["error_words"]
+                for w in error_words:
+                    error_records = ErrorWord.objects.filter(user=request.user, word_id=w).all()
+                    if len(error_records):
+                        error_record = error_records[0]
+                    else:
+                        error_record = ErrorWord()
+                    error_record.user = request.user
+                    error_record.word_id = w
+                    error_record.error_count += 1
+                    error_record.latest_error_time = datetime.datetime.now()
+                    error_record.save()
             return JsonResponse({
                 "status": "success"
             })

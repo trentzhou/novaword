@@ -3,7 +3,8 @@ from django.conf.urls import url
 from learn.views import BookListView, UnitListView, LearningView, ReviewView, BookDetailView, UnitDetailView, \
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
     AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
-    AjaxSaveLearnRecordView, UnitReviewView
+    AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
+    AmendErrorWordView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -22,4 +23,8 @@ urlpatterns = [
     url(r'^unit_test/(?P<unit_id>\d+)/$', UnitTestView.as_view(), name="learn.unit_test"),
     url(r'^unit_review/(?P<unit_id>\d+)/$', UnitReviewView.as_view(), name="learn.unit_review"),
     url(r'^ajax-save-learn-record/$', AjaxSaveLearnRecordView.as_view(), name="learn.save_record"),
+    url(r'^error-words/$', ErrorWordListView.as_view(), name="learn.error_word_list"),
+    url(r'^amend-error-words/$', AmendErrorWordView.as_view(), name="learn.amend_error_words"),
+    url(r'^ajax-error-words$', AjaxErrorWordsView.as_view(), name="learn.ajax_error_words"),
+    url(r'^ajax-amend-error-words', AjaxAmendErrorWordsView.as_view(), name="learn.ajax_amend_error_words"),
 ]
