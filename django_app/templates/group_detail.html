@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load learn_status %}
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
@@ -47,6 +48,8 @@
                         <tr>
                             <th>用户</th>
                             <th>权限</th>
+                            <th>累计学习次数</th>
+                            <th>一周内学习次数</th>
                         </tr>
                         </thead>
                         {% for member in members %}
@@ -61,6 +64,12 @@
                                 </td>
                                 <td>
                                     {{ member.get_role_display }}
+                                </td>
+                                <td>
+                                    {{ member.user_id | get_total_learn_times }}
+                                </td>
+                                <td>
+                                    {{ member.user_id | get_recent_learn_times:7 }}
                                 </td>
                             </tr>
                         {% endfor %}
