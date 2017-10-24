@@ -26,6 +26,9 @@
             <th>排名</th>
             <th>昵称</th>
             <th>交卷时间</th>
+            {% if is_teacher %}
+                <th>答对题数</th>
+            {% endif %}
         </tr>
         </thead>
         <tbody>
@@ -41,6 +44,9 @@
                 </a>
             </td>
             <td>{{ r.finish_time }}</td>
+            {% if is_teacher %}
+                <td>{{r.correct_count }}</td>
+            {% endif %}
             </tr>
         {% endfor %}
         </tbody>

@@ -13,6 +13,7 @@ from learn.models import WordBook, WordUnit, ErrorWord
 from testings.forms import CreateQuizForm
 from testings.models import Quiz, QuizQuestion, QuizResult
 from users.models import UserGroup, Group
+from users.templatetags.user_info import is_teacher
 
 
 class TestIndexView(LoginRequiredMixin, View):
@@ -300,5 +301,6 @@ class QuizRankView(View):
             correct_count = r.correct_count
         return render(request, 'quiz_rank.html', {
             "quiz_id": quiz_id,
-            "rank": results
+            "rank": results,
+            "is_teacher": is_teacher(request.user.id)
         })
