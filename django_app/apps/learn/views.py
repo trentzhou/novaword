@@ -212,7 +212,7 @@ class UnitLearnView(LoginRequiredMixin, View):
             return render(request, 'unit_learn.html', {
                 "page": "learning",
                 "unit": unit,
-                "title": u"单元学习",
+                "page_title": u"单元学习",
                 "type": 1,
                 "data_url": reverse('learn.ajax_unit_data', kwargs={"unit_id": unit_id}),
                 "save_url": reverse('learn.save_record')
@@ -228,7 +228,7 @@ class UnitTestView(LoginRequiredMixin, View):
             return render(request, 'unit_learn.html', {
                 "page": "learning",
                 "unit": unit,
-                "title": u"单元测试",
+                "page_title": u"单元测试",
                 "type": 2,
                 "data_url": reverse('learn.ajax_unit_data', kwargs={"unit_id": unit_id}),
                 "save_url": reverse('learn.save_record')
@@ -286,7 +286,7 @@ class UnitReviewView(View):
                 "page": "learning",
                 "unit": unit,
                 "type": 3,
-                "title": u"单元复习",
+                "page_title": u"单元复习",
                 "data_url": reverse('learn.ajax_unit_data', kwargs={"unit_id": unit_id}),
                 "save_url": reverse('learn.save_record')
             })
@@ -298,7 +298,7 @@ class ErrorWordListView(View):
     def get(self, request):
         error_words = ErrorWord.objects.filter(user=request.user).order_by("-latest_error_time").all()
         return render(request, "error_word_list.html", {
-            "title": "error_words",
+            "page": "error_words",
             "error_words": error_words
         })
 
@@ -307,7 +307,7 @@ class AmendErrorWordView(View):
     def get(self, request):
         return render(request, 'unit_learn.html', {
             "page": "learning",
-            "title": u"错词重测",
+            "page_title": u"错词重测",
             "type": 2,
             "data_url": reverse('learn.ajax_error_words'),
             "save_url": reverse('learn.ajax_amend_error_words')

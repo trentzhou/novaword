@@ -230,7 +230,7 @@ class QuizTakeView(View):
             return render(request, 'unit_learn.html', {
                 "page": "learning",
                 "quiz": quiz,
-                "title": u"答卷",
+                "page_title": u"答卷",
                 "type": 2,
                 "data_url": reverse('testings.ajax_get_quiz_data', kwargs={"quiz_id": quiz_id}),
                 "save_url": reverse('testings.ajax_save_quiz_result')

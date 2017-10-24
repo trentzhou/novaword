@@ -3,7 +3,7 @@
         <!-- Content Header (Page header) -->
     <section class="content-header">
         <h1>
-            {{ title|default:"单元学习" }}
+            {{ page_title|default:"单元学习" }}
             <small>
                 {{ unit }}
             </small>
@@ -17,7 +17,7 @@
             {% elif unit %}
                 <li><a href="{% url 'learn.unit_detail' unit.id %}">单元</a></li>
             {% endif %}
-            <li class="active">{{ title|default:"单元学习" }}</li>
+            <li class="active">{{ page_title|default:"单元学习" }}</li>
         </ol>
     </section>
 
