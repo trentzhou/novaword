@@ -12,7 +12,7 @@ from django.views.generic import View
 from learn.models import WordBook, WordUnit, ErrorWord
 from testings.forms import CreateQuizForm
 from testings.models import Quiz, QuizQuestion, QuizResult
-from users.models import UserGroup
+from users.models import UserGroup, Group
 
 
 class TestIndexView(LoginRequiredMixin, View):
@@ -278,3 +278,27 @@ class AjaxSaveQuizResultView(View):
             return JsonResponse({
                 "status": "fail"
             })
+
+
+class QuizRankView(View):
+    def get(self, request, quiz_id):
+        group_ids = UserGroup.objects.filter(user=request.user).values("group_id").all()
+
+        results = QuizResult.\
+            objects.\
+            filter(user__usergroup__group__in=group_ids, quiz_id=quiz_id).\
+            order_by("-correct_count").distinct()
+        # put the order in the result.
+        # possibly there are two results with same correct count.
+        # the order should be same in this case.
+        order = 0
+        correct_count = 0
+        for r in results:
+            if r.correct_count != correct_count:
+                order += 1
+            r.order = order
+            correct_count = r.correct_count
+        return render(request, 'quiz_rank.html', {
+            "quiz_id": quiz_id,
+            "rank": results
+        })

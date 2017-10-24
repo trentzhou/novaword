@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+        <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            班级排名
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li>
+                <a href="{% url 'testings.quiz_state' quiz_id %}">答卷状态</a>
+            </li>
+            <li>班级排名</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+    {% if rank %}
+        我的同学里已经有了{{ rank |length }}份答卷。排名如下：
+        <table class="table table-responsive">
+        <thead>
+        <tr>
+            <th>排名</th>
+            <th>昵称</th>
+            <th>交卷时间</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for r in rank %}
+            <tr>
+            <td>{{ r.order }}</td>
+            <td class="user-block">
+                <a href="{% url 'users.contact' r.user.id %}">
+                {% if r.user.avatar %}
+                    <img src="{{ MEDIA_URL }}{{ r.user.avatar }}" class="img-circle img-sm" alt="User Image" />
+                {% endif %}
+                <span class="username">{{ r.user.nick_name }}</span>
+                </a>
+            </td>
+            <td>{{ r.finish_time }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        </table>
+    {% else %}
+        我的同学里面还没有人交过答卷。
+    {% endif %}
+    </section>
+{% endblock %}

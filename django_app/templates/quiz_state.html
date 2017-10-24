@@ -43,5 +43,6 @@
         </ul>
         <a class="btn btn-primary" href="{% url 'testings.quiz_take' quiz.id %}">再做一次</a>
     {% endif %}
+        <a class="btn btn-success" href="{% url 'testings.quiz_rank' quiz.id %}">查看班级排名</a>
     </section>
 {% endblock %}

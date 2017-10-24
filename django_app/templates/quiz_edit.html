@@ -205,7 +205,7 @@
             url = url.replace("0", unit_id);
             $.get(url, function (result) {
                 table_unit_words.clear();
-                var unit_words = result["words"];
+                var unit_words = result["data"];
                 for (var i = 0; i < unit_words.length; i++) {
                     var word = unit_words[i];
                     table_unit_words.row.add(word).draw(false);
