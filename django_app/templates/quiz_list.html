@@ -16,18 +16,22 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
-        <div class="margin-bottom">
-            <a class="btn btn-primary" href="{% url 'testings.create_quiz' %}">新建考卷</a>
-        </div>
+        {% if is_teacher %}
+            <div class="margin-bottom">
+                <a class="btn btn-primary" href="{% url 'testings.create_quiz' %}">新建考卷</a>
+            </div>
+        {% endif %}
         <div class="nav-tabs-custom">
             <ul class="nav nav-tabs">
                 <li class="active">
                     <a href="#shared_quiz" data-toggle="tab">分享给我的考卷</a>
                 </li>
 
+                {% if is_teacher %}
                 <li>
                     <a href="#authored_quiz" data-toggle="tab">我创建的考卷</a>
                 </li>
+                {% endif %}
 
             </ul>
             <div class="tab-content">
@@ -58,6 +62,7 @@
 
                 </div>
 
+                {% if is_teacher %}
                 <div class="tab-pane" id="authored_quiz">
                 {% if quiz_created_by_me %}
                     <table class="table table-responsive" id="quiz_created_by_me_table">
@@ -82,6 +87,7 @@
                     暂时还没有
                 {% endif %}
                 </div>
+                {% endif %}
 
             </div>
         </div>

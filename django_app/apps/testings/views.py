@@ -18,16 +18,20 @@ from users.templatetags.user_info import is_teacher
 
 class TestIndexView(LoginRequiredMixin, View):
     def get(self, request):
-        # created by me
-        quiz_created_by_me = Quiz.objects.filter(author=request.user).all()
+        quiz_created_by_me = None
         # shared to me
         my_groups = UserGroup.objects.filter(user=request.user).values("group")
         quiz_shared_to_me = Quiz.objects.filter(groups__in=my_groups).distinct()
+        teacher = is_teacher(request.user.id)
+        if teacher:
+            # created by me
+            quiz_created_by_me = Quiz.objects.filter(author=request.user).all()
 
         return render(request, 'quiz_list.html', {
             "page": "testings",
             "quiz_created_by_me": quiz_created_by_me,
-            "quiz_shared_to_me": quiz_shared_to_me
+            "quiz_shared_to_me": quiz_shared_to_me,
+            "is_teacher": teacher
         })
 
 

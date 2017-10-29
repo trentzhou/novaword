@@ -114,7 +114,10 @@ class RegisterView(View):
             send_register_email(user_name, "register", request.get_host())
             return render(request, "user_login.html", {"login_title": u"注册成功，请登录"})
         else:
-            return render(request, "user_register.html", {"register_form": register_form})
+            return render(request, "user_register.html", {
+                "register_form": register_form,
+                "method": "email"
+            })
 
 
 class RegisterMobileView(View):

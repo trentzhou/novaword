@@ -230,7 +230,11 @@
                 waiting_answer = false;
                 // 2 seconds later, show word meanings
                 setTimeout(function() {
-                    show_explain(word_index);
+                    if (is_correct) {
+                        continue_quiz();
+                    } else {
+                        show_explain(word_index);
+                    }
                 }, 1000);
             }
 
