@@ -29,7 +29,7 @@
     {% elif unit %}
         <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
     {% endif %}
-    <a class="btn btn-primary" id="btn_start_over">再来一次</a>
+    <a class="btn btn-primary" id="btn_start_over">重新答题</a>
     <div class="box">
         <div class="box-body">
             <div id="choose">
@@ -71,6 +71,9 @@
             <div id="congratulations">
                 <h2 id="congrat-title"></h2>
                 <div id="result-stat"></div>
+                {% if quiz %}
+                    <a href="{% url 'testings.quiz_rank' quiz.id %}" class="btn btn-success">查看班级排名</a>
+                {% endif %}
             </div>
         </div>
     </div>

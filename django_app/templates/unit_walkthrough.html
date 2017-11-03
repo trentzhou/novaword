@@ -20,17 +20,17 @@
     <!-- Main content -->
     <section class="content container-fluid">
     <div class="box">
+        <div class="box-header">
+            <h2 id="word-spelling"></h2>
+        </div>
 
         <div class="box-body">
+            <div id="answer">
+                <a class="btn btn-success" id="btn-familiar">认识</a>
+                <a class="btn btn-danger" id="btn-unfamiliar">不熟悉</a>
+            </div>
 
             <div id="word_browser">
-
-                <a class="btn btn-primary" id="btn-prev">上一个</a>
-                <a class="btn btn-primary" id="btn-next">下一个</a>
-                <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
-
-                <h2 id="word-spelling"></h2>
-
                 <div>
                     <a id="container_us" class="btn">
                         美 <span class="ion ion-speakerphone text-blue" id="play_us"></span> <span id="pronounciation_us"></span>
@@ -49,14 +49,17 @@
                 <div id="simple-meaning"></div>
                 <div id="simple-meaning-in-dict"></div>
 
+                <a class="btn btn-primary" id="btn-next">继续</a>
+
             </div>
 
-            <div id="links">
+            <div id="result">
+                <a class="btn btn-primary" href="{% url 'learn.unit_detail' unit.id %}">返回单元</a>
                 <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
-                <a class="btn btn-primary" href="{% url 'learn.unit_learn' unit.id %}">强化练习</a>
-                <a class="btn btn-primary" id="btn-walkthrough">继续浏览</a>
+                <a class="btn btn-primary" id="btn-walkthrough">再来一次</a>
             </div>
         </div>
+
     </div>
     </section>
 {% endblock %}
@@ -67,31 +70,95 @@
         var unit_words = null;
         var current_index = 0;
         var url = "{% url 'learn.ajax_unit_data' unit.id %}";
+        var start_seconds = 0;
+        var finish_seconds = 0;
 
         $.get(url, function(result) {
             console.log(result);
-            unit_words = result["words"];
+            unit_words = result["data"];
             start_walk_through();
         });
 
         function start_walk_through() {
-
             current_index = 0;
-            show_links(false);
-            show_word(unit_words[0]);
+            // we are not familiar with all of the words
+            for (var i = 0; i < unit_words.length; i++) {
+                var word = unit_words[i];
+                word.familiar = false;
+            }
+            start_seconds = new Date().getTime()/1000;
+            continue_walk_through();
         }
 
-        function show_links(show) {
-            if (show) {
-                $("#links").show();
-                $("#word_browser").hide();
+        function continue_walk_through() {
+            var candidate = null;
+            // find a word which I'm still unfamiliar
+            for (var i = 1; i <= unit_words.length; i++) {
+                var index = (current_index + i) % unit_words.length;
+                var word = unit_words[index];
+                if (!word.familiar) {
+                    // yes we found the word
+                    candidate = word;
+                    current_index = index;
+                    break;
+                }
+            }
+            if (candidate != null) {
+                show_word(candidate);
             } else {
-                $("#word_browser").show();
-                $("#links").hide();
+                // we are done!
+                show_result();
             }
         }
 
+        function show_result() {
+            $("#word_browser").hide();
+            $("#answer").hide();
+            $("#word-spelling").html("学习完成");
+            $("#result").show();
+
+            finish_seconds = new Date().getTime()/1000;
+            var seconds_used = Math.floor(finish_seconds - start_seconds);
+            var data = {
+                "unit_id": {{ unit.id }},
+                "type": 1,
+                "correct_rate": 100,
+                "correct_count": 100,
+                "word_count": unit_words.length,
+                "seconds_used": seconds_used
+            };
+
+            // save learning record
+            $.ajax({
+                type: "POST",
+                url: "{% url 'learn.save_record' %}",
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data) {
+                    try {
+                        console.log("record saved");
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        }
+
         function show_word(word) {
+            $("#result").hide();
+            $("#word_browser").hide();
+            $("#answer").show();
+            $("#word-spelling").html(word.spelling);
+        }
+
+        function show_word_explain(word) {
+            $("#answer").hide();
+            $("#word_browser").show();
             // spelling
             $("#word-spelling").text(word.spelling);
             // show pronounciation
@@ -114,47 +181,27 @@
             //$("#simple-meaning-in-dict").text(word.short_meaning_in_dict);
         }
 
-        function show_prev() {
-            if ($("#links").is(':visible')) {
-                show_links(false);
-                return;
-            }
-            if (current_index > 0) {
-                current_index--;
-                show_links(false);
-                show_word(unit_words[current_index]);
-            } else {
-                // finished browsing all words
-                show_links(true);
-            }
+        function answer_familiar() {
+            var word = unit_words[current_index];
+            word.familiar = true;
+            show_word_explain(word);
         }
 
-        function show_next() {
-            if ($("#links").is(':visible')) {
-                show_links(false);
-                return;
-            }
-            if (current_index < unit_words.length - 1) {
-                current_index++;
-                show_links(false);
-                show_word(unit_words[current_index]);
-            } else {
-                // finished browsing all words
-                show_links(true);
-            }
+        function answer_unfamiliar() {
+            var word = unit_words[current_index];
+            show_word_explain(word);
         }
 
         $("#btn-walkthrough").click(start_walk_through);
-
-        $("#btn-prev").click(show_prev);
-
-        $("#btn-next").click(show_next);
+        $("#btn-familiar").click(answer_familiar);
+        $("#btn-next").click(continue_walk_through);
+        $("#btn-unfamiliar").click(answer_unfamiliar);
 
         $(document).keydown(function(event) {
             if (event.which == 39) {
-                show_next();
+                answer_familiar();
             } else if (event.which == 37) {
-                show_prev();
+                answer_unfamiliar();
             }
         });
 

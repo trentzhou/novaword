@@ -4,7 +4,7 @@ import json
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
@@ -140,12 +140,25 @@ class LearningOverviewView(LoginRequiredMixin, View):
             .values("unit_id").annotate(learn_count=Count("unit_id"))\
             .order_by("learn_count")\
             .values("unit_id", "unit__book_id", "unit__book__description", "unit__description", "learn_count").all()
+        # try to get progress for the units
+        for u in recent_units:
+            count = int(u["learn_count"])
+            if count >= 5:
+                u["progress"] = 100
+            else:
+                u["progress"] = 100 * count / 5
         mastered_unit_count = sum(1 for x in recent_units if x["learn_count"] > 5)
+        all_my_learned_units = LearningRecord.objects.filter(user=request.user).values("unit_id")
+        backlog_units = LearningPlan.objects\
+            .filter(user=request.user)\
+            .filter(~Q(unit_id__in=all_my_learned_units))\
+            .order_by("unit__book_id", "unit__order").all()
         return render(request, 'index.html', {
             "page": "overview",
             "learn_count": learn_count,
             "quiz_count": quiz_count,
             "erroneous_words": erroneous_words,
+            "backlog_units": backlog_units,
             "recent_units": recent_units[:5],
             "mastered_unit_count": mastered_unit_count
         })
