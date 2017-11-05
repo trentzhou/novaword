@@ -85,35 +85,16 @@ desired effect
                                 <!-- Menu toggle button -->
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <i class="fa fa-envelope-o"></i>
-                                    {% if unread_messages %}
-                                        <span class="label label-warning">{{ unread_messages |length }}</span>
-                                    {% endif %}
+
+                                    <span id="unread_msg_label" class="unread_msg_count label label-warning"></span>
+
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li class="header">有{{ unread_messages|length }}条新消息</li>
+                                    <li class="header">有<span class="unread_msg_count"></span>条新消息</li>
                                     <li>
                                         <!-- inner menu: contains the messages -->
-                                        {% if unread_messages %}
-                                            <ul class="menu">
-                                            {% for message in unread_messages %}
-                                                <li>
-                                                    <a href="{% url 'operations.message' message.id %}">
-                                                        <div class="pull-left">
-                                                            <!-- User Image -->
-                                                            <img src="{% if message.from_user.avatar %}{{ MEDIA_URL }}{{ message.from_user.avatar }}{% else %}{% static 'AdminLTE/img/avatar2.png' %}{% endif %}" class="img-circle" alt="User Image">
-                                                        </div>
-                                                        <h4>
-                                                            <span class="nickname">{{ message.from_user.nick_name|default:"系统" }}</span>
-                                                            <small><i class="fa fa-clock-o"></i>{{ message.add_time }}</small>
-                                                        </h4>
-                                                        <!-- The message -->
-                                                        <p>{{ message.title|default:"无标题" }}</p>
-                                                    </a>
-                                                </li>
-
-                                            {% endfor %}
-                                            </ul>
-                                        {% endif %}
+                                        <ul class="menu" id="unread_message_list">s
+                                        </ul>
 
                                         <!-- /.menu -->
                                     </li>
@@ -286,6 +267,50 @@ desired effect
     <!-- Optionally, you can add Slimscroll and FastClick plugins.
      Both of these plugins are recommended to enhance the
      user experience. -->
+
+    <script language="JavaScript">
+    $(function() {
+
+        function check_unread_messages() {
+            $.get("{% url 'operations.ajax_unread_messages' %}", update_messgae_links);
+        }
+
+        function update_messgae_links(data) {
+            var message_list = $("#unread_message_list");
+            message_list.html("");
+            $(".unread_msg_count").html(data.messages.length);
+            if (data.messages.length > 0) {
+                $("#unread_msg_label").show();
+            } else {
+                $("#unread_msg_label").hide();
+            }
+            for (var i = 0; i < data.messages.length; i++) {
+                var message = data.messages[i];
+                var li = $("<li>")
+                    .append($("<a>")
+                        .attr("href", message.url)
+                        .append($("<div>")
+                            .attr("class", "pull-left")
+                            .append($("<img>")
+                                .attr("src", message.from_user_avatar)))
+                        .append($("<h4>")
+                            .append($("<span>")
+                                .attr("class", "nickname")
+                                .append(message.from_user_nickname))
+                            .append($("<small>")
+                                .append('<i class="fa fa-clock-o"></i>')
+                                .append(message.time)))
+                        .append($("<p>").append(message.title)));
+                message_list.append(li);
+            }
+        }
+        // check new messages every 5 minuts
+        setInterval(check_unread_messages, 300000);
+
+        check_unread_messages();
+
+    });
+    </script>
     {% block extra_script %}
     {% endblock %}
 </body>
