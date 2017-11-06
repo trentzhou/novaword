@@ -10,7 +10,8 @@ class QuizAdmin(object):
                     'groups',
                     'max_total_time',
                     'max_word_time',
-                    'password']
+                    'password',
+                    'is_public']
     search_fields = list_display
     list_filter = ['description',
                    'author',
@@ -18,7 +19,8 @@ class QuizAdmin(object):
                    'book__description',
                    'max_total_time',
                    'max_word_time',
-                   'password']
+                   'password',
+                   'is_public']
     model_icon = 'fa fa-table'
 
 

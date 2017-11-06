@@ -94,7 +94,7 @@ class DictionaryView(View):
 class DictionaryFormView(View):
     def post(self, request):
         spelling = request.POST.get("spelling", "")
-        return HttpResponseRedirect(reverse("operations.dictionary", kwargs={"spelling":spelling}))
+        return HttpResponseRedirect(reverse("operations.dictionary", kwargs={"spelling": spelling}))
 
 
 class HighscoreView(View):
@@ -113,7 +113,7 @@ class AjaxUnreadMessageView(View):
             {
                 "from_user_nickname": x.from_user.nick_name if x.from_user else u"系统消息",
                 "from_user_avatar": x.from_user.avatar.url if x.from_user.avatar else static('AdminLTE/img/avatar2.png'),
-                "time": x.add_time,
+                "time": x.add_time.strftime("%Y-%m-%d %H:%M"),
                 "title": x.title if x.title else u"无标题",
                 "url": reverse("operations.message", kwargs={
                     "message_id": x.id

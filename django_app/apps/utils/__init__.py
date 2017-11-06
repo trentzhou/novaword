@@ -21,6 +21,8 @@ def parse_bool(v):
     if type(v) is str or type(v) is unicode:
         if v[0] in ['T', 't', 'Y', 'y']:
             return True
+        if str(v) == 'on':
+            return True
     return False
 
 

@@ -17,6 +17,7 @@ class Quiz(models.Model):
                                         verbose_name=u"单词最大答题时间（秒）")
     password = models.CharField(blank=True, max_length=100,
                                 verbose_name=u"参加测试的密码")
+    is_public = models.BooleanField(default=False, verbose_name=u"是否公开")
     groups = models.ManyToManyField(Group, verbose_name=u"班级")
 
     class Meta:

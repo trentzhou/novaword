@@ -42,16 +42,25 @@
                         <thead>
                         <tr>
                             <th>描述</th>
-                            <th>考卷最大答题时间</th>
-                            <th>单词最大答题时间</th>
+                            <th>作者</th>
+                            <th>单词书</th>
                         </tr>
                         </thead>
                         <tbody>
                         {% for quiz in quiz_shared_to_me %}
                             <tr>
                                 <td><a href="{% url 'testings.quiz_state' quiz.id %}">{{ quiz.description }}</a></td>
-                                <td>{{ quiz.max_total_time }}</td>
-                                <td>{{ quiz.max_word_time }}</td>
+                                <td>
+                                    <a href="{% url 'users.contact' quiz.author.id %}">
+                                        {% if quiz.author.avatar %}
+                                            <img src="{{ MEDIA_URL }}{{ quiz.author.avatar }}" class="img-circle img-sm" />
+                                        {% else %}
+                                            <img src="{% static 'AdminLTE/img/avatar2.png' %}" class="img-circle img-sm" />
+                                        {% endif %}
+                                        <span class="username">{{ quiz.author.nick_name|default:"系统" }}</span>
+                                    </a>
+                                </td>
+                                <td><a href="{% url 'learn.book_detail' quiz.book.id %}">{{ quiz.book.description }}</a></td>
                             </tr>
                         {% endfor %}
                         </tbody>
@@ -87,6 +96,33 @@
                     暂时还没有
                 {% endif %}
                 </div>
+                {% endif %}
+
+                {% if my_quiz_hist %}
+                    <div class="box">
+                    <div class="box-header">
+                        <h3>我做过的考卷</h3>
+                    </div>
+                    <div class="box-body">
+                        <table class="table table-responsive" id="my_quiz_hist">
+                        <thead>
+                        <tr>
+                            <th>考卷</th>
+                            <th>做过了几次</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for hist in my_quiz_hist %}
+                        <tr>
+                            <td><a href="{% url 'testings.quiz_state' hist.quiz_id %}">{{ hist.quiz__description }}</a></td>
+                            <td>{{ hist.taken_times }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        </table>
+                    </div>
+                    </div>
+
                 {% endif %}
 
             </div>

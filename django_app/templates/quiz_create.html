@@ -51,6 +51,11 @@
                             {% endfor %}
                         </select>
                     </div>
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" name="is_public"> 公开给所有人
+                      </label>
+                    </div>
                 </div>
                 {% csrf_token %}
 

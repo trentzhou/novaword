@@ -4,7 +4,7 @@ import datetime
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import Http404, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -14,6 +14,7 @@ from testings.forms import CreateQuizForm
 from testings.models import Quiz, QuizQuestion, QuizResult
 from users.models import UserGroup, Group
 from users.templatetags.user_info import is_teacher
+from utils import parse_bool
 
 
 class TestIndexView(LoginRequiredMixin, View):
@@ -21,7 +22,9 @@ class TestIndexView(LoginRequiredMixin, View):
         quiz_created_by_me = None
         # shared to me
         my_groups = UserGroup.objects.filter(user=request.user).values("group")
-        quiz_shared_to_me = Quiz.objects.filter(groups__in=my_groups).distinct()
+        quiz_shared_to_me = Quiz.objects.filter(Q(groups__in=my_groups) | Q(is_public=True)).distinct()
+        my_quiz_hist = QuizResult.objects.filter(user=request.user).values("quiz_id").annotate(taken_times=Count("quiz_id")).values("quiz_id", "quiz__description", "taken_times")
+
         teacher = is_teacher(request.user.id)
         if teacher:
             # created by me
@@ -31,6 +34,7 @@ class TestIndexView(LoginRequiredMixin, View):
             "page": "testings",
             "quiz_created_by_me": quiz_created_by_me,
             "quiz_shared_to_me": quiz_shared_to_me,
+            "my_quiz_hist": my_quiz_hist,
             "is_teacher": teacher
         })
 
@@ -54,6 +58,7 @@ class CreateQuizView(LoginRequiredMixin, View):
             quiz.password = ""
             quiz.description = form.data["description"]
             quiz.book_id = form.data["book_id"]
+            quiz.is_public = parse_bool(form.data["is_public"])
             quiz.save()
             # do nothing
             return redirect(reverse('testings.edit_quiz', kwargs={
@@ -121,6 +126,7 @@ class AjaxSaveQuizInfo(View):
             description = data.get("description", None)
             max_total_time = data.get("max_total_time", None)
             max_word_time = data.get("max_word_time", None)
+            is_public = parse_bool(data.get("is_public", False))
 
             # update the quiz name
             quiz = Quiz.objects.filter(id=quiz_id).get()
@@ -130,6 +136,7 @@ class AjaxSaveQuizInfo(View):
                 quiz.max_total_time = max_total_time
             if max_word_time:
                 quiz.max_word_time = max_word_time
+            quiz.is_public = is_public
             quiz.save()
 
             return JsonResponse({

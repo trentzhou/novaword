@@ -191,26 +191,23 @@ desired effect
 
                     <!-- Sidebar Menu -->
                     <ul class="sidebar-menu" data-widget="tree">
-                        <li {% ifequal page "profile" %} class="active" {% endifequal %}>
-                            <a href="{% url 'users.profile' %}"><i class="fa fa-gear"></i> <span>个人设置</span></a>
-                        </li>
-                        <li class="header">学习</li>
-                        <!-- Optionally, you can add icons to the links -->
+
                         <li {% ifequal page "overview" %} class="active" {% endifequal %}>
                             <a href="{% url 'index' %}"><i class="fa fa-table"></i> <span>概况</span></a>
                         </li>
-                        <li {% ifequal page "learning" %} class="active" {% endifequal %}>
-                            <a href="{% url 'learn.learning' %}"><i class="fa fa-battery-half"></i> <span>学习</span></a>
-                        </li>
+
                         <li {% ifequal page "testings" %} class="active" {% endifequal %}>
-                            <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> <span>测试</span></a>
+                            <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> <span>考卷</span></a>
                         </li>
 
                         <li {% ifequal page "error_words" %} class="active" {% endifequal %}>
                             <a href="{% url 'learn.error_word_list' %}"><i class="fa fa-bug"></i> <span>错题集</span></a>
                         </li>
 
-                        <li class="header">单词</li>
+                        <li {% ifequal page "learning" %} class="active" {% endifequal %}>
+                            <a href="{% url 'learn.learning' %}"><i class="fa fa-battery-half"></i> <span>记录</span></a>
+                        </li>
+
                         <li {% ifequal page "books" %} class="active" {% endifequal %}>
                             <a href="{% url 'learn.books' %}"><i class="fa fa-cubes"></i> <span>单词书</span></a>
                         </li>
@@ -218,12 +215,15 @@ desired effect
                             <a href="{% url 'learn.units' %}"><i class="fa fa-cube"></i> <span>单元</span></a>
                         </li>
 
-                        <li class="header">交流</li>
                         <li {% ifequal page "groups" %} class="active" {% endifequal %}>
                             <a href="{% url 'user.my_groups' %}"><i class="ion ion-ios-people"></i> <span>班级</span></a>
                         </li>
                         <li {% ifequal page "messages" %} class="active" {% endifequal %}>
                             <a href="{% url 'operations.message_list' %}"><i class="fa fa-comments"></i> <span>消息</span></a>
+                        </li>
+
+                        <li {% ifequal page "profile" %} class="active" {% endifequal %}>
+                            <a href="{% url 'users.profile' %}"><i class="fa fa-gear"></i> <span>个人设置</span></a>
                         </li>
 
                     </ul>
