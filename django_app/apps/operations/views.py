@@ -6,7 +6,7 @@ from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 
 # Create your views here.
-from django.template.context_processors import static
+from django.templatetags.static import static
 from django.views.generic import View
 
 from operations.models import UserMessage
@@ -112,7 +112,7 @@ class AjaxUnreadMessageView(View):
         result = [
             {
                 "from_user_nickname": x.from_user.nick_name if x.from_user else u"系统消息",
-                "from_user_avatar": x.from_user.avatar.url if x.from_user.avatar else static('AdminLTE/img/avatar2.png'),
+                "from_user_avatar": x.from_user.avatar.url if x.from_user and x.from_user.avatar else static('AdminLTE/img/avatar2.png'),
                 "time": x.add_time.strftime("%Y-%m-%d %H:%M"),
                 "title": x.title if x.title else u"无标题",
                 "url": reverse("operations.message", kwargs={

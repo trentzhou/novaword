@@ -18,7 +18,7 @@ urlpatterns = [
     url(r'^ajax-change-password/$', AjaxChangePasswordView.as_view(), name="user.ajax_change_password"),
     url(r'^ajax-change-mobile/$', AjaxChangeMobileView.as_view(), name="user.ajax_change_mobile"),
     # 用户组
-    url(r'^my-gorups/$', MyGroupView.as_view(), name="user.my_groups"),
+    url(r'^my-groups/$', MyGroupView.as_view(), name="user.my_groups"),
     url(r'^groups/$', GroupListView.as_view(), name="user.groups"),
     url(r'^gorups/(?P<group_id>\d+)/$', GroupDetailView.as_view(), name="user.group_detail"),
     url(r'^ajax-join-group/$', AjaxJoinGroupView.as_view(), name="user.join_group"),

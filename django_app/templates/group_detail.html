@@ -64,6 +64,10 @@
                                 </td>
                                 <td>
                                     {{ member.get_role_display }}
+
+                                    {% if my_role.role > 1 %}
+                                        <a id="btn-kickout" title="踢出去" onclick="kickout({{ member.user.id }})"><span class="fa fa-trash"></span></a>
+                                    {% endif %}
                                 </td>
                                 <td>
                                     {{ member.user_id | get_total_learn_times }}
@@ -145,6 +149,30 @@
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
 
     <script>
+    function kickout(user_id) {
+        $.ajax({
+            type: "POST",
+            url: "{% url 'user.approve_leave_group' %}",
+            beforeSend:function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+            },
+            async: true,
+            data: {
+                "group_id": {{ group.id }},
+                "user_id": user_id
+            },
+            success: function(data) {
+                try {
+                    if (data.status == "success") {
+                        // refresh
+                        location.reload();
+                    }
+                } catch (ex) {
+                    console.log(ex);
+                }
+            }
+        });
+    }
     $(function () {
         {% if my_role %}
             var is_member = true;
