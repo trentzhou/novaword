@@ -22,6 +22,77 @@ class BookListView(View):
         })
 
 
+def make_string_groups(m):
+    """
+    Taken a dict[str, object], return a tree.
+    Example:
+
+    strings = {
+        "1 2 3 4": "first",
+        "1 2 3 3": "second",
+        "1 2 4 4": "third",
+        "1 2 4 3": "fourth",
+        "1 2": "fifth",
+        "1 3 3": "sixth"
+    }
+    result = make_string_groups(strings)
+
+    Now the result looks like:
+    {
+        "1": {
+            "2": {
+                "3": {
+                    "3": "second",
+                    "4": "first"
+                },
+                "4": {
+                    "3": "fourth",
+                    "4": "third"
+                },
+                "___": "fifth"
+            },
+            "3": {
+                "3": "sixth"
+            }
+        }
+    }
+
+    :param dict[str, object] m: the map object which has key as ' ' separated string
+    :return tree
+    """
+    result = {}
+    for k, v in m.items():
+        container = result
+        row = k.split(' ')
+        for folder in row[:-1]:
+            if folder not in container:
+                container[folder] = {}
+            container = container[folder]
+        final = row[-1]
+        if final in container:
+            container[final]["___"] = v
+        else:
+            container[row[-1]] = v
+    return result
+
+
+class AjaxBookTreeView(View):
+    def get(self, request):
+        wordbooks = WordBook.objects.all()
+        wordbook_map = {}
+        for book in wordbooks:
+            wordbook_map[book.description] = {
+                "description": book.description,
+                "id": book.id
+            }
+        # construct a map
+        book_tree = make_string_groups(wordbook_map)
+        return JsonResponse({
+            "status": "ok",
+            "books": book_tree
+        })
+
+
 class BookDetailView(View):
     def get(self, request, book_id):
         wordbook = WordBook.objects.filter(id=book_id).get()

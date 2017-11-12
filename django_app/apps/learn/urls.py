@@ -4,11 +4,12 @@ from learn.views import BookListView, UnitListView, LearningView, ReviewView, Bo
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
     AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
     AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
-    AmendErrorWordView
+    AmendErrorWordView, AjaxBookTreeView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
     url(r'^books/(?P<book_id>\d+)/$', BookDetailView.as_view(), name="learn.book_detail"),
+    url(r'^ajax-book-tree/$', AjaxBookTreeView.as_view(), name="learn.ajax_book_tree"),
     url(r'^units/$', UnitListView.as_view(), name="learn.units"),
     url(r'^units/(?P<unit_id>\d+)$', UnitDetailView.as_view(), name="learn.unit_detail"),
     url(r'^ajax-add-book-learning-plan/$', AjaxAddBookToLearningPlanView.as_view(), name="learn.ajax_add_book_learning_plan"),

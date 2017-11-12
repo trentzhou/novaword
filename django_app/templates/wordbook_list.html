@@ -20,6 +20,7 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
+    <!--
         <table class="table table-responsive" id="wordbook_table">
             <thead>
             <tr>
@@ -46,7 +47,10 @@
                 <td>最多几个单元同时学习</td>
             </tfoot>
         </table>
+-->
+        <ul id="book-tree"></ul>
     </section>
+
 {% endblock %}
 
 {% block extra_script %}
@@ -55,11 +59,95 @@
 
     <script>
     $(function() {
+        /*
         $("#wordbook_table").DataTable({
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
             },
             "pageLength": 50
+        });
+        */
+
+        // treeview implementation copied from https://bootsnipp.com/snippets/featured/bootstrap-30-treeview
+        $.fn.extend({
+            treed: function (o) {
+
+              var openedClass = 'glyphicon-minus-sign';
+              var closedClass = 'glyphicon-plus-sign';
+
+              if (typeof o != 'undefined'){
+                if (typeof o.openedClass != 'undefined'){
+                openedClass = o.openedClass;
+                }
+                if (typeof o.closedClass != 'undefined'){
+                closedClass = o.closedClass;
+                }
+              };
+
+                //initialize each of the top levels
+                var tree = $(this);
+                tree.addClass("tree");
+                tree.find('li').has("ul").each(function () {
+                    var branch = $(this); //li with children ul
+                    branch.prepend("<i class='indicator glyphicon " + closedClass + "'></i>");
+                    branch.addClass('branch');
+                    branch.on('click', function (e) {
+                        if (this == e.target) {
+                            var icon = $(this).children('i:first');
+                            icon.toggleClass(openedClass + " " + closedClass);
+                            $(this).children().children().toggle();
+                        }
+                    })
+                    branch.children().children().toggle();
+                });
+                //fire event from the dynamically added icon
+              tree.find('.branch .indicator').each(function(){
+                $(this).on('click', function () {
+                    $(this).closest('li').click();
+                });
+              });
+                //fire event to open branch if the li contains an anchor instead of text
+                tree.find('.branch>a').each(function () {
+                    $(this).on('click', function (e) {
+                        $(this).closest('li').click();
+                        e.preventDefault();
+                    });
+                });
+                //fire event to open branch if the li contains a button instead of text
+                tree.find('.branch>button').each(function () {
+                    $(this).on('click', function (e) {
+                        $(this).closest('li').click();
+                        e.preventDefault();
+                    });
+                });
+            }
+        });
+
+        // get book tree
+        $.get("{% url 'learn.ajax_book_tree' %}", function(data) {
+            if (data.status == "ok") {
+                function show_tree(title, tree) {
+                    if (typeof(tree) == "object") {
+                        if (tree.hasOwnProperty(("description"))) {
+                            // this is the leaf node
+                            return $("<li>").append($("<a>")
+                                .attr("href", "{% url 'learn.book_detail' 0 %}".replace("0", tree.id))
+                                .html(tree.description));
+                        } else {
+                            var ul = $("<ul>");
+                            for (var child in tree) {
+                                var child_tree = show_tree(child, tree[child]);
+                                if (child_tree != null)
+                                    ul.append(child_tree);
+                            }
+                            return $("<li>").html(title).append(ul);
+                        }
+                        return null;
+                    }
+                }
+                var tree = show_tree("所有单词书", data.books);
+                $("#book-tree").append(tree).treed();
+            }
         });
     });
     </script>
