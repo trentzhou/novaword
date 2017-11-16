@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 from datetime import datetime
 from django.db import models
-from users.models import UserProfile
+
+from learn.models import WordBook, WordUnit
+from users.models import UserProfile, Group
+
+
 # Create your models here.
 
 
@@ -56,3 +60,34 @@ class UserMessage(models.Model):
 
     def __unicode__(self):
         return u"{0} - {1}".format(self.from_user, self.message)
+
+
+class GroupBook(models.Model):
+    group = models.ForeignKey(Group, verbose_name=u"班级")
+    book = models.ForeignKey(WordBook, verbose_name=u"单词书")
+
+    class Meta:
+        verbose_name = u"班级课本"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.group.description, self.unit)
+
+
+class GroupLearningPlan(models.Model):
+    group = models.ForeignKey(Group, verbose_name=u"班级")
+    unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
+
+    class Meta:
+        verbose_name = u"班级学习计划"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.group.description, self.unit)
+

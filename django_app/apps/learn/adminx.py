@@ -49,7 +49,6 @@ class LearningPlanAdmin(object):
     list_filter = list_display
     model_icon = 'fa fa-check'
 
-
 class LearningRecordAdmin(object):
     list_display = ['user', 'unit', 'type', 'learn_time', 'correct_rate']
     search_fields = ['user', 'unit', 'type']

@@ -89,6 +89,28 @@
             </div>
         </div>
 
+    {% if my_role %}
+        <div class="box">
+            <div class="box-header">
+                <h3>班级课本</h3>
+            </div>
+            <div class="box-body">
+                <div id="group_books"></div>
+            </div>
+
+        </div>
+
+        <div class="box">
+            <div class="box-header">
+                <h3>正在学习的单元</h3>
+            </div>
+            <div class="box-body">
+                <div id="group_units"></div>
+            </div>
+
+        </div>
+    {% endif %}
+
     </section>
 
     <!-- 确认加入班级 -->
@@ -141,6 +163,62 @@
         </div>
     </div>
     <!-- /.modal-dialog -->
+
+    <!-- 选择单词书 -->
+    <div class="modal fade" id="dialog-select-book">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">选择课本</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <div class="form-group">
+                        <label class="control-label">单词书</label>
+                        <select class="form-control" id="select_wordbook"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="confirm_select_book">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
+
+
+    <!-- 选择单元 -->
+    <div class="modal fade" id="dialog-select-unit">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">选择单元</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <div class="form-group">
+                        <label class="control-label">单词书</label>
+                        <select class="form-control" id="select_group_book"></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label">单元</label>
+                        <select class="form-control" id="select_group_unit"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="confirm_select_unit">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
 {% endblock %}
 
 {% block extra_script %}
@@ -149,6 +227,7 @@
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
 
     <script>
+    {% if my_role.role > 1 %}
     function kickout(user_id) {
         $.ajax({
             type: "POST",
@@ -173,6 +252,8 @@
             }
         });
     }
+    {% endif %}
+
     $(function () {
         {% if my_role %}
             var is_member = true;
@@ -239,6 +320,213 @@
                 }
             });
         });
+
+    {% if my_role %}
+        // 读取班级学习计划
+        function load_group_books() {var url = "{% url 'operations.ajax_group_books' group.id %}";
+            $.get(url, function(data) {
+                if (data.status == "ok") {
+                    var books = data.books;
+                    $("#select_group_book").html("");
+                    if (books.length > 0) {
+                        var ul = $("<ul>");
+                        for (var i = 0; i < books.length; i++) {
+                            var book = books[i];
+                            var li = $("<li>")
+                                .append($("<a>")
+                                    .attr("href", "{% url 'learn.book_detail' 0 %}".replace("0", book.book_id))
+                                    .html(book.book__description));
+                            {% if my_role.role > 1 %}
+                            li.append($("<a>")
+                                    .attr("class", "delete_book")
+                                    .attr("book_id", book.book_id)
+                                    .attr("title", "删除")
+                                    .html(' <span class="fa fa-trash"></span>'));
+                            {% endif %}
+                            ul.append(li);
+                            $("#select_group_book").append($("<option>").attr("value", book.book_id).html(book.book__description))
+                        }
+                        $("#group_books").html("").append(ul);
+                    } else {
+                        $("#group_books").html("").append($("<p>").html("现在还没有课本"));
+                    }
+                    {% if my_role.role > 1 %}
+                    // add a button to edit
+                    $("#group_books").append($("<a>").attr("id", "btn_add_book").attr("class", "btn btn-primary").html("添加课本"));
+
+                    var book_list = null;
+
+                    $("#btn_add_book").click(function() {
+                        if (book_list == null) {
+                            var url = "{% url 'learn.ajax_book_list' %}";
+                            $.get(url, function(data) {
+                                if (data.status == "ok") {
+                                    book_list = data.books;
+                                    $("#select_wordbook").html("");
+                                    for (var i = 0; i < book_list.length; i++) {
+                                        var book = book_list[i];
+                                        $("#select_wordbook").append($("<option>").attr("value", book.id).html(book.description));
+                                    }
+                                }
+                            });
+                        }
+                        $("#dialog-select-book").modal();
+                    });
+
+                    $(".delete_book").click(function() {
+                        var book_id = $(this).attr("book_id");
+                        console.log("Going to delete " + book_id);
+                        modify_book(book_id, "delete");
+                    });
+                    {% endif %}
+                }
+            });
+        }
+
+        // 单元
+        function load_group_units() {
+            var url = "{% url 'operations.ajax_group_learning_plan' group.id %}";
+            $.get(url, function(data) {
+                if (data.status == "ok") {
+                    var units = data.units;
+                    if (units.length > 0) {
+                        var ul = $("<ul>");
+                        for (var i = 0; i < units.length; i++) {
+                            var unit = units[i];
+                            var li = $("<li>")
+                                .append($("<a>")
+                                    .attr("href", "{% url 'learn.book_detail' 0 %}".replace("0", unit.unit__book_id))
+                                    .html(unit.unit__book__description))
+                                .append(" - ")
+                                .append($("<a>")
+                                    .attr("href", "{% url 'learn.unit_detail' 0 %}".replace("0", unit.unit_id))
+                                    .html(unit.unit__description));
+                            {% if my_role.role > 1 %}
+                            li.append($("<a>")
+                                    .attr("class", "delete_unit")
+                                    .attr("unit_id", unit.unit_id)
+                                    .attr("title", "删除")
+                                    .html(' <span class="fa fa-trash"></span>'));
+                            {% endif %}
+                            ul.append(li);
+                        }
+                        $("#group_units").html("").append(ul);
+                    } else {
+                        $("#group_units").html("").append($("<p>").html("现在还没有在学习的单元"));
+                    }
+                    {% if my_role.role > 1 %}
+                    // add a button to edit
+                    $("#group_units").append($("<a>").attr("id", "btn_add_unit").attr("class", "btn btn-primary").html("添加单元"));
+                    $("#btn_add_unit").click(function() {
+                        $("#dialog-select-unit").modal();
+                        var book_id = $("#select_group_book").val();
+                        if (book_id) {
+                            load_book_units(book_id);
+                        }
+                    });
+
+                    $(".delete_unit").click(function() {
+                        var unit_id = $(this).attr("unit_id");
+                        console.log("Going to delete " + unit_id);
+                        modify_learning_plan(unit_id, "delete");
+                    });
+                    {% endif %}
+                }
+            });
+        }
+
+
+        function modify_book(book_id, action) {
+            // add it or delete it
+            var url = "{% url 'operations.ajax_group_books' 0 %}".replace("0", "{{ group.id }}");
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "book_id": book_id,
+                    "action": action
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            // reload book list
+                            load_group_books();
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        }
+
+        function modify_learning_plan(unit_id, action) {
+            // add it
+            var url = "{% url 'operations.ajax_group_learning_plan' 0 %}".replace("0", "{{ group.id }}");
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": unit_id,
+                    "action": action
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            // reload book list
+                            load_group_units();
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        }
+
+        $("#confirm_select_book").click(function() {
+            console.log("Confirm select book");
+            var book_id = $("#select_wordbook").val();
+            $("#dialog-select-book").modal("toggle");
+            modify_book(book_id, "add");
+        });
+
+        $("#confirm_select_unit").click(function() {
+            console.log("Confirm select unit");
+            var unit_id = $("#select_group_unit").val();
+            $("#dialog-select-unit").modal("toggle");
+            modify_learning_plan(unit_id, "add");
+        });
+
+        function load_book_units(book_id) {
+            var url = "{% url 'learn.ajax_book_units' 0 %}".replace("0", book_id);
+            $.get(url, function(data) {
+                if (data.status == "ok") {
+                    var units = data.units;
+                    $("#select_group_unit").html("");
+                    for (var i = 0; i < units.length; i++) {
+                        var unit = units[i];
+                        $("#select_group_unit").append($("<option>").attr("value", unit.id).html(unit.description));
+                    }
+                }
+            });
+        }
+
+        $("#select_group_book").change(function() {
+            var book_id = $(this).val();
+            load_book_units(book_id);
+        });
+
+        load_group_books();
+        load_group_units();
+
+    {% endif %}
     });
     </script>
 {% endblock %}

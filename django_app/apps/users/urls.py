@@ -20,7 +20,7 @@ urlpatterns = [
     # 用户组
     url(r'^my-groups/$', MyGroupView.as_view(), name="user.my_groups"),
     url(r'^groups/$', GroupListView.as_view(), name="user.groups"),
-    url(r'^gorups/(?P<group_id>\d+)/$', GroupDetailView.as_view(), name="user.group_detail"),
+    url(r'^groups/(?P<group_id>\d+)/$', GroupDetailView.as_view(), name="user.group_detail"),
     url(r'^ajax-join-group/$', AjaxJoinGroupView.as_view(), name="user.join_group"),
     url(r'^ajax-leave-group/$', AjaxLeaveGroupView.as_view(), name="user.leave_group"),
     url(r'^ajax-create-group/$', AjaxCreateGroupView.as_view(), name="user.create_group"),

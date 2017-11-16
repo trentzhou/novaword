@@ -93,6 +93,24 @@ class AjaxBookTreeView(View):
         })
 
 
+class AjaxBookListView(View):
+    def get(self, request):
+        wordbooks = WordBook.objects.order_by("description").values("id", "description").all()
+        return JsonResponse({
+            "status": "ok",
+            "books": [x for x in wordbooks]
+        })
+
+
+class AjaxBookUnitsView(View):
+    def get(self, request, book_id):
+        units = WordUnit.objects.filter(book_id=book_id).order_by("order").values("id", "description")
+        return JsonResponse({
+            "status": "ok",
+            "units": [x for x in units]
+        })
+
+
 class BookDetailView(View):
     def get(self, request, book_id):
         wordbook = WordBook.objects.filter(id=book_id).get()

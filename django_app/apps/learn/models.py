@@ -5,7 +5,7 @@ from datetime import datetime
 from django.db import models
 from django.db.models import Q
 
-from users.models import UserProfile
+from users.models import UserProfile, Group
 
 
 class Word(models.Model):

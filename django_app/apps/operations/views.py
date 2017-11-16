@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect
 from django.templatetags.static import static
 from django.views.generic import View
 
-from operations.models import UserMessage
+from operations.models import UserMessage, GroupBook, GroupLearningPlan
 from users.models import UserProfile, Group, UserGroup, Organization
 from utils.lookup_word_in_db import find_word
 
@@ -123,4 +123,69 @@ class AjaxUnreadMessageView(View):
         ]
         return JsonResponse({
             "messages": result
+        })
+
+
+class AjaxGroupBooksView(View):
+    def get(self, request, group_id):
+        books = GroupBook.objects.filter(group_id=group_id).values("book_id", "book__description")
+        return JsonResponse({
+            "status": "ok",
+            "books": [x for x in books]
+        })
+
+    def post(self, request, group_id):
+        book_id = request.POST.get("book_id", None)
+        # quick hack: I know it's not neat...
+        action = request.POST.get('action', "add")
+        if not group_id or not book_id:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "bad request"
+            })
+        if action == "add":
+            # create new if not present
+            if not GroupBook.objects.filter(group_id=group_id, book_id=book_id).count():
+                group_book = GroupBook()
+                group_book.group_id = group_id
+                group_book.book_id = book_id
+                group_book.save()
+        elif action == "delete":
+            GroupBook.objects.filter(group_id=group_id, book_id=book_id).delete()
+        return JsonResponse({
+            "status": "ok"
+        })
+
+
+class AjaxGroupLearningPlanView(View):
+    def get(self, request, group_id):
+        units = GroupLearningPlan.objects.filter(group_id=group_id).values("unit_id",
+                                                                           "unit__book_id",
+                                                                           "unit__book__description",
+                                                                           "unit__description")
+        return JsonResponse({
+            "status": "ok",
+            "units": [x for x in units]
+        })
+
+    def post(self, request, group_id):
+        unit_id = request.POST.get("unit_id", None)
+        # quick hack: I know it's not neat...
+        action = request.POST.get('action', "add")
+        if not group_id or not unit_id:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "bad request"
+            })
+        # create new if not present
+        if action == "add":
+            if not GroupLearningPlan.objects.filter(group_id=group_id, unit_id=unit_id).count():
+                group_plan = GroupLearningPlan()
+                group_plan.group_id = group_id
+                group_plan.unit_id = unit_id
+                group_plan.save()
+        elif action == "delete":
+            GroupLearningPlan.objects.filter(group_id=group_id, unit_id=unit_id).delete()
+        return JsonResponse({
+            "status": "ok"
         })
