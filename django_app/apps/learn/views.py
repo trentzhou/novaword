@@ -10,7 +10,9 @@ from django.shortcuts import render
 from django.views.generic import View
 
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord
+from operations.models import GroupLearningPlan
 from testings.models import QuizResult
+from users.models import UserGroup
 
 
 class BookListView(View):
@@ -218,17 +220,85 @@ class AjaxIsUnitInLearningPlan(LoginRequiredMixin, View):
             })
 
 
+def get_active_units(user_id):
+    """
+    Get a list of active units for a given user.
+    A unit is active if it meets any of the following criteria:
+    - it has been learned at least once
+    - it is in GroupLearningPlan
+    :param int user_id: user id
+    :return list: list of active units
+    """
+    active_units = {}
+    learned_units = LearningRecord.objects.filter(user_id=user_id).values("unit_id").distinct().all()
+    for u in learned_units:
+        active_units[u["unit_id"]] = True
+    user_groups = UserGroup.objects.filter(user_id=user_id).values("group")
+    group_units = GroupLearningPlan.objects.filter(group__in=user_groups).values("unit_id").distinct().all()
+    for u in group_units:
+        active_units[u["unit_id"]] = True
+    return active_units.keys()
+
+
+def get_unit_learn_count(user_id, unit_id):
+    """
+    Get learning count for a given unit.
+    :param int user_id: user id
+    :param int unit_id: unit id
+    :return int: learned count
+    """
+    return LearningRecord.objects.filter(user_id=user_id, unit_id=unit_id).count()
+
+
+def has_learned_today(user_id, unit_id):
+    """
+    Determine whether a unit has been learned today
+    :param int user_id: user id
+    :param int unit_id: unit id
+    :return bool: true if the unit has been learned today
+    """
+    return LearningRecord.objects.filter(user_id=user_id, unit_id=unit_id, learn_time__date=datetime.datetime.today()).count()
+
+
+def get_todays_units(user_id):
+    """
+    Get list of today's pending units
+    :param int user_id:
+    :return list: list of unit ids for today's learning
+    """
+    active_units = get_active_units(user_id)
+    result = [x for x in active_units if not has_learned_today(user_id, x) and get_unit_learn_count(user_id, x) < 5]
+    return result
+
+
 class LearningOverviewView(LoginRequiredMixin, View):
     def get(self, request):
         learn_count = LearningRecord.objects.filter(user=request.user).count()
         quiz_count = QuizResult.objects.filter(user=request.user).count()
         erroneous_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).count()
         # get recent learned units
+        active_units = get_active_units(request.user.id)
+        '''
+        
         recent_units = LearningRecord.objects\
             .filter(user=request.user)\
             .values("unit_id").annotate(learn_count=Count("unit_id"))\
             .order_by("learn_count")\
             .values("unit_id", "unit__book_id", "unit__book__description", "unit__description", "learn_count").all()
+        '''
+        recent_units = []
+        for u in active_units:
+            unit = WordUnit.objects.get(id=u)
+            obj = {
+                'unit_id': unit.id,
+                'unit__book_id': unit.book.id,
+                'unit__book__description': unit.book.description,
+                'unit__description': unit.description,
+                'learn_count': get_unit_learn_count(request.user.id, unit.id)
+            }
+            recent_units.append(obj)
+        recent_units = sorted(recent_units, cmp=lambda x, y: x['learn_count'] - y['learn_count'])
+
         # try to get progress for the units
         for u in recent_units:
             count = int(u["learn_count"])
@@ -248,7 +318,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
             "quiz_count": quiz_count,
             "erroneous_words": erroneous_words,
             "backlog_units": backlog_units,
-            "recent_units": recent_units[:5],
+            "recent_units": recent_units[:10],
             "mastered_unit_count": mastered_unit_count
         })
 
