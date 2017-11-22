@@ -325,7 +325,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
                 'learn_count': get_unit_learn_count(request.user.id, unit.id)
             }
             recent_units.append(obj)
-        recent_units = sorted(recent_units, cmp=lambda x, y: x['learn_count'] - y['learn_count'])
+        recent_units = sorted(recent_units, key=lambda x: x['learn_count'])
 
         # try to get progress for the units
         for u in recent_units:
