@@ -4,7 +4,7 @@ from learn.views import BookListView, UnitListView, LearningView, ReviewView, Bo
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
     AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
     AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
-    AmendErrorWordView, AjaxBookTreeView, AjaxBookUnitsView, AjaxBookListView
+    AmendErrorWordView, AjaxBookTreeView, AjaxBookUnitsView, AjaxBookListView, StartLearnView, AjaxGetTodayUnitsView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -18,6 +18,8 @@ urlpatterns = [
     url(r'^ajax-add-learning-plan/$', AjaxAddUnitToLearningPlanView.as_view(), name="learn.ajax_add_learning_plan"),
     url(r'^ajax-del-learning-plan/$', AjaxDeleteUnitFromLearningPlanView.as_view(), name="learn.ajax_del_learning_plan"),
     url(r'^ajax-query-learning-plan/(?P<unit_id>\d+)/$', AjaxIsUnitInLearningPlan.as_view(), name="learn.ajax_query_learning_plan"),
+    url(r'^start_learn/$', StartLearnView.as_view(), name='learn.start'),
+    url(r'^ajax-today-units/$', AjaxGetTodayUnitsView.as_view(), name='learn.ajax_today_units'),
     url(r'^learning/$', LearningView.as_view(), name='learn.learning'),
     url(r'^review/$', ReviewView.as_view(), name='learn.review'),
     url(r'^ajax-unit-data/(?P<unit_id>\d+)/$', AjaxUnitDataView.as_view(), name="learn.ajax_unit_data"),

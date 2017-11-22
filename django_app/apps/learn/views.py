@@ -260,6 +260,16 @@ def has_learned_today(user_id, unit_id):
     return LearningRecord.objects.filter(user_id=user_id, unit_id=unit_id, learn_time__date=datetime.datetime.today()).count()
 
 
+def is_unit_for_today(user_id, unit_id):
+    """
+    判断今天是不是需要学习某一个单元
+    :param int user_id: user id
+    :param int unit_id: unit id
+    :return bool:
+    """
+    return get_unit_learn_count(user_id, unit_id) < 5
+
+
 def get_todays_units(user_id):
     """
     Get list of today's pending units
@@ -267,8 +277,25 @@ def get_todays_units(user_id):
     :return list: list of unit ids for today's learning
     """
     active_units = get_active_units(user_id)
-    result = [x for x in active_units if not has_learned_today(user_id, x) and get_unit_learn_count(user_id, x) < 5]
+    # 目前的算法很简单
+    result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
     return result
+
+
+class StartLearnView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'learn_start.html', {
+            'user': request.user
+        })
+
+
+class AjaxGetTodayUnitsView(LoginRequiredMixin, View):
+    def get(self, request):
+        units = get_todays_units(request.user.id)
+        return JsonResponse({
+            "status": "ok",
+            "units": units
+        })
 
 
 class LearningOverviewView(LoginRequiredMixin, View):
@@ -278,6 +305,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
         erroneous_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).count()
         # get recent learned units
         active_units = get_active_units(request.user.id)
+        today_units = get_todays_units(request.user.id)
         '''
         
         recent_units = LearningRecord.objects\
@@ -317,6 +345,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
             "learn_count": learn_count,
             "quiz_count": quiz_count,
             "erroneous_words": erroneous_words,
+            "today_units": today_units,
             "backlog_units": backlog_units,
             "recent_units": recent_units[:10],
             "mastered_unit_count": mastered_unit_count
