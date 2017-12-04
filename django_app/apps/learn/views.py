@@ -348,7 +348,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
             if count > 5:
                 u["progress"] = 100
             else:
-                u["progress"] = 100 * count / 6
+                u["progress"] = int(100 * count / 6)
         mastered_unit_count = sum(1 for x in recent_units if x["learn_count"] > 5)
         all_my_learned_units = LearningRecord.objects.filter(user=request.user).values("unit_id")
         backlog_units = LearningPlan.objects\
