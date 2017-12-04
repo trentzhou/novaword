@@ -267,7 +267,23 @@ def is_unit_for_today(user_id, unit_id):
     :param int unit_id: unit id
     :return bool:
     """
-    return get_unit_learn_count(user_id, unit_id) < 5
+    learn_count = get_unit_learn_count(user_id, unit_id)
+    if learn_count > 5:
+        return False
+    if learn_count > 0:
+        last_learn = LearningRecord \
+            .objects\
+            .filter(user_id=user_id, unit_id=unit_id)\
+            .order_by("-learn_time").first()
+        today = datetime.datetime.today().date()
+        last_learned_date = last_learn.learn_time.date()
+        delta = today - last_learned_date
+        # 计算最后一次学习距离今天有多少天
+        delta_days = delta.days
+        learning_curve = [1, 1, 2, 3, 8]
+        if delta_days >= learning_curve[learn_count - 1]:
+            return True
+    return True
 
 
 def get_todays_units(user_id):
@@ -277,7 +293,6 @@ def get_todays_units(user_id):
     :return list: list of unit ids for today's learning
     """
     active_units = get_active_units(user_id)
-    # 目前的算法很简单
     result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
     return result
 
@@ -330,10 +345,10 @@ class LearningOverviewView(LoginRequiredMixin, View):
         # try to get progress for the units
         for u in recent_units:
             count = int(u["learn_count"])
-            if count >= 5:
+            if count > 5:
                 u["progress"] = 100
             else:
-                u["progress"] = 100 * count / 5
+                u["progress"] = 100 * count / 6
         mastered_unit_count = sum(1 for x in recent_units if x["learn_count"] > 5)
         all_my_learned_units = LearningRecord.objects.filter(user=request.user).values("unit_id")
         backlog_units = LearningPlan.objects\
