@@ -4,7 +4,9 @@ from learn.views import BookListView, UnitListView, LearningView, ReviewView, Bo
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
     AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
     AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
-    AmendErrorWordView, AjaxBookTreeView, AjaxBookUnitsView, AjaxBookListView, StartLearnView, AjaxGetTodayUnitsView
+    AmendErrorWordView, AjaxBookTreeView, AjaxBookUnitsView, AjaxBookListView, StartLearnView, AjaxGetTodayUnitsView, \
+    AjaxNewBookView, AjaxEditBookView, AjaxDeleteBookView, AjaxNewUnitView, AjaxEditUnitView, AjaxDeleteUnitView, \
+    AjaxNewWordInUnitView, AjaxDeleteWordInUnitView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -12,6 +14,14 @@ urlpatterns = [
     url(r'^ajax-book-tree/$', AjaxBookTreeView.as_view(), name="learn.ajax_book_tree"),
     url(r'^ajax-book-list/$', AjaxBookListView.as_view(), name="learn.ajax_book_list"),
     url(r'^ajax-book-units/(?P<book_id>\d+)/$', AjaxBookUnitsView.as_view(), name="learn.ajax_book_units"),
+    url(r'^ajax-new-book/$', AjaxNewBookView.as_view(), name="learn.ajax_new_book"),
+    url(r'^ajax-edit-book/$', AjaxEditBookView.as_view(), name="learn.ajax_edit_book"),
+    url(r'^ajax-delete-book/$', AjaxDeleteBookView.as_view(), name="learn.ajax_delete_book"),
+    url(r'^ajax-new-unit/$', AjaxNewUnitView.as_view(), name="learn.ajax_new_unit"),
+    url(r'^ajax-edit-unit/$', AjaxEditUnitView.as_view(), name="learn.ajax_edit_unit"),
+    url(r'^ajax-delete-unit/$', AjaxDeleteUnitView.as_view(), name="learn.ajax_delete_unit"),
+    url(r'^ajax-new-word-in-unit/$', AjaxNewWordInUnitView.as_view(), name="learn.ajax_new_word_in_unit"),
+    url(r'^ajax-delete-word-in-unit/$', AjaxDeleteWordInUnitView.as_view(), name="learn.ajax_delete_word_in_unit"),
     url(r'^units/$', UnitListView.as_view(), name="learn.units"),
     url(r'^units/(?P<unit_id>\d+)$', UnitDetailView.as_view(), name="learn.unit_detail"),
     url(r'^ajax-add-book-learning-plan/$', AjaxAddBookToLearningPlanView.as_view(), name="learn.ajax_add_book_learning_plan"),

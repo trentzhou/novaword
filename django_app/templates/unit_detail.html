@@ -47,6 +47,86 @@
 
                 <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
 
+                {% if unit.book.uploaded_by == request.user %}
+                    <a class="btn btn-primary" id="btn-edit-unit">编辑单元</a>
+                    <a class="btn btn-primary" id="btn-delete-unit">删除单元</a>
+
+
+                    <div class="modal fade" id="dialog-edit-unit">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title">编辑单元</h4>
+                                </div>
+                                <div class="modal-body margin-bottom">
+
+                                    <div class="form-group">
+                                        <label for="unit_description" class="col-sm-2 control-label">名称</label>
+
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="unit_description" placeholder="名称" value="{{ unit.description }}">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="unit_order" class="col-sm-2 control-label">在书中的顺序</label>
+
+                                        <div class="col-sm-10">
+                                            <input type="number" class="form-control" id="unit_order" placeholder="在书中的顺序" value="{{ unit.order }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                                    <button type="button" class="btn btn-primary" id="confirm_edit_unit">确定</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                    </div>
+                    <!-- /.modal-dialog -->
+
+
+                    <div class="modal fade" id="dialog-new-word">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title">增加单词</h4>
+                                </div>
+                                <div class="modal-body margin-bottom">
+
+                                    <div class="form-group">
+                                        <label for="new_word_spelling" class="col-sm-2 control-label">名称</label>
+
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="new_word_spelling" placeholder="拼写" value="">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="new_word_meaning" class="col-sm-2 control-label">中文解释</label>
+
+                                        <div class="col-sm-10">
+                                            <input type="text" class="form-control" id="new_word_meaning" placeholder="中文解释" value="">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                                    <button type="button" class="btn btn-primary" id="confirm_new_word">确定</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                    </div>
+                    <!-- /.modal-dialog -->
+
+                {% endif %}
+
             </div>
             <div class="box-body">
                 <table class="table table-responsive" id="word_table">
@@ -56,6 +136,7 @@
                         <th>美式音标</th>
                         <th>英式音标</th>
                         <th>解释</th>
+                        <th>id</th>
                     </tr>
                     </thead>
                     {% for word in words %}
@@ -65,7 +146,7 @@
                                 {% if word.word.mp3_us_url %}
                                     <span class="ion ion-speakerphone text-blue" onclick="$('#audio_us_{{ forloop.counter }}').get(0).play()"></span>
                                     <audio id="audio_us_{{ forloop.counter }}" preload="none">
-                                        <source src="{{ word.mp3_us_url }}" />
+                                        <source src="{{ word.word.mp3_us_url }}" />
                                     </audio>
                                 {% endif %}
                                 {{ word.word.pronounciation_us }}
@@ -74,15 +155,21 @@
                                 {% if word.word.mp3_uk_url %}
                                     <span class="ion ion-speakerphone text-blue" onclick="$('#audio_uk_{{ forloop.counter }}').get(0).play()"></span>
                                     <audio id="audio_uk_{{ forloop.counter }}" preload="none">
-                                        <source src="{{ word.mp3_uk_url }}" />
+                                        <source src="{{ word.word.mp3_uk_url }}" />
                                     </audio>
                                 {% endif %}
                                 {{ word.word.pronounciation_uk }}
                             </td>
                             <td>{{ word.simple_meaning }}</td>
+                            <td>{{ word.id }}</td>
                         </tr>
                     {% endfor %}
                 </table>
+
+                {% if unit.book.uploaded_by == request.user %}
+                    <a class="btn btn-primary" id="btn-add-word">增加单词</a>
+                    <a class="btn btn-primary" id="btn-delete-words">删除选中的单词</a>
+                {% endif %}
 
                 {% if records %}
                     <div class="box">
@@ -167,18 +254,144 @@
                 }
             });
         });
-        $("#word_table").DataTable({
+        var word_table = $("#word_table").DataTable({
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
             },
             "pageLength": 50
         });
+        word_table.column(4).visible(false);
+
         $("#record_table").DataTable({
             "language": {
                 url: "{% static 'datatables/Chinese.txt' %}"
             },
             "pageLength": 50
         });
+
+    {% if unit.book.uploaded_by == request.user %}
+        $("#btn-edit-unit").click(function() {
+            $("#dialog-edit-unit").modal();
+        });
+
+        $("#confirm_edit_unit").click(function() {
+            var url = "{% url 'learn.ajax_edit_unit' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": {{ unit.id }},
+                    "description": $("#unit_description").val(),
+                    "order": $("#unit_order").val()
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            location.reload();
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+        $("#btn-delete-unit").click(function() {
+            var url = "{% url 'learn.ajax_delete_unit' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": {{ unit.id }}
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            window.location = "{% url 'learn.book_detail' unit.book_id %}"
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+        $("#btn-add-word").click(function() {
+            $("#dialog-new-word").modal();
+        });
+
+        $("#confirm_new_word").click(function() {
+            var url = "{% url 'learn.ajax_new_word_in_unit' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": {{ unit.id }},
+                    "spelling": $("#new_word_spelling").val(),
+                    "meaning": $("#new_word_meaning").val()
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            location.reload();
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+        $('#word_table tbody').on( 'click', 'tr', function () {
+            $(this).toggleClass('selected');
+        } );
+
+        $("#btn-delete-words").click(function() {
+            var rows = word_table.rows(".selected").data();
+            var ids = [];
+            for (var i = 0; i < rows.length; i++) {
+                var row = rows[i];
+                var id = row[4];
+                ids.push(id);
+            }
+            var ids_to_delete = ids.join(",")
+            var url = "{% url 'learn.ajax_delete_word_in_unit' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_word_ids": ids_to_delete,
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            location.reload();
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+
+    {% endif %}
     });
     </script>
 {% endblock %}

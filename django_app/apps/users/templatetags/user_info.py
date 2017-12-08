@@ -1,5 +1,4 @@
 from django import template
-from datetime import date, timedelta
 
 from users.models import UserGroup
 

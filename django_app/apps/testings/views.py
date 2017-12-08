@@ -58,7 +58,7 @@ class CreateQuizView(LoginRequiredMixin, View):
             quiz.password = ""
             quiz.description = form.data["description"]
             quiz.book_id = form.data["book_id"]
-            quiz.is_public = parse_bool(form.data["is_public"])
+            quiz.is_public = parse_bool(form.data.get("is_public", False))
             quiz.save()
             # do nothing
             return redirect(reverse('testings.edit_quiz', kwargs={

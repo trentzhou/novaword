@@ -4,20 +4,22 @@ import json
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Max
 from django.http import Http404, JsonResponse
 from django.shortcuts import render
 from django.views.generic import View
 
-from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord
+from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, Word
 from operations.models import GroupLearningPlan
 from testings.models import QuizResult
 from users.models import UserGroup
+from users.templatetags.user_info import is_teacher
 
 
 class BookListView(View):
     def get(self, request):
         wordbooks = WordBook.objects.all()
+
         return render(request, 'wordbook_list.html', {
             "page": "books",
             "wordbooks": wordbooks
@@ -113,6 +115,167 @@ class AjaxBookUnitsView(View):
         })
 
 
+class AjaxNewBookView(View):
+    def post(self, request):
+        description = request.POST.get("description", "")
+        if description:
+            book = WordBook()
+            book.description = description
+            book.uploaded_by = request.user
+            book.save()
+            return JsonResponse({
+                "status": "ok",
+                "book_id": book.id
+            })
+        else:
+            return JsonResponse({
+                "status": "fail",
+                "reason": "标题不对"
+            })
+
+
+class AjaxEditBookView(View):
+    def post(self, request):
+        book_id = request.POST.get("book_id", 0)
+        description = request.POST.get("description", "")
+
+        try:
+            if description:
+                book = WordBook.objects.filter(id=book_id).get()
+                book.description = description
+                book.save()
+                return JsonResponse({
+                    "status": "ok"
+                })
+        except:
+            pass
+
+        return JsonResponse({
+            "status": "fail",
+            "reason": "输入不对"
+        })
+
+
+class AjaxDeleteBookView(View):
+    def post(self, request):
+        book_id = request.POST.get("book_id", 0)
+        WordBook.objects.filter(id=book_id).delete()
+        return JsonResponse({
+            "status": "ok"
+        })
+
+
+class AjaxNewUnitView(View):
+    def post(self, request):
+        book_id = request.POST.get("book_id", 0)
+        description = request.POST.get("description", "")
+
+        try:
+            if description:
+                book = WordBook.objects.filter(id=book_id).get()
+                max_order = WordUnit.objects.filter(book=book).aggregate(Max("order"))["order__max"]
+                if not max_order:
+                    max_order = 0
+                unit = WordUnit()
+                unit.book = book
+                unit.description = description
+                unit.order = max_order + 1
+                unit.save()
+
+                return JsonResponse({
+                    "status": "ok",
+                    "unit_id": unit.id
+                })
+
+        except:
+            pass
+        return JsonResponse({
+            "status": "fail",
+            "reason": "输入不对"
+        })
+
+
+class AjaxEditUnitView(View):
+    def post(self, request):
+        unit_id = request.POST.get("unit_id", 0)
+        description = request.POST.get('description', "")
+        order = request.POST.get("order", 0)
+        try:
+            if description:
+                unit = WordUnit.objects.filter(id=unit_id).get()
+                unit.description = description
+                unit.order = int(order)
+                unit.save()
+                return JsonResponse({
+                    "status": "ok"
+                })
+        except:
+            pass
+        return JsonResponse({
+            "status": "fail",
+            "reason": "输入不对"
+        })
+
+
+class AjaxDeleteUnitView(View):
+    def post(self, request):
+        unit_id = request.POST.get("unit_id", 0)
+        WordUnit.objects.filter(id=unit_id).delete()
+        return JsonResponse({
+            "status": "ok"
+        })
+
+
+class AjaxNewWordInUnitView(View):
+    def post(self, request):
+        spelling = request.POST.get("spelling", "")
+        meaning = request.POST.get("meaning", "")
+        unit_id = request.POST.get("unit_id", "")
+
+        try:
+            unit = WordUnit.objects.filter(id=unit_id).get()
+
+            if spelling and meaning:
+                # try to find the word first
+                word = Word.objects.filter(spelling=spelling).first()
+                if not word:
+                    word = Word()
+                    word.spelling = spelling
+                    word.short_meaning = meaning
+                    word.save()
+
+            unit_word = WordInUnit()
+            max_order = WordInUnit.objects.filter(unit=unit).aggregate(Max("order"))["order__max"]
+            if not max_order:
+                max_order = 0
+            unit_word.word = word
+            unit_word.unit = unit
+            unit_word.simple_meaning = meaning
+            unit_word.order = max_order + 1
+            unit_word.save()
+
+            return JsonResponse({
+                "status": "ok"
+            })
+
+        except:
+            pass
+        return JsonResponse({
+            "status": "fail"
+        })
+
+
+class AjaxDeleteWordInUnitView(View):
+    def post(self, request):
+        unit_words = request.POST.get("unit_word_ids", "")
+        words = unit_words.split(",")
+        for id in words:
+            WordInUnit.objects.filter(id=id).delete()
+        return JsonResponse({
+            "status": "ok"
+        })
+
+
 class BookDetailView(View):
     def get(self, request, book_id):
         wordbook = WordBook.objects.filter(id=book_id).get()
@@ -148,7 +311,7 @@ class UnitDetailView(View):
         if not unit:
             raise Http404()
 
-        words = WordInUnit.objects.filter(unit=unit).all()
+        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
         records = LearningRecord.objects.filter(unit=unit, user=request.user).order_by("-learn_time").all()
         return render(request, 'unit_detail.html', {
             "page": "units",
