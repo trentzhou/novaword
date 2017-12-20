@@ -5,7 +5,7 @@ from django import forms
 from captcha.fields import CaptchaField
 
 from utils.wilddog_sms import SmsClient
-from word_master.settings import WILDDOG_APP_ID, WILDDOG_API_KEY
+from django.conf import settings
 from .models import UserProfile, EmailVerifyRecord
 
 
@@ -40,7 +40,7 @@ class RegisterMobileForm(forms.Form):
             if self.data['password'] != self.data['password_confirm']:
                 self.add_error("password_confirm", u"密码不一致")
             # check verification code
-            c = SmsClient(WILDDOG_APP_ID, WILDDOG_API_KEY)
+            c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
             result = c.check_code(self.data['mobile'], self.data['verification_code'])
             verification_good = False
             try:
@@ -60,7 +60,7 @@ class VerifySmsForm(forms.Form):
 
     def is_valid(self):
         # check verification code
-        c = SmsClient(WILDDOG_APP_ID, WILDDOG_API_KEY)
+        c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
         result = c.check_code(self.data['mobile'], self.data['code'])
         verification_good = False
         try:

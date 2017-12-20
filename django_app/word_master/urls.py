@@ -23,11 +23,12 @@ from learn.views import LearningOverviewView
 from users.views import LoginView, LogoutView, \
     RegisterView, AcivateUserView, ForgetPasswordView, ResetPasswordView, ModifyPasswordView, RegisterMobileView, \
     UserVirificationSmsView, VerifySmsView
-from word_master.settings import MEDIA_ROOT
+from django.conf import settings
 
 urlpatterns = [
     url(r'^xadmin/', xadmin.site.urls),
-    url(r'^media/(?P<path>.*)$',  serve, {"document_root":MEDIA_ROOT}),
+    url(r'^media/(?P<path>.*)$',  serve, {"document_root":settings.MEDIA_ROOT}),
+    url(r'^static/(?P<path>.*)$',  serve, {"document_root":settings.STATIC_ROOT}),
     url(r'^$', LearningOverviewView.as_view(), name="index"),
     url(r'^accounts/login/$', LoginView.as_view(), name="user_login"),
     url(r'^accounts/logout/$', LogoutView.as_view(), name="user_logout"),

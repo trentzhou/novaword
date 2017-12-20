@@ -19,7 +19,7 @@ from users.models import UserProfile, EmailVerifyRecord, UserGroup, Group, Organ
 from utils import parse_bool, find_group_admin_users, find_organization_admin_users
 from utils.email_send import send_register_email, save_email_verify_record
 from utils.wilddog_sms import is_valid_phone_number, SmsClient
-from word_master.settings import WILDDOG_API_KEY, WILDDOG_APP_ID
+from django.conf import settings
 
 
 class CustomBackend(ModelBackend):
@@ -170,7 +170,7 @@ class UserVirificationSmsView(View):
     def post(self, request):
         mobile = request.POST.get("mobile", "")
         if is_valid_phone_number(mobile):
-            c = SmsClient(WILDDOG_APP_ID, WILDDOG_API_KEY)
+            c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
             result = c.send_code(str(mobile), "100000", None)
             return HttpResponse(result)
         else:
@@ -218,7 +218,7 @@ class ForgetPasswordView(View):
                 return render(request, "send_success.html")
             elif user.mobile_phone == email:
                 # 发送短消息来重置密码
-                c = SmsClient(WILDDOG_APP_ID, WILDDOG_API_KEY)
+                c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
                 c.send_code(str(email), "100000", None)
                 return render(request, "verify_sms.html", {"mobile": email})
         else:

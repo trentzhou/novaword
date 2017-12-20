@@ -52,6 +52,7 @@ def find_word(word):
                 result.mp3_us_url = xx['us_mp3']
                 result.mp3_uk_url = xx['uk_mp3']
                 result.short_meaning = xx['meaning']
+                print "Saving {0}".format(result.spelling)
                 result.save()
     except:
         return None

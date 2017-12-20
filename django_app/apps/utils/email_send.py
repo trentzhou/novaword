@@ -6,7 +6,7 @@ from random import Random
 import requests
 import json
 from users.models import EmailVerifyRecord
-from word_master.settings import EMAIL_FROM
+from django.conf import settings
 
 
 def random_str(randomlength=8):
@@ -68,24 +68,24 @@ def send_register_email(email, send_type="register", host="localhost:8000"):
     email_body = ""
 
     if send_type == "register":
-        email_title = "谁能背过我 -- 注册激活链接"
+        email_title = "Nova背单词 -- 注册激活链接"
         email_body = "请点击下面的链接激活你的账号: http://{0}/activate/{1}".format(host, code)
 
-        send_status = send_mail(email_title, email_body, EMAIL_FROM, [email])
+        send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
             pass
     elif send_type == "forget":
-        email_title = "谁能背过我 -- 注册密码重置链接"
+        email_title = "Nova背单词 -- 注册密码重置链接"
         email_body = "请点击下面的链接重置密码: http://{0}/reset_password/{1}".format(host, code)
 
-        send_status = send_mail(email_title, email_body, EMAIL_FROM, [email])
+        send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
             pass
     elif send_type == "update_email":
-        email_title = "谁能背过我 -- 邮箱修改验证码"
+        email_title = "Nova背单词 -- 邮箱修改验证码"
         email_body = "你的邮箱验证码为: {0}".format(code)
 
-        send_status = send_mail(email_title, email_body, EMAIL_FROM, [email])
+        send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
             pass
 
