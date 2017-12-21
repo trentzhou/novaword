@@ -7,6 +7,8 @@ services:
       - MYSQL_ROOT_PASSWORD=test123
       - MYSQL_DATABASE=novaword
     command: --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    ports:
+      - 13306:3306
   novaword:
     image: trentzhou/novaword
     volumes:
@@ -19,7 +21,7 @@ services:
       - MYSQL_USERNAME=root
       - MYSQL_PASSWORD=test123
       - DJANGO_MANAGEPY_MIGRATE=on
-      - STARTUP_DELAY=20
+      - STARTUP_DELAY=30
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin123
       - ADMIN_EMAIL=trent.zhou@qq.com

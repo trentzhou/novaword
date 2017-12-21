@@ -1,4 +1,4 @@
-谁能背过我
+Nova背单词
 ====
 
 这是一个简单的背单词系统。主要功能包括：
@@ -45,10 +45,9 @@
 
 ## 开发环境 ##
 
-我用的电脑上运行ubuntu，编辑器是visual studio code。
-如果用的是windows系统，建议安装visual studio 2017 community edition。自带了python和django的支持。
-python 2和python 3应该都可以。
+程序使用的开发工具是 [pycharm](https://www.jetbrains.com/pycharm/)。
 
 ## 部署环境 ##
 
-开发的时候有一个amazon aws上的虚拟机，ip地址是 `52.68.86.61` , 打开了端口8000。
+试用环境 http://novaword.trentzhou.com
+
