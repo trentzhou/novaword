@@ -18,6 +18,6 @@ fi
 if [ -n "$ADMIN_USERNAME" -a -n "$ADMIN_PASSWORD" -a -n "$ADMIN_EMAIL" ]; then
     echo "Creating Admin user $ADMIN_USERNAME ($ADMIN_EMAIL)"
     # create super user
-    echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(email='$ADMIN_EMAIL', is_superuser=True).delete(); User.objects.create_superuser('$ADMIN_USERNAME', '$ADMIN_EMAIL', '$ADMIN_PASSWORD')" | /venv/bin/python manage.py shell
+    echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$ADMIN_USERNAME', '$ADMIN_EMAIL', '$ADMIN_PASSWORD')" | /venv/bin/python manage.py shell
 fi
 exec "$@"

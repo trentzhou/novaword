@@ -26,7 +26,7 @@ services:
       - STARTUP_DELAY=30
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin123
-      - ADMIN_EMAIL=trent.zhou@qq.com
+      - ADMIN_EMAIL=quan@zhouyequan.com
     links:
       - mysql
     depends_on:
