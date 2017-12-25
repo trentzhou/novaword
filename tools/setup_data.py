@@ -17,7 +17,7 @@ def setup_word_database():
     for file_name in yaml_files:
         print("Processing {0}".format(file_name))
         words = yaml.load(open(file_name))
-        pool.map(lookup_word_in_db.find_word, (x[0] for x in words))
+        pool.map(lookup_word_in_db.find_word, (x[0].lower() for x in words))
 
 
 def main():

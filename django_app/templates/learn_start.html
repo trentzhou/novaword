@@ -20,6 +20,12 @@
     <a class="btn btn-primary" id="btn_start_over">重新答题</a>
     <div class="box">
         <div class="box-body">
+            <div id="answer">
+                <h2 id="word-spelling"></h2>
+                <a class="btn btn-success" id="btn-familiar">认识</a>
+                <a class="btn btn-danger" id="btn-unfamiliar">不熟悉</a>
+            </div>
+
             <div id="choose">
                 <h2 id="spelling"></h2>
                 <div id="count"></div>
@@ -34,24 +40,10 @@
             </div>
 
             <div id="explain">
-                <div>
-                    <h2 id="word_spelling"></h2>
-                    <a id="container_us" class="btn">
-                        美 <span class="ion ion-speakerphone text-blue" id="play_us"></span> <span id="pronounciation_us"></span>
-                        <audio id="audio_us">
-                            <source id="audio_us_src" />
-                        </audio>
-                    </a>
-
-                    <a id="container_uk" class="btn">
-                        英 <span class="ion ion-speakerphone text-blue" id="play_uk"></span> <span id="pronounciation_uk"></span>
-                        <audio id="audio_uk">
-                            <source id="audio_uk_src" />
-                        </audio>
-                    </a>
-                </div>
+                <h2 id="word_spelling"></h2>
                 <div id="simple-meaning"></div>
-                <div id="simple-meaning-in-dict"></div>
+                <div id="detailed-meaning"></div>
+                <div id="detailed-meaning-in-dict"></div>
 
                 <a id="btn-continue" class="btn btn-primary">继续</a>
             </div>
@@ -74,6 +66,8 @@
         var word_index = -1;
         var waiting_answer = false;
         var correct_div_id = "";
+        var learn_count = 0;
+        var learn_type = 1;
         var quiz_type = {{ quiz_type|default:3 }};// 1: chinese to english; 2: english to chinese; 3: random;
 
         var start_seconds = 0;
@@ -115,11 +109,74 @@
                     word.correct = false;
                     word.index = i;
                 }
-                continue_quiz();
+                learn_count = result["learn_count"];
+                if (learn_count == 0) {
+                    learn_type = 1;
+                    start_walk_through();
+                } else {
+                    learn_type = 3;
+                    continue_quiz();
+                }
                 start_seconds = new Date().getTime()/1000;
             });
 
         }
+
+
+        function start_walk_through() {
+            current_index = 0;
+            // we are not familiar with all of the words
+            for (var i = 0; i < unit_words.length; i++) {
+                var word = unit_words[i];
+                word.familiar = false;
+            }
+            start_seconds = new Date().getTime()/1000;
+            continue_walk_through();
+        }
+
+        function continue_walk_through() {
+            var candidate = null;
+            // find a word which I'm still unfamiliar
+            for (var i = 1; i <= unit_words.length; i++) {
+                var index = (current_index + i) % unit_words.length;
+                var word = unit_words[index];
+                if (!word.familiar) {
+                    // yes we found the word
+                    candidate = word;
+                    current_index = index;
+                    break;
+                }
+            }
+            if (candidate != null) {
+                show_word(candidate);
+            } else {
+                // we are done!
+                finish_learning();
+            }
+        }
+
+
+        function show_word(word) {
+            $("#result").hide();
+            $("#choose").hide();
+            $("#explain").hide();
+            $("#congratulations").hide();
+            $("#answer").show();
+            $("#word-spelling").html(word.spelling);
+        }
+
+        function answer_familiar() {
+            var word = unit_words[current_index];
+            word.familiar = true;
+            show_explain(current_index);
+        }
+
+        function answer_unfamiliar() {
+            show_explain(current_index);
+        }
+        $("#btn-familiar").click(answer_familiar);
+        $("#btn-next").click(continue_walk_through);
+        $("#btn-unfamiliar").click(answer_unfamiliar);
 
 
         // 打乱次序
@@ -194,6 +251,7 @@
             $("#prompt").text(c2e? "请选择正确的单词：": "请选择正确的中文解释：");
             $(".candidate").removeClass("danger").removeClass("info");
             waiting_answer = true;
+            $("#answer").hide();
             $("#explain").hide();
             $("#congratulations").hide();
             $("#choose").show();
@@ -202,26 +260,77 @@
         function show_explain(index) {
             $("#explain").show();
             $("#choose").hide();
+            $("#answer").hide();
             $("#congratulations").hide();
             var word = unit_words[index];
             $("#word_spelling").text(word.spelling);
-            // show pronounciation
-            if (word.pronounciation_us) {
-                $("#container_us").show();
-                $("#pronounciation_us").text(word.pronounciation_us);
-                $("#audio_us_src").attr("src", word.mp3_us_url);
-            } else {
-                $("#container_us").hide();
-            }
-            if (word.pronounciation_uk) {
-                $("#container_uk").show();
-                $("#pronounciation_uk").text(word.pronounciation_uk);
-                $("#audio_uk_src").attr("src", word.mp3_uk_url);
-            } else {
-                $("#container_uk").hide();
-            }
             // simple meaning
             $("#simple-meaning").text(word.simple_meaning);
+            $("#detailed-meaning").html(word.detailed_meaning);
+            show_detailed_meaning_in_dict(word.detailed_meaning_in_dict);
+        }
+
+
+        function show_detailed_meaning_in_dict(detail) {
+            var root_div = $("#detailed-meaning-in-dict");
+            root_div.html("");
+            for (var i = 0; i < detail.symbols.length; i++) {
+                var symbol = detail.symbols[i];
+                var symbol_div = $("<div>");
+                // append pronounciation
+                if (symbol.ph_am || symbol.ph_en) {
+                    var pron_list_div = $("<div>").attr("class", "pronounciation_list");
+                    pron_list_div.append($("<h3>").html("发音："));
+                    if (symbol.ph_am) {
+                        var pron_div = $("<div>").attr("class", "pronounciation");
+                        pron_div.append($("<a>").attr("class", "play_mp3")
+                            .html("美式发音 [" + symbol.ph_am + "]")
+                            .append($("<audio>").append($("<source>").attr("src", symbol.ph_am_mp3))));
+                        pron_list_div.append(pron_div);
+                    }
+                    if (symbol.ph_en) {
+                        var pron_div = $("<div>").attr("class", "pronounciation");
+                        pron_div.append($("<a>").attr("class", "play_mp3")
+                            .html("英式发音 [" + symbol.ph_en + "]")
+                            .append($("<audio>").append($("<source>").attr("src", symbol.ph_en_mp3))));
+                        pron_list_div.append(pron_div);
+                    }
+                }
+                symbol_div.append(pron_list_div);
+                // append meaning
+                var meaning_div = $("<div>").attr("class", "word_symbol");
+                meaning_div.append($("<h3>").html("解释："));
+                for (var i = 0; i < symbol.parts.length; i++) {
+                    var part = symbol.parts[i];
+                    var part_div = $("<div>").attr("class", "word_part");
+                    part_div.append($("<div>").attr("class", "word_property").html(part.part));
+                    var ul_div = $("<ul>");
+                    part_div.append(ul_div);
+                    for (var j = 0; j < part.means.length; j++) {
+                        ul_div.append($("<li>").attr("class", "word_mean").html(part.means[j]));
+                    }
+                    meaning_div.append(part_div);
+                }
+                symbol_div.append(meaning_div);
+                root_div.append(symbol_div);
+
+                $(".play_mp3").click(function() {
+                    $(this).find("audio").get(0).play();
+                });
+            }
+            // append sentenses
+            if (detail.sentenses) {
+                var sentenses_div = $("<div>").attr("class", "word_sentenses");
+                sentenses_div.append($("<h3>").html("例句："));
+                for (var i = 0; i < detail.sentenses.length; i++) {
+                    sentenses_div.append($("<div>").attr("class", "word_sentense").append(
+                        $("<div>").attr("class", "word_sent_orig").html(detail.sentenses[i].orig)
+                    ).append(
+                        $("<div>").attr("class", "word_sent_trans").html(detail.sentenses[i].trans)
+                    ));
+                }
+                root_div.append(sentenses_div);
+            }
         }
 
         $(".candidate").click(function() {
@@ -255,6 +364,10 @@
 
         function continue_quiz() {
             // find an incorrect word
+            if (learn_count == 0) {
+                continue_walk_through();
+                return;
+            }
             var incorrect = [];
             for (var i = 0; i < unit_words.length; i++) {
                 var word = unit_words[i];
@@ -279,6 +392,7 @@
             $("#congratulations").show();
             $("#choose").hide();
             $("#explain").hide();
+            $("#answer").hide();
 
             if (unit_index < all_units.length) {
                 title = "已经完成" + all_units.length + "个单元中的" + unit_index + "个";
@@ -308,7 +422,7 @@
 
             var data = {
                 "unit_id": all_units[unit_index],
-                "type": 3,
+                "type": learn_type,
                 "correct_rate": correct_rate,
                 "word_count": unit_words.length,
                 "seconds_used": seconds_used,
@@ -351,18 +465,6 @@
             }
             start_seconds = new Date().getTime()/1000;
             continue_quiz();
-        });
-
-        $("#container_us").click(function() {
-            var us = $("#audio_us").get(0);
-            us.load();
-            us.play();
-        });
-
-        $("#container_uk").click(function() {
-            var uk = $("#audio_uk").get(0);
-            uk.load();
-            uk.play();
         });
 
         $(document).keypress(function(event) {

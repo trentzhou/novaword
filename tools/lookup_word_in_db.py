@@ -12,7 +12,7 @@ import os
 import django
 import json
 
-from lookup_iciba_word import lookup_iciba_word
+from lookup_iciba_word import lookup_iciba_word_api
 
 
 def setup_django_env():
@@ -38,25 +38,36 @@ def find_word(word):
     """
     Find word from DB, or iciba.com
     """
-    from learn.models import Word
-
     try:
+        from learn.models import Word
         result = find_word_in_db(word)
-        if not result:
-            xx = lookup_iciba_word(word)
-            if xx and 'meaning' in xx and xx['meaning']:
-                result = Word()
+        if not result or not result.detailed_meanings:
+            xx = lookup_iciba_word_api(word)
+            if xx:
+                if not result:
+                    result = Word()
                 result.spelling = word
-                result.pronounciation_us = xx['us_pronounciation']
-                result.pronounciation_uk = xx['uk_pronounciation']
-                result.mp3_us_url = xx['us_mp3']
-                result.mp3_uk_url = xx['uk_mp3']
-                result.short_meaning = xx['meaning']
+                if "ph_am" in xx["symbols"][0]:
+                    result.pronounciation_us = xx["symbols"][0]["ph_am"]
+                if "ph_en" in xx["symbols"][0]:
+                    result.pronounciation_uk = xx["symbols"][0]["ph_en"]
+                if "ph_am_mp3" in xx["symbols"][0]:
+                    result.mp3_us_url = xx["symbols"][0]["ph_am_mp3"]
+                if "ph_en_mp3" in xx["symbols"][0]:
+                    result.mp3_uk_url = xx["symbols"][0]["ph_en_mp3"]
+                meanings = []
+                for part in xx["symbols"][0]["parts"]:
+                    meaning = part["part"] + ";".join(part["means"])
+                    meanings.append(meaning)
+                result.short_meaning = "\n".join(meanings)
+                result.detailed_meanings = json.dumps(xx, indent=4, sort_keys=True)
                 print "Saving {0}".format(result.spelling)
                 result.save()
+
+        return result
     except:
+        print "Failed to look up word {0}".format(word)
         return None
-    return result
 
 
 def main():
@@ -65,14 +76,15 @@ def main():
     word = sys.argv[1]
     # look up the database
     result = find_word(word)
-    json.dump({
-        'spelling': word,
-        'us_pronounciation': result.pronounciation_us,
-        'uk_pronounciation': result.pronounciation_uk,
-        'us_mp3': result.mp3_us_url,
-        'uk_mp3': result.mp3_uk_url,
-        'meaning': result.short_meaning
-    }, sys.stdout, indent=4)
+    if result:
+        json.dump({
+            'spelling': word,
+            'us_pronounciation': result.pronounciation_us,
+            'uk_pronounciation': result.pronounciation_uk,
+            'us_mp3': result.mp3_us_url,
+            'uk_mp3': result.mp3_uk_url,
+            'meaning': result.short_meaning
+        }, sys.stdout, indent=4)
 
 
 if __name__ == '__main__':

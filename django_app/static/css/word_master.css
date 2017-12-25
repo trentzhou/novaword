@@ -83,3 +83,48 @@
     padding:0px 0px 0px 0px;
     outline: 0;
 }
+
+.pronounciation_list {
+    background: #f7f7f7;
+}
+
+.word_symbol,
+.pronounciation_list,
+.word_sentenses {
+    background: #f7f7f7;
+}
+
+.word_symbol .word_part,
+.pronounciation_list .pronounciation,
+.word_sentenses .word_sentense {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.word_symbol .word_part:before,
+.word_symbol .word_part:after,
+.pronounciation_list .pronounciation:before,
+.pronounciation_list .pronounciation:after,
+.word_sentenses .word_sentense:before,
+.word_sentenses .word_sentense:after{
+  content: " ";
+  display: table;
+}
+
+.word_part ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.word_part ul li {
+    position: relative;
+    margin: 0;
+    padding: 0;
+}
+
+.word_sentenses .word_sent_orig,
+.word_part .word_property {
+    color: #7d7d7d;
+    border-bottom: 1px solid #eee;
+}

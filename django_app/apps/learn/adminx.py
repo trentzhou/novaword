@@ -24,41 +24,41 @@ class WordBookAdmin(object):
                     'max_word_learn_time',
                     'max_unit_learn_time',
                     'max_working_units']
-    search_fields = list_display
+    search_fields = ['description', 'uploaded_by__username', 'uploaded_by__nick_name']
     list_filter = list_display
     model_icon = 'fa fa-book'
 
 
 class WordUnitAdmin(object):
     list_display = ['description', 'book', 'order']
-    search_fields = list_display
+    search_fields = ['description', 'book__description']
     list_filter = list_display
     model_icon = 'fa fa-calendar'
 
 
 class WordInUnitAdmin(object):
     list_display = ['word', 'unit', 'order', 'simple_meaning']
-    search_fields = list_display
+    search_fields = ['word__spelling', 'simple_meaning']
     list_filter = list_display
     model_icon = 'fa fa-chain'
 
 
 class LearningPlanAdmin(object):
     list_display = ['user', 'unit']
-    search_fields = list_display
+    search_fields = ['user__username', 'user__nick_name', 'unit__description']
     list_filter = list_display
     model_icon = 'fa fa-check'
 
 class LearningRecordAdmin(object):
     list_display = ['user', 'unit', 'type', 'learn_time', 'correct_rate']
-    search_fields = ['user', 'unit', 'type']
+    search_fields = ['user__username', 'user__nick_name', 'unit__description', 'type']
     list_filter = list_display
     model_icon = 'fa fa-tasks'
 
 
 class ErrorWordAdmin(object):
     list_display = ['user', 'word', 'error_count', 'amend_count', 'latest_error_time']
-    search_fields = ['user', 'word', 'error_count', 'amend_count']
+    search_fields = ['user__username', 'user__nick_name', 'word__word__spelling']
     list_filter = list_display
     model_icon = 'fa fa-bug'
 

@@ -1,0 +1,61 @@
+{% for symbol in detail.symbols %}
+    {% if symbol.ph_am or symbol.ph_en %}
+        <div class="pronounciation_list">
+            <h3>发音：</h3>
+            {% if symbol.ph_am %}
+                <div class="pronounciation">
+                <a class="play_mp3">
+                    美式发音 [{{ symbol.ph_am }}]
+                    <audio>
+                        <source src="{{ symbol.ph_am_mp3 }}">
+                    </audio>
+                </a>
+                </div>
+            {% endif %}
+
+            {% if symbol.ph_en %}
+                <div class="pronounciation">
+                    <a class="play_mp3">
+                        英式发音 [{{ symbol.ph_en }}]
+                        <audio>
+                            <source src="{{ symbol.ph_en_mp3 }}" />
+                        </audio>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="word_symbol">
+        <h3>解释：</h3>
+        {% for part in symbol.parts %}
+            <div class="word_part">
+                <div class="word_property">{{ part.part }}</div>
+                <ul>
+                {% for mean in part.means %}
+                    <li class="word_mean">{{ mean }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    </div>
+{% endfor %}
+
+{% if detail.sentenses %}
+    <div class="word_sentenses">
+    <h3>例句：</h3>
+    {% for sent in detail.sentenses %}
+        <div class="word_sentense">
+            <div class="word_sent_orig">{{ sent.orig }}</div>
+            <div class="word_sent_trans">{{ sent.trans }}</div>
+        </div>
+    {% endfor %}
+    </div>
+{% endif %}
+
+<script>
+    $(function () {
+        $(".play_mp3").click(function() {
+            $(this).find("audio").get(0).play();
+        });
+    });
+</script>

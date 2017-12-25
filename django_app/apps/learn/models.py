@@ -95,6 +95,7 @@ class WordInUnit(models.Model):
     unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
     order = models.IntegerField(default=1, verbose_name=u"顺序")
     simple_meaning = models.CharField(default="", verbose_name=u"简单解释", max_length=100)
+    detailed_meaning = models.TextField(default="", verbose_name=u"详细解释")
 
     class Meta:
         verbose_name = u"单元单词"

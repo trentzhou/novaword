@@ -230,6 +230,7 @@ class AjaxNewWordInUnitView(View):
     def post(self, request):
         spelling = request.POST.get("spelling", "")
         meaning = request.POST.get("meaning", "")
+        detailed_meaning = request.POST.get("detailed_meaning", "")
         unit_id = request.POST.get("unit_id", "")
 
         try:
@@ -251,6 +252,7 @@ class AjaxNewWordInUnitView(View):
             unit_word.word = word
             unit_word.unit = unit
             unit_word.simple_meaning = meaning
+            unit_word.detailed_meaning = detailed_meaning
             unit_word.order = max_order + 1
             unit_word.save()
 
@@ -314,7 +316,7 @@ class UnitDetailView(View):
         words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
         records = LearningRecord.objects.filter(unit=unit, user=request.user).order_by("-learn_time").all()
         return render(request, 'unit_detail.html', {
-            "page": "units",
+            "page": "books",
             "unit": unit,
             "records": records,
             "words": words,
@@ -457,6 +459,15 @@ def get_todays_units(user_id):
     """
     active_units = get_active_units(user_id)
     result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
+    if len(result) < 3:
+        # the load for today is too small, try to add more units
+        num_to_add = 3 - len(result)
+        my_plan = LearningPlan.objects.filter(user_id=user_id).order_by("id").all()
+        for p in my_plan:
+            if not p.unit_id in active_units:
+                result.append(p.unit_id)
+                if len(result) >= 3:
+                    break
     return result
 
 
@@ -484,14 +495,6 @@ class LearningOverviewView(LoginRequiredMixin, View):
         # get recent learned units
         active_units = get_active_units(request.user.id)
         today_units = get_todays_units(request.user.id)
-        '''
-        
-        recent_units = LearningRecord.objects\
-            .filter(user=request.user)\
-            .values("unit_id").annotate(learn_count=Count("unit_id"))\
-            .order_by("learn_count")\
-            .values("unit_id", "unit__book_id", "unit__book__description", "unit__description", "learn_count").all()
-        '''
         recent_units = []
         for u in active_units:
             unit = WordUnit.objects.get(id=u)
@@ -556,19 +559,24 @@ class AjaxUnitDataView(View):
             })
         result = []
         for w in words_in_unit:
+            detailed_meaning = {}
+            if w.word.detailed_meanings:
+                detailed_meaning = json.loads(w.word.detailed_meanings)
             result.append({
                 "id": w.id,
                 "simple_meaning": w.simple_meaning,
+                "detailed_meaning": w.detailed_meaning,
                 "spelling": w.word.spelling,
                 "pronounciation_us": w.word.pronounciation_us,
                 "pronounciation_uk": w.word.pronounciation_uk,
                 "mp3_us_url": w.word.mp3_us_url,
                 "mp3_uk_url": w.word.mp3_uk_url,
                 "short_meaning_in_dict": w.word.short_meaning,
-                "detailed_meaning_in_dict": w.word.detailed_meanings
+                "detailed_meaning_in_dict": detailed_meaning
             })
         return JsonResponse({
-            "data": result
+            "data": result,
+            "learn_count": get_unit_learn_count(request.user.id, unit_id)
         })
 
 
@@ -699,16 +707,20 @@ class AjaxErrorWordsView(View):
         result = []
         for error_word in error_words:
             w = error_word.word
+            detailed_meaning = {}
+            if w.word.detailed_meanings:
+                detailed_meaning = json.loads(w.word.detailed_meanings)
             result.append({
                 "id": w.id,
                 "simple_meaning": w.simple_meaning,
+                "detailed_meaning": w.detailed_meaning,
                 "spelling": w.word.spelling,
                 "pronounciation_us": w.word.pronounciation_us,
                 "pronounciation_uk": w.word.pronounciation_uk,
                 "mp3_us_url": w.word.mp3_us_url,
                 "mp3_uk_url": w.word.mp3_uk_url,
                 "short_meaning_in_dict": w.word.short_meaning,
-                "detailed_meaning_in_dict": w.word.detailed_meanings
+                "detailed_meaning_in_dict": detailed_meaning
             })
         return JsonResponse({
             "data": result

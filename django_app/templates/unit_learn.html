@@ -46,24 +46,10 @@
             </div>
 
             <div id="explain">
-                <div>
-                    <h2 id="word_spelling"></h2>
-                    <a id="container_us" class="btn">
-                        美 <span class="ion ion-speakerphone text-blue" id="play_us"></span> <span id="pronounciation_us"></span>
-                        <audio id="audio_us">
-                            <source id="audio_us_src" />
-                        </audio>
-                    </a>
-
-                    <a id="container_uk" class="btn">
-                        英 <span class="ion ion-speakerphone text-blue" id="play_uk"></span> <span id="pronounciation_uk"></span>
-                        <audio id="audio_uk">
-                            <source id="audio_uk_src" />
-                        </audio>
-                    </a>
-                </div>
+                <h2 id="word_spelling"></h2>
                 <div id="simple-meaning"></div>
-                <div id="simple-meaning-in-dict"></div>
+                <div id="detailed-meaning"></div>
+                <div id="detailed-meaning-in-dict"></div>
 
                 <a id="btn-continue" class="btn btn-primary">继续</a>
             </div>
@@ -195,23 +181,72 @@
             $("#congratulations").hide();
             var word = unit_words[index];
             $("#word_spelling").text(word.spelling);
-            // show pronounciation
-            if (word.pronounciation_us) {
-                $("#container_us").show();
-                $("#pronounciation_us").text(word.pronounciation_us);
-                $("#audio_us_src").attr("src", word.mp3_us_url);
-            } else {
-                $("#container_us").hide();
-            }
-            if (word.pronounciation_uk) {
-                $("#container_uk").show();
-                $("#pronounciation_uk").text(word.pronounciation_uk);
-                $("#audio_uk_src").attr("src", word.mp3_uk_url);
-            } else {
-                $("#container_uk").hide();
-            }
-            // simple meaning
             $("#simple-meaning").text(word.simple_meaning);
+            $("#detailed-meaning").text(word.detailed_meaning);
+            show_detailed_meaning_in_dict(word.detailed_meaning_in_dict);
+        }
+
+
+        function show_detailed_meaning_in_dict(detail) {
+            var root_div = $("#detailed-meaning-in-dict");
+            root_div.html("");
+            for (var i = 0; i < detail.symbols.length; i++) {
+                var symbol = detail.symbols[i];
+                var symbol_div = $("<div>");
+                // append pronounciation
+                if (symbol.ph_am || symbol.ph_en) {
+                    var pron_list_div = $("<div>").attr("class", "pronounciation_list");
+                    pron_list_div.append($("<h3>").html("发音："));
+                    if (symbol.ph_am) {
+                        var pron_div = $("<div>").attr("class", "pronounciation");
+                        pron_div.append($("<a>").attr("class", "play_mp3")
+                            .html("美式发音 [" + symbol.ph_am + "]")
+                            .append($("<audio>").append($("<source>").attr("src", symbol.ph_am_mp3))));
+                        pron_list_div.append(pron_div);
+                    }
+                    if (symbol.ph_en) {
+                        var pron_div = $("<div>").attr("class", "pronounciation");
+                        pron_div.append($("<a>").attr("class", "play_mp3")
+                            .html("英式发音 [" + symbol.ph_en + "]")
+                            .append($("<audio>").append($("<source>").attr("src", symbol.ph_en_mp3))));
+                        pron_list_div.append(pron_div);
+                    }
+                }
+                symbol_div.append(pron_list_div);
+                // append meaning
+                var meaning_div = $("<div>").attr("class", "word_symbol");
+                meaning_div.append($("<h3>").html("解释："));
+                for (var i = 0; i < symbol.parts.length; i++) {
+                    var part = symbol.parts[i];
+                    var part_div = $("<div>").attr("class", "word_part");
+                    part_div.append($("<div>").attr("class", "word_property").html(part.part));
+                    var ul_div = $("<ul>");
+                    part_div.append(ul_div);
+                    for (var j = 0; j < part.means.length; j++) {
+                        ul_div.append($("<li>").attr("class", "word_mean").html(part.means[j]));
+                    }
+                    meaning_div.append(part_div);
+                }
+                symbol_div.append(meaning_div);
+                root_div.append(symbol_div);
+
+                $(".play_mp3").click(function() {
+                    $(this).find("audio").get(0).play();
+                });
+            }
+            // append sentenses
+            if (detail.sentenses) {
+                var sentenses_div = $("<div>").attr("class", "word_sentenses");
+                sentenses_div.append($("<h3>").html("例句："));
+                for (var i = 0; i < detail.sentenses.length; i++) {
+                    sentenses_div.append($("<div>").attr("class", "word_sentense").append(
+                        $("<div>").attr("class", "word_sent_orig").html(detail.sentenses[i].orig)
+                    ).append(
+                        $("<div>").attr("class", "word_sent_trans").html(detail.sentenses[i].trans)
+                    ));
+                }
+                root_div.append(sentenses_div);
+            }
         }
 
         $(".candidate").click(function() {
@@ -371,18 +406,6 @@
             }
             start_seconds = new Date().getTime()/1000;
             continue_quiz();
-        });
-
-        $("#container_us").click(function() {
-            var us = $("#audio_us").get(0);
-            us.load();
-            us.play();
-        });
-
-        $("#container_uk").click(function() {
-            var uk = $("#audio_uk").get(0);
-            uk.load();
-            uk.play();
         });
 
         $(document).keypress(function(event) {

@@ -87,7 +87,8 @@ class DictionaryView(View):
         if not word:
             raise Http404()
         return render(request, "dictionary.html", {
-            "word": word
+            "word": word,
+            "detail": json.loads(word.detailed_meanings)
         })
 
 

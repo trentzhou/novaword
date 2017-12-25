@@ -149,7 +149,7 @@
                                         <source src="{{ word.word.mp3_us_url }}" />
                                     </audio>
                                 {% endif %}
-                                {{ word.word.pronounciation_us }}
+                                [{{ word.word.pronounciation_us }}]
                             </td>
                             <td>
                                 {% if word.word.mp3_uk_url %}
@@ -158,7 +158,7 @@
                                         <source src="{{ word.word.mp3_uk_url }}" />
                                     </audio>
                                 {% endif %}
-                                {{ word.word.pronounciation_uk }}
+                                [{{ word.word.pronounciation_uk }}]
                             </td>
                             <td>{{ word.simple_meaning }}</td>
                             <td>{{ word.id }}</td>

@@ -12,14 +12,14 @@ class UserMessageAdmin(object):
 
 class GroupBookAdmin(object):
     list_display = ['group', 'book']
-    search_fields = list_display
+    search_fields = ['group__description', 'book__description']
     list_filter = list_display
     model_icon = 'fa fa-check'
 
 
 class GroupLearningPlanAdmin(object):
     list_display = ['group', 'unit']
-    search_fields = list_display
+    search_fields = ['group__description', 'unit__description']
     list_filter = list_display
     model_icon = 'fa fa-check'
 

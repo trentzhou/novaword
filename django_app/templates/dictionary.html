@@ -15,10 +15,11 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
+    <!--
     <ul>
         {% if word.pronounciation_us %}
             <li>
-                美式发音 {{ word.pronounciation_us }}
+                美式发音 [{{ word.pronounciation_us }}]
                 {% if word.mp3_us_url %}
                     <span class="ion ion-speakerphone text-blue" id="play_us"></span>
                     <audio id="audio_us" preload="auto">
@@ -29,7 +30,7 @@
         {% endif %}
         {% if word.pronounciation_uk %}
             <li>
-                英式发音 {{ word.pronounciation_uk }}
+                英式发音 [{{ word.pronounciation_uk }}]
                 {% if word.mp3_uk_url %}
                     <span class="ion ion-speakerphone text-blue" id="play_uk"></span>
                     <audio id="audio_uk" preload="auto">
@@ -38,9 +39,9 @@
                 {% endif %}
             </li>
         {% endif %}
-        <li>{{ word.short_meaning }}</li>
     </ul>
-    {{ word.detailed_meaning |safe }}
+    -->
+    {% include 'word_detail_snippet.html' %}
 
     </section>
 
