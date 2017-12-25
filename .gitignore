@@ -13,5 +13,5 @@ venv/
 .idea/
 */.vscode/
 media/
-static/xadmin/
+django_app/static/xadmin/
 upload/

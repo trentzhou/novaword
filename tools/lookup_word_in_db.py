@@ -61,12 +61,12 @@ def find_word(word):
                     meanings.append(meaning)
                 result.short_meaning = "\n".join(meanings)
                 result.detailed_meanings = json.dumps(xx, indent=4, sort_keys=True)
-                print "Saving {0}".format(result.spelling)
+                print("Saving {0}".format(result.spelling))
                 result.save()
 
         return result
     except:
-        print "Failed to look up word {0}".format(word)
+        print("Failed to look up word {0}".format(word))
         return None
 
 

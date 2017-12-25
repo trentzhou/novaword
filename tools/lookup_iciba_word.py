@@ -9,7 +9,10 @@
 
 import sys
 import json
-import urllib2
+try:
+    import urllib2
+except:
+    import urllib.parse as urllib2
 import requests
 import bs4
 from lxml import etree
@@ -142,7 +145,7 @@ def lookup_iciba_word_api(word, api_key="5F843722A010097F76053C819EA9DF49"):
     url = "http://dict-co.iciba.com/api/dictionary.php?w={0}&key={1}&type=xml".format(urllib2.quote(word), api_key)
     result = requests.get(url)
     if result.status_code == 200:
-        text = "\n".join(result.content.split("\n")[1:])
+        text = b"\n".join(result.content.split(b"\n")[1:])
         parser = etree.XMLParser(encoding="utf-8")
         tree = etree.fromstring(text, parser=parser)
 

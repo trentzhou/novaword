@@ -17,6 +17,7 @@ RUN set -ex \
             pcre-dev \
             postgresql-dev \
             jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev \
+            libxslt-dev libxml2-dev \
     && pyvenv /venv \
     && /venv/bin/pip install -U pip \
     && LIBRARY_PATH=/lib:/usr/lib /bin/sh -c "/venv/bin/pip install --no-cache-dir -r /requirements.txt" \
@@ -31,9 +32,10 @@ RUN set -ex \
     && apk del .build-deps
 
 # Copy your application code to the container (make sure you create a .dockerignore file if any large files or directories should be excluded)
-RUN mkdir /code/
-WORKDIR /code/
-ADD django_app /code/
+RUN mkdir /django_app/
+WORKDIR /django_app/
+ADD django_app /django_app/
+ADD tools /tools/
 
 # uWSGI will listen on this port
 EXPOSE 8000
@@ -65,4 +67,4 @@ RUN DATABASE_URL=none /venv/bin/python manage.py collectstatic --noinput
 # Start uWSGI
 CMD ["/venv/bin/uwsgi", "--http-auto-chunked", "--http-keepalive"]
 VOLUME [ "/upload" ]
-ENTRYPOINT ["/code/docker-entrypoint.sh"]
+ENTRYPOINT ["/django_app/docker-entrypoint.sh"]

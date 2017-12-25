@@ -402,7 +402,21 @@ def get_active_units(user_id):
     group_units = GroupLearningPlan.objects.filter(group__in=user_groups).values("unit_id").distinct().all()
     for u in group_units:
         active_units[u["unit_id"]] = True
-    return active_units.keys()
+    all_active_units = active_units.keys()
+    # if we have finished this unit, delete it
+    result = [x for x in all_active_units if get_unit_learn_count(user_id, x) < 6]
+    # if it's too small?
+    if len(result) < 3:
+        # the load for today is too small, try to add more units
+        num_to_add = 3 - len(result)
+        my_plan = LearningPlan.objects.filter(user_id=user_id).order_by("id").all()
+        for p in my_plan:
+            if not p.unit_id in all_active_units:
+                result.append(p.unit_id)
+                if len(result) >= 3:
+                    break
+    return result
+
 
 
 def get_unit_learn_count(user_id, unit_id):
@@ -459,15 +473,6 @@ def get_todays_units(user_id):
     """
     active_units = get_active_units(user_id)
     result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
-    if len(result) < 3:
-        # the load for today is too small, try to add more units
-        num_to_add = 3 - len(result)
-        my_plan = LearningPlan.objects.filter(user_id=user_id).order_by("id").all()
-        for p in my_plan:
-            if not p.unit_id in active_units:
-                result.append(p.unit_id)
-                if len(result) >= 3:
-                    break
     return result
 
 
