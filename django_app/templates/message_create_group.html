@@ -27,6 +27,11 @@
             <div class="small">
                 {{ group_description }}
             </div>
+            {% if extra_message %}
+                <p>
+                留言: {{extra_message }}
+                </p>
+            {% endif %}
         </p>
         <form method="post">
             {% csrf_token %}

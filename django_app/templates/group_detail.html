@@ -126,7 +126,14 @@
                     <p>
                         点击“确定”按钮，系统会发送一条消息给班级管理员。等管理员批准以后，你就被加入班级了。
                     </p>
-                    <label><input id="check_is_teacher" type="checkbox" />我是老师</label>
+                    <form>
+                        <div class="form-group">
+                            <label class="control-label">给管理员留言：</label>
+                            <input id="join_message" type="text" class="form-control"/>
+                        </div>
+
+                        <label><input id="check_is_teacher" type="checkbox" />我是老师</label>
+                    </form>
                     <p id="join_confirm_msg"></p>
                 </div>
                 <div class="modal-footer">
@@ -152,6 +159,12 @@
                     <p>
                         点击“确定”按钮，系统会发送一条消息给班级管理员。等管理员批准以后，你就退出班级了。
                     </p>
+                    <form>
+                        <div class="form-group">
+                            <label class="control-label">给管理员留言：</label>
+                            <input class="form-control" id="leave_message" type="text"/>
+                        </div>
+                    </form>
                     <p id="leave_confirm_msg"></p>
                 </div>
                 <div class="modal-footer">
@@ -282,7 +295,8 @@
                 async: true,
                 data: {
                     "group_id": {{ group.id }},
-                    "is_teacher": $("#check_is_teacher").get(0).checked
+                    "is_teacher": $("#check_is_teacher").get(0).checked,
+                    "message": $("#join_message").val()
                 },
                 success: function(data) {
                     try {
@@ -306,7 +320,8 @@
                 },
                 async: true,
                 data: {
-                    "group_id": {{ group.id }}
+                    "group_id": {{ group.id }},
+                    "message": $("#leave_message").val()
                 },
                 success: function(data) {
                     try {

@@ -460,6 +460,7 @@ class AjaxJoinGroupView(LoginRequiredMixin, View):
     def post(self, request):
         group_id = request.POST.get("group_id", None)
         is_teacher = parse_bool(request.POST.get("is_teacher", False))
+        message = request.POST.get("message", "")
         if not group_id:
             return JsonResponse({
                 "status": "fail",
@@ -485,7 +486,8 @@ class AjaxJoinGroupView(LoginRequiredMixin, View):
             msg.message = json.dumps({
                 "group_id": group_id,
                 "user_id": request.user.id,
-                "is_teacher": is_teacher
+                "is_teacher": is_teacher,
+                "extra_message": message
             })
             msg.save()
         return JsonResponse({
@@ -496,6 +498,8 @@ class AjaxJoinGroupView(LoginRequiredMixin, View):
 class AjaxLeaveGroupView(LoginRequiredMixin, View):
     def post(self, request):
         group_id = request.POST.get("group_id", None)
+        message = request.POST.get("message", "")
+
         if not group_id:
             return JsonResponse({
                 "status": "fail",
@@ -511,7 +515,8 @@ class AjaxLeaveGroupView(LoginRequiredMixin, View):
             msg.message_type = UserMessage.MSG_TYPE_LEAVE_GROUP
             msg.message = json.dumps({
                 "group_id": group_id,
-                "user_id": request.user.id
+                "user_id": request.user.id,
+                "extra_message": message
             })
             msg.save()
         return JsonResponse({
@@ -524,6 +529,7 @@ class AjaxCreateGroupView(LoginRequiredMixin, View):
         group_name = request.POST.get("group_name", None)
         group_description = request.POST.get("group_description", None)
         organization_id = request.POST.get("organization_id", None)
+        message = request.POST.get("message", "")
 
         # validate
         if not group_name or not group_description or not organization_id:
@@ -550,7 +556,8 @@ class AjaxCreateGroupView(LoginRequiredMixin, View):
                     "organization_id": organization_id,
                     "user_id": request.user.id,
                     "group_name": group_name,
-                    "group_description": group_description
+                    "group_description": group_description,
+                    "extra_message": message
                 })
                 msg.save()
                 return JsonResponse({
@@ -627,28 +634,30 @@ class AjaxApproveCreateGroupView(LoginRequiredMixin, View):
 
         # No validation. We assume they are all valid
         try:
-            # create the group
-            group = Group()
-            group.organization_id = organization_id
-            group.name = group_name
-            group.description = group_description
-            group.save()
+            # check if the group alredy exists
+            if Group.objects.filter(organization_id=organization_id, name=group_name).count() == 0:
+                # create the group
+                group = Group()
+                group.organization_id = organization_id
+                group.name = group_name
+                group.description = group_description
+                group.save()
 
-            # add admin user
-            user_group = UserGroup()
-            user_group.user_id = user_id
-            user_group.group = group
-            user_group.role = 3         # 管理员
-            user_group.save()
+                # add admin user
+                user_group = UserGroup()
+                user_group.user_id = user_id
+                user_group.group = group
+                user_group.role = 3         # 管理员
+                user_group.save()
 
-            # send a message to user
-            m = UserMessage()
-            m.message_type = UserMessage.MSG_TYPE_USER
-            m.title = u"你申请的班级已经创建： {0}".format(group.name)
-            m.message = u"你申请的班级已经创建，可以在 “班级” “全部班级” 中找到。"
-            m.to_user = user_id
-            m.from_user = request.user
-            m.save()
+                # send a message to user
+                m = UserMessage()
+                m.message_type = UserMessage.MSG_TYPE_USER
+                m.title = u"你申请的班级已经创建： {0}".format(group.name)
+                m.message = u"你申请的班级已经创建，可以在 “班级” “全部班级” 中找到。"
+                m.to_user = user_id
+                m.from_user = request.user
+                m.save()
 
             return JsonResponse({
                 "status": "success"

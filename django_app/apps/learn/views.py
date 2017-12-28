@@ -617,7 +617,7 @@ class UnitTestView(LoginRequiredMixin, View):
     def get(self, request, unit_id):
         try:
             unit = WordUnit.objects.filter(id=unit_id).get()
-            return render(request, 'unit_learn.html', {
+            return render(request, 'unit_spelling_test.html', {
                 "page": "learning",
                 "unit": unit,
                 "page_title": u"单元测试",

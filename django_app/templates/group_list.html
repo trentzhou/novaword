@@ -75,6 +75,10 @@
                         <textarea id="group_description" class="form-control" rows="3" placeholder="班级简介"></textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label>给管理员留言</label>
+                        <input id="create_message" class="form-control" rows="3" type="text" placeholder="给管理员留言"></input>
+                    </div>
                     <p id="create_group_msg"></p>
                 </div>
                 <div class="modal-footer">
@@ -109,12 +113,12 @@
         });
 
         $("#confirm_create").click(function() {
-            if (!$("#group_name").val()) {
-                $("#group-name-div").addClass("has-error");
-                return;
-            } else {
-                $("#group-name-div").removeClass("has-error");
-            }
+             if (!$("#group_name").val()) {
+                 $("#group-name-div").addClass("has-error");
+                 return;
+             } else {
+                 $("#group-name-div").removeClass("has-error");
+             }
              $.ajax({
                 type: "POST",
                 url: "{% url 'user.create_group' %}",
@@ -125,7 +129,8 @@
                 data: {
                     "group_name": $("#group_name").val(),
                     "group_description": $("#group_description").val(),
-                    "organization_id": $("#organization").val()
+                    "organization_id": $("#organization").val(),
+                    "message": $("#create_message").val()
                 },
                 success: function(data) {
                     try {

@@ -25,6 +25,11 @@
             <a href="{% url 'users.contact' user.id %}">{{ user.nick_name }}</a>
             请求退出班级
             <a href="{% url 'user.group_detail' group.id %}">{{ group }}</a>。
+            {% if extra_message %}
+                <p>
+                留言：{{ extra_message }}
+                </p>
+            {% endif %}
         </p>
         <form method="post">
             {% csrf_token %}

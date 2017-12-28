@@ -45,7 +45,7 @@
                     <a class="btn btn-danger" href="{% url 'learn.unit_walkthrough' unit.id %}">开始学习</a>
                 {% endif %}
 
-                <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
+                <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">拼写测试</a>
 
                 {% if unit.book.uploaded_by == request.user %}
                     <a class="btn btn-primary" id="btn-edit-unit">编辑单元</a>

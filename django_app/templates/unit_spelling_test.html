@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+{% block content %}
+        <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            {{ page_title|default:"拼写测试" }}
+            <small>
+                {{ unit }}
+            </small>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            {% if quiz %}
+                <li><a href="{% url 'testings.quiz_state' quiz.id %}">考卷</a></li>
+            {% elif unit %}
+                <li><a href="{% url 'learn.unit_detail' unit.id %}">单元</a></li>
+            {% endif %}
+            <li class="active">{{ page_title|default:"拼写测试" }}</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+    {% if quiz %}
+        <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
+    {% elif unit %}
+        <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
+    {% endif %}
+    <a class="btn btn-primary" id="btn_start_over">重新答题</a>
+    <div class="box">
+        <div class="box-body">
+            <div id="choose">
+                <div id="count"></div>
+                <h2 id="chinese_meaning"></h2>
+
+                <input class="input-lg form-control margin-bottom" type="text" placeholder="英文拼写" id="english_spelling" />
+                <a class="btn btn-primary btn-block" id="btn-showme">看结果</a>
+            </div>
+
+            <div id="explain">
+                <h2 id="answer_feedback"></h2>
+                <h2 id="word_spelling"></h2>
+                <div id="simple-meaning"></div>
+                <div id="detailed-meaning"></div>
+                <div id="detailed-meaning-in-dict" class="margin-bottom"></div>
+
+                <a id="btn-continue" class="btn btn-primary btn-block">继续</a>
+            </div>
+
+            <div id="congratulations">
+                <h2 id="congrat-title"></h2>
+                <div id="result-stat"></div>
+                {% if quiz %}
+                    <a href="{% url 'testings.quiz_rank' quiz.id %}" class="btn btn-success">查看班级排名</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+    <script>
+    $(function() {
+        var unit_words = null;
+        var url = "{{ data_url }}";
+        var word_index = -1;
+        var waiting_answer = false;
+        var learn_type = {{ type|default:1 }};    // 1 for learn, 2 for test, 3 for review;
+
+        var start_seconds = 0;
+        var finish_seconds = 0;
+
+        $("#congratulations").hide();
+
+        $.get(url, function(result) {
+            unit_words = result["data"];
+            for (var i = 0; i < unit_words.length; i++) {
+                var word = unit_words[i];
+                word.correct = false;
+                word.index = i;
+            }
+            continue_quiz();
+            start_seconds = new Date().getTime()/1000;
+        });
+
+        // 打乱次序
+        function shuffle(array) {
+            var currentIndex = array.length, temporaryValue, randomIndex;
+
+            // While there remain elements to shuffle...
+            while (0 !== currentIndex) {
+
+                // Pick a remaining element...
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex -= 1;
+
+                // And swap it with the current element.
+                temporaryValue = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temporaryValue;
+            }
+
+          return array;
+        }
+
+
+        function show_quiz(index) {
+            // show a quiz for a given word
+            waiting_answer = true;
+            var word = unit_words[index];
+            $("#choose").show();
+            $("#chinese_meaning").text(word.simple_meaning);
+            $("#english_spelling").val("");
+            $("#explain").hide();
+            $("#congratulations").hide();
+        }
+
+        function show_explain(index) {
+            $("#explain").show();
+            if (unit_words[word_index].correct) {
+                $("#answer_feedback").html("回答正确！").removeClass("bg-red");
+            } else {
+                $("#answer_feedback").html($("#english_spelling").val() + " 拼写错误！").addClass("bg-red");
+            }
+            $("#choose").hide();
+            $("#congratulations").hide();
+            var word = unit_words[index];
+            $("#word_spelling").text(word.spelling);
+            $("#simple-meaning").text(word.simple_meaning);
+            $("#detailed-meaning").text(word.detailed_meaning);
+            show_detailed_meaning_in_dict(word.detailed_meaning_in_dict);
+        }
+
+
+        function show_detailed_meaning_in_dict(detail) {
+            var root_div = $("#detailed-meaning-in-dict");
+            root_div.html("");
+            for (var i = 0; i < detail.symbols.length; i++) {
+                var symbol = detail.symbols[i];
+                var symbol_div = $("<div>");
+                // append pronounciation
+                if (symbol.ph_am || symbol.ph_en) {
+                    var pron_list_div = $("<div>").attr("class", "pronounciation_list");
+                    pron_list_div.append($("<h3>").html("发音："));
+                    if (symbol.ph_am) {
+                        var pron_div = $("<div>").attr("class", "pronounciation");
+                        pron_div.append($("<a>").attr("class", "play_mp3")
+                            .html("美式发音 [" + symbol.ph_am + "]")
+                            .append($("<audio>").append($("<source>").attr("src", symbol.ph_am_mp3))));
+                        pron_list_div.append(pron_div);
+                    }
+                    if (symbol.ph_en) {
+                        var pron_div = $("<div>").attr("class", "pronounciation");
+                        pron_div.append($("<a>").attr("class", "play_mp3")
+                            .html("英式发音 [" + symbol.ph_en + "]")
+                            .append($("<audio>").append($("<source>").attr("src", symbol.ph_en_mp3))));
+                        pron_list_div.append(pron_div);
+                    }
+                }
+                symbol_div.append(pron_list_div);
+                // append meaning
+                var meaning_div = $("<div>").attr("class", "word_symbol");
+                meaning_div.append($("<h3>").html("解释："));
+                for (var i = 0; i < symbol.parts.length; i++) {
+                    var part = symbol.parts[i];
+                    var part_div = $("<div>").attr("class", "word_part");
+                    part_div.append($("<div>").attr("class", "word_property").html(part.part));
+                    var ul_div = $("<ul>");
+                    part_div.append(ul_div);
+                    for (var j = 0; j < part.means.length; j++) {
+                        ul_div.append($("<li>").attr("class", "word_mean").html(part.means[j]));
+                    }
+                    meaning_div.append(part_div);
+                }
+                symbol_div.append(meaning_div);
+                root_div.append(symbol_div);
+
+                $(".play_mp3").click(function() {
+                    $(this).find("audio").get(0).play();
+                });
+            }
+            // append sentenses
+            if (detail.sentenses) {
+                var sentenses_div = $("<div>").attr("class", "word_sentenses");
+                sentenses_div.append($("<h3>").html("例句："));
+                for (var i = 0; i < detail.sentenses.length; i++) {
+                    sentenses_div.append($("<div>").attr("class", "word_sentense").append(
+                        $("<div>").attr("class", "word_sent_orig").html(detail.sentenses[i].orig)
+                    ).append(
+                        $("<div>").attr("class", "word_sent_trans").html(detail.sentenses[i].trans)
+                    ));
+                }
+                root_div.append(sentenses_div);
+            }
+        }
+
+        function continue_quiz_for_learn() {
+            // find an incorrect word
+            var incorrect = [];
+            for (var i = 0; i < unit_words.length; i++) {
+                var word = unit_words[i];
+                if (!word.correct)
+                    incorrect.push(word);
+            }
+            if (incorrect.length == 0) {
+                // we have finished learning all words.
+                finish_learning();
+            } else {
+                var index = Math.floor(Math.random() * incorrect.length);
+                // show count
+                var count = "共" + unit_words.length + "个单词，还剩下" + incorrect.length + "个";
+                $("#count").text(count);
+                show_quiz(incorrect[index].index);
+            }
+        }
+
+        function continue_quiz_for_test() {
+            word_index++;
+            if (word_index >= unit_words.length) {
+                // we have finished learning all words.
+                finish_learning();
+            } else {
+                // show count
+                var count = "共" + unit_words.length + "个单词。" +
+                    "已完成" + word_index + "个";
+                $("#count").text(count);
+                show_quiz(word_index);
+            }
+        }
+
+        function continue_quiz() {
+            if (learn_type == 2) {
+                continue_quiz_for_test();
+            } else {
+                continue_quiz_for_learn();
+            }
+        }
+
+        function finish_learning() {
+            // finish learning
+            $("#congratulations").show();
+            $("#choose").hide();
+            $("#explain").hide();
+            finish_seconds = new Date().getTime()/1000;
+            var seconds_used = Math.floor(finish_seconds - start_seconds);
+            var error_words = [];
+            var correct_words = [];
+
+            var title = "恭喜你，单元学习完成啦！";
+            if (learn_type == 2)
+                title = "恭喜你，测试完成啦！";
+            else if (learn_type == 3)
+                title = "恭喜你，复习完成啦";
+            $("#congrat-title").text(title);
+            var correct_rate = 100;
+
+            if (learn_type == 2) {
+                // 如果是测试，那么显示正确率。
+                var correct_count = 0;
+                for (var i = 0; i < unit_words.length; i++) {
+                    if (unit_words[i].correct) {
+                        correct_words.push(unit_words[i].id);
+                        correct_count++;
+                    }
+                    else
+                        error_words.push(unit_words[i].id)
+                }
+                correct_rate = 100;
+                if (unit_words.length > 0)
+                    correct_rate = Math.floor(correct_count * 100 / unit_words.length);
+
+                var stat = "共" + unit_words.length + "个单词，答对" + correct_count + "个。正确率" + correct_rate + "%。";
+                $("#result-stat").text(stat);
+            }
+
+            var data = {
+            {% if quiz %}
+                "quiz_id": {{ quiz.id }},
+            {% elif unit %}
+                "unit_id": {{ unit.id }},
+            {% endif %}
+                "type": learn_type,
+                "correct_rate": correct_rate,
+                "correct_count": correct_count,
+                "word_count": unit_words.length,
+                "seconds_used": seconds_used,
+                "error_words": error_words,
+                "correct_words": correct_words
+            };
+            // save learning record
+            $.ajax({
+                type: "POST",
+                url: "{{ save_url }}",
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function(data) {
+                    try {
+                        console.log("record saved");
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        }
+
+        $("#btn-showme").click(function() {
+            var word = unit_words[word_index].spelling;
+            var answer = $("#english_spelling").val();
+            if (word == answer)
+                unit_words[word_index].correct = true;
+            else
+                unit_words[word_index].correct = false;
+            show_explain(word_index);
+        });
+
+        $("#btn-continue").click(continue_quiz);
+
+        $("#btn_start_over").click(function() {
+            word_index = -1;
+            for (var i = 0; i < unit_words.length; i++) {
+                unit_words[i].correct = false;
+            }
+            start_seconds = new Date().getTime()/1000;
+            continue_quiz();
+        });
+    });
+    </script>
+{% endblock %}
