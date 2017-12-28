@@ -5,7 +5,7 @@ import json
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q, Max
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse
 from django.shortcuts import render
 from django.views.generic import View
 
@@ -693,6 +693,18 @@ class ErrorWordListView(View):
             "page": "error_words",
             "error_words": error_words
         })
+
+
+class ErrorWordTextView(View):
+    def get(self, request):
+        error_words = ErrorWord.objects.filter(user=request.user).order_by("-latest_error_time").all()
+        result = ""
+        for e in error_words:
+            spelling = e.word.word.spelling
+            meaning = e.word.simple_meaning
+            line = "%-20s  %s\r\n" % (spelling, meaning)
+            result += line
+        return HttpResponse(result, **{"content_type": "application/text"})
 
 
 class AmendErrorWordView(View):
