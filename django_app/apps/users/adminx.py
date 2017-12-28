@@ -29,9 +29,9 @@ class OrganizationAdmin(object):
 
 
 class GroupAdmin(object):
-    list_display = ['name', 'description', 'organization', 'is_admin', 'create_time', 'password']
-    search_fields = ['name', 'description', 'organization', 'password']
-    list_filter = ['name', 'description', 'organization', 'is_admin', 'create_time', 'password']
+    list_display = ['name', 'description', 'organization', 'is_admin', 'create_time', 'banner']
+    search_fields = ['name', 'description', 'organization__description', 'banner']
+    list_filter = ['name', 'description', 'organization', 'is_admin', 'create_time']
     model_icon = 'fa fa-list'
 
 

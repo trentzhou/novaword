@@ -21,6 +21,16 @@
         <!--------------------------
             | Your Page Content Here |
             -------------------------->
+        {% for group in groups %}
+            <!-- 显示群公告 -->
+            {% if group.banner %}
+                <div class="alert alert-warning alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <h4><i class="icon fa fa-info"></i>班级公告 - {{ group.description }}</h4>
+                    {{ group.banner|linebreaksbr }}
+                </div>
+            {% endif %}
+        {% endfor %}
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-xs-12">
@@ -129,7 +139,6 @@
                             <thead>
                                 <tr>
                                     <th>单元</th>
-                                    <th>进度</th>
                                     <th>操作</th>
                                 </tr>
                             </thead>
@@ -140,9 +149,7 @@
                                         <a href="{% url 'learn.book_detail' u.unit__book_id %}">{{ u.unit__book__description }}</a>
                                         -
                                         <a href="{% url 'learn.unit_detail' u.unit_id %}">{{ u.unit__description }}</a>
-                                    </td>
-                                    <td>
-                                                          <!-- Progress bars -->
+                        
                                         <div class="clearfix">
                                             <span class="pull-left">已经学习{{ u.learn_count }}次</span>
                                             <small class="pull-right">{{ u.progress }}%</small>

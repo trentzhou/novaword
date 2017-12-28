@@ -685,3 +685,20 @@ class AjaxRejectRequestView(LoginRequiredMixin, View):
         return JsonResponse({
             "status": "success"
         })
+
+
+class AjaxSetGroupBannerView(View):
+    def post(self, request):
+        banner = request.POST.get("banner", "");
+        group_id = request.POST.get("group_id", None);
+        try:
+            group = Group.objects.filter(id=group_id).get()
+            group.banner = banner
+            group.save()
+            return JsonResponse({
+                "status": "success"
+            })
+        except:
+            return JsonResponse({
+                "status", "fail"
+            })

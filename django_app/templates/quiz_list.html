@@ -130,3 +130,27 @@
 
     </section>
 {% endblock %}
+
+{% block extra_script %}
+
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+    $(function () {
+        var word_table = $("#quiz_shared_to_me_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "pageLength": 50
+        });
+
+        var word_table = $("#quiz_created_by_me_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "pageLength": 50
+        });
+    });
+    </script>
+{% endblock %}

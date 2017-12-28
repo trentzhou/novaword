@@ -12,7 +12,7 @@ from django.views.generic import View
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, Word
 from operations.models import GroupLearningPlan
 from testings.models import QuizResult
-from users.models import UserGroup
+from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
 
 
@@ -526,6 +526,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
             .filter(user=request.user)\
             .filter(~Q(unit_id__in=all_my_learned_units))\
             .order_by("unit__book_id", "unit__order").all()
+        groups = Group.objects.filter(usergroup__user=request.user).all()
         return render(request, 'index.html', {
             "page": "overview",
             "learn_count": learn_count,
@@ -534,7 +535,8 @@ class LearningOverviewView(LoginRequiredMixin, View):
             "today_units": today_units,
             "backlog_units": backlog_units,
             "recent_units": recent_units[:10],
-            "mastered_unit_count": mastered_unit_count
+            "mastered_unit_count": mastered_unit_count,
+            "groups": groups
         })
 
 

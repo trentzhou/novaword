@@ -58,7 +58,7 @@
 
                             <div class="checkbox">
                               <label>
-                                <input type="checkbox" name="is_public" {% if quiz.is_public %}checked{% endif %}> 公开给所有人
+                                <input type="checkbox" name="is_public" id="is_public" {% if quiz.is_public %}checked{% endif %}> 公开给所有人
                               </label>
                             </div>
 
@@ -316,7 +316,8 @@
                 "quiz_id": {{ quiz.id }},
                 "description": $("#description").val(),
                 "max_total_time": $("#max_total_time").val(),
-                "max_word_time": $("#max_word_time").val()
+                "max_word_time": $("#max_word_time").val(),
+                "is_public": $("#is_public").val()
             }
             var url = "{% url 'testings.ajax_save_quiz_info' %}";
             $.ajax({

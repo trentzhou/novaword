@@ -30,13 +30,21 @@
 
         <div class="box">
             <div class="box-header">
-                <h3>
-                    {% if my_role %}
-                        <button class="btn btn-success" id="btn-toggle-member">我是班级成员 - 申请退出</button>
-                    {% else %}
-                        <button class="btn btn-warning" id="btn-toggle-member">我不是班级成员 - 申请加入</button>
+                {% if my_role %}
+                    <!-- 显示群公告 -->
+                    <div class="alert alert-warning alert-dismissible" id="group_banner">
+                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                        <h4><i class="icon fa fa-info"></i>班级公告</h4>
+                        <div id="banner_content">{{ group.banner|linebreaksbr }}</div>
+                    </div>
+                    <button class="btn btn-success" id="btn-toggle-member">我是班级成员 - 申请退出</button>
+                    {% if my_role.role > 1 %}
+                        <!-- 我是老师，可以设置班级公告 -->
+                        <a id="btn-set-banner" class="btn btn-primary">设置班级公告</a>
                     {% endif %}
-                </h3>
+                {% else %}
+                    <button class="btn btn-warning" id="btn-toggle-member">我不是班级成员 - 申请加入</button>
+                {% endif %}
 
             </div>
             <div class="box-body">
@@ -232,6 +240,34 @@
         </div>
     </div>
     <!-- /.modal-dialog -->
+
+
+
+    <!-- 选择单元 -->
+    <div class="modal fade" id="dialog-set-banner">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">设置班级公告</h4>
+                </div>
+                <div class="modal-body margin-bottom">
+                    <div class="form-group">
+                        <label class="control-label">班级公告</label>
+                        <textarea class="form-control" id="group_banner_text">{{ group.banner }}</textarea>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="confirm_set_banner">确定</button>
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+    </div>
+    <!-- /.modal-dialog -->
 {% endblock %}
 
 {% block extra_script %}
@@ -240,6 +276,11 @@
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
 
     <script>
+    $.fn.multiline = function(text){
+        this.text(text);
+        this.html(this.html().replace(/\n/g,'<br/>'));
+        return this;
+    }
     {% if my_role.role > 1 %}
     function kickout(user_id) {
         $.ajax({
@@ -272,6 +313,10 @@
             var is_member = true;
         {% else %}
             var is_member = false;
+        {% endif %}
+
+        {% if not group.banner %}
+            $("#group_banner").hide();
         {% endif %}
         $("#btn-toggle-member").click(function() {
             if (!is_member) {
@@ -536,6 +581,42 @@
         $("#select_group_book").change(function() {
             var book_id = $(this).val();
             load_book_units(book_id);
+        });
+
+        $("#btn-set-banner").click(function() {
+            $("#dialog-set-banner").modal();
+        });
+
+        $("#confirm_set_banner").click(function() {
+            $("#dialog-set-banner").modal("toggle");
+            var banner = $("#group_banner_text").val();
+            var url = "{% url 'user.ajax_set_group_banner' %}";
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "group_id": {{ group.id }},
+                    "banner": banner
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "success") {
+                            if (banner) {
+                                $("#group_banner").show();
+                                $("#banner_content").multiline(banner);
+                            } else {
+                                $("#group_banner").hide();
+                            }
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
         });
 
         load_group_books();

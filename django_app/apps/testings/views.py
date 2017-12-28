@@ -294,12 +294,17 @@ class AjaxSaveQuizResultView(View):
 
 class QuizRankView(View):
     def get(self, request, quiz_id):
-        group_ids = UserGroup.objects.filter(user=request.user).values("group_id").all()
+        quiz = Quiz.objects.filter(id=quiz_id).get()
+        if quiz.author == request.user:
+            # 我是作者，可以看到所有人的排名
+            results = QuizResult.objects.filter(quiz_id=quiz_id).order_by("-correct_count").distinct()
+        else:
+            group_ids = UserGroup.objects.filter(user=request.user).values("group_id").all()
 
-        results = QuizResult.\
-            objects.\
-            filter(user__usergroup__group__in=group_ids, quiz_id=quiz_id).\
-            order_by("-correct_count").distinct()
+            results = QuizResult.\
+                objects.\
+                filter(user__usergroup__group__in=group_ids, quiz_id=quiz_id).\
+                order_by("-correct_count").distinct()
         # put the order in the result.
         # possibly there are two results with same correct count.
         # the order should be same in this case.
