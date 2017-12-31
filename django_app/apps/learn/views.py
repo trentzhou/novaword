@@ -501,10 +501,11 @@ class LearningOverviewView(LoginRequiredMixin, View):
         quiz_count = QuizResult.objects.filter(user=request.user).count()
         erroneous_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).count()
         # get recent learned units
-        active_units = get_active_units(request.user.id)["all_active_units"]
+
+        active_units = get_active_units(request.user.id)
         today_units = get_todays_units(request.user.id)
         recent_units = []
-        for u in active_units:
+        for u in active_units["result"]:
             unit = WordUnit.objects.get(id=u)
             obj = {
                 'unit_id': unit.id,
@@ -523,7 +524,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
                 u["progress"] = 100
             else:
                 u["progress"] = int(100 * count / 6)
-        mastered_unit_count = sum(1 for x in recent_units if x["learn_count"] > 5)
+        mastered_unit_count = len(active_units["all_active_units"]) - len(active_units["result"])
         all_my_learned_units = LearningRecord.objects.filter(user=request.user).values("unit_id")
         backlog_units = LearningPlan.objects\
             .filter(user=request.user)\
