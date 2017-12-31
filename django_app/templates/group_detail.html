@@ -64,10 +64,8 @@
                             <tr>
                                 <td class="user-block">
                                     <a href="{% url 'users.contact' member.user.id %}">
-                                    {% if member.user.avatar %}
-                                        <img src="{{ MEDIA_URL }}{{ member.user.avatar }}" class="img-circle img-sm" alt="User Image" />
-                                    {% endif %}
-                                    <span class="username">{{ member.user.nick_name }}</span>
+                                        <img src="{{ member.user.avatar_url }}" class="img-circle img-sm" alt="User Image" />
+                                         <span class="username">{{ member.user.nick_name }}</span>
                                     </a>
                                 </td>
                                 <td>

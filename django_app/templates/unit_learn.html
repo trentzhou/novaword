@@ -79,6 +79,7 @@
 
         var start_seconds = 0;
         var finish_seconds = 0;
+        var wrong_answer_map = {};
 
         if (learn_type == 2) {
             // 测试的时候不许看答案
@@ -261,6 +262,7 @@
                     $(this).addClass("info");
                     $(this).append('<span class="fa fa-check text-yellow pull-right result"></span>');
                 } else {
+                    wrong_answer_map[unit_words[word_index].id] = 1;
                     unit_words[word_index].correct = false;
                     $(this).addClass("danger");
                     $(this).append('<span class="fa fa-remove text-danger pull-right result"></span>');
@@ -355,6 +357,9 @@
 
                 var stat = "共" + unit_words.length + "个单词，答对" + correct_count + "个。正确率" + correct_rate + "%。";
                 $("#result-stat").text(stat);
+            } else {
+                // 收集所有做错了的单词
+                error_words = Object.keys(wrong_answer_map);
             }
 
             var data = {
@@ -404,6 +409,7 @@
             for (var i = 0; i < unit_words.length; i++) {
                 unit_words[i].correct = false;
             }
+            wrong_answer_map = {};
             start_seconds = new Date().getTime()/1000;
             continue_quiz();
         });

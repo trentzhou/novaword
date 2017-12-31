@@ -415,7 +415,10 @@ def get_active_units(user_id):
                 result.append(p.unit_id)
                 if len(result) >= 3:
                     break
-    return result
+    return {
+        "all_active_units": all_active_units,
+        "result": result
+    }
 
 
 
@@ -471,7 +474,7 @@ def get_todays_units(user_id):
     :param int user_id:
     :return list: list of unit ids for today's learning
     """
-    active_units = get_active_units(user_id)
+    active_units = get_active_units(user_id)["result"]
     result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
     return result
 
@@ -498,7 +501,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
         quiz_count = QuizResult.objects.filter(user=request.user).count()
         erroneous_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).count()
         # get recent learned units
-        active_units = get_active_units(request.user.id)
+        active_units = get_active_units(request.user.id)["all_active_units"]
         today_units = get_todays_units(request.user.id)
         recent_units = []
         for u in active_units:

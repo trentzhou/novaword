@@ -120,14 +120,14 @@ desired effect
                                 <!-- Menu Toggle Button -->
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                                     <!-- The user image in the navbar-->
-                                    <img src="{% if request.user.avatar %}{{ MEDIA_URL }}{{ request.user.avatar }}{% else %}{% static 'AdminLTE/img/avatar2.png' %}{% endif %}" class="user-image avatar" alt="User Image">
+                                    <img src="{{ request.user.avatar_url }}" class="user-image avatar" alt="User Image">
                                     <!-- hidden-xs hides the username on small devices so only the image appears. -->
                                     <span class="hidden-xs nickname">{{ request.user.nick_name }}</span>
                                 </a>
                                 <ul class="dropdown-menu">
                                     <!-- The user image in the menu -->
                                     <li class="user-header">
-                                        <img src="{% if request.user.avatar %} {{ MEDIA_URL }}{{ request.user.avatar }}{% else %}{% static 'AdminLTE/img/avatar2.png' %}{% endif %}" class="img-circle avatar" alt="User Image">
+                                        <img src="{{ request.user.avatar_url }}" class="img-circle avatar" alt="User Image">
 
                                         <p>
                                             <span class="nickname">{{ request.user.nick_name }}</span>
@@ -177,7 +177,7 @@ desired effect
                     <!-- Sidebar user panel (optional) -->
                     <div class="user-panel">
                         <div class="pull-left image">
-                            <img src="{% if request.user.avatar %}{{ MEDIA_URL }}{{ request.user.avatar }}{% else %}{% static 'AdminLTE/img/avatar2.png' %}{% endif %}" class="img-circle avatar" alt="User Image">
+                            <img src="{{ request.user.avatar_url }}" class="img-circle avatar" alt="User Image">
                         </div>
                         <div class="pull-left info">
                             <p class="nickname">{{ request.user.nick_name }}</p>

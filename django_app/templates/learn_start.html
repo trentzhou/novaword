@@ -72,6 +72,7 @@
 
         var start_seconds = 0;
         var finish_seconds = 0;
+        var wrong_answer_words = {};
 
         $("#congratulations").hide();
         load_units();
@@ -115,6 +116,7 @@
                     start_walk_through();
                 } else {
                     learn_type = 3;
+                    wrong_answer_words = {};
                     continue_quiz();
                 }
                 start_seconds = new Date().getTime()/1000;
@@ -345,6 +347,7 @@
                     $(this).addClass("info");
                     $(this).append('<span class="fa fa-check text-yellow pull-right result"></span>');
                 } else {
+                    wrong_answer_words[unit_words[word_index].id] = 1;
                     unit_words[word_index].correct = false;
                     $(this).addClass("danger");
                     $(this).append('<span class="fa fa-remove text-danger pull-right result"></span>');
@@ -426,6 +429,7 @@
                 "correct_rate": correct_rate,
                 "word_count": unit_words.length,
                 "seconds_used": seconds_used,
+                "error_words": Object.keys(wrong_answer_words)
             };
             // save learning record
             $.ajax({
@@ -464,6 +468,7 @@
                 unit_words[i].correct = false;
             }
             start_seconds = new Date().getTime()/1000;
+            wrong_answer_words = {};
             continue_quiz();
         });
 
