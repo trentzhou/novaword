@@ -587,9 +587,12 @@ class AjaxApproveJoinGroupView(LoginRequiredMixin, View):
 
                 m = UserMessage()
                 m.from_user = request.user
-                m.message_type = UserMessage.MSG_TYPE_USER
+                m.message_type = UserMessage.MSG_TYPE_JOIN_GROUP_OK
                 m.title = u"你已经成功加入班级" + group.name
-                m.message = u"快去班级看看吧。"
+                m.message = json.dumps({
+                    "group_name": group.name,
+                    "group_id": group.id
+                })
                 m.to_user = user_id
                 m.save()
             return JsonResponse({
@@ -607,12 +610,13 @@ class AjaxApproveLeaveGroupView(LoginRequiredMixin, View):
         group_id = request.POST.get("group_id", 0)
 
         try:
+            group = Group.objects.filter(id=group_id).get()
             deleted, _ = UserGroup.objects.filter(user_id=user_id, group_id=group_id).delete()
             if deleted:
                 m = UserMessage()
                 m.from_user = request.user
                 m.message_type = UserMessage.MSG_TYPE_USER
-                m.title = u"你已经成功退出班级"
+                m.title = u"你已经成功退出班级'" + group.description + "'"
                 m.message = u""
                 m.to_user = user_id
                 m.save()

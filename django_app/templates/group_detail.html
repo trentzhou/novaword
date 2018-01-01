@@ -272,6 +272,7 @@
 
     <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'jquery.toaster/jquery.toaster.js' %}"></script>
 
     <script>
     $.fn.multiline = function(text){
@@ -344,7 +345,8 @@
                 success: function(data) {
                     try {
                         if (data.status == "success") {
-                            $("#join_confirm_msg").text("已经发消息提醒管理员批准。请耐心等待。");
+                            $.toaster({"priority": "info", "title": "OK", "message": "已经发消息提醒管理员批准。请耐心等待。"});
+                            $("#dialog-confirm-join").modal("toggle");
                             $("#confirm_join").addClass("disabled");
                         }
                     } catch (ex) {
@@ -369,7 +371,8 @@
                 success: function(data) {
                     try {
                         if (data.status == "success") {
-                            $("#leave_confirm_msg").text("已经发消息提醒管理员批准。请耐心等待。");
+                            $.toaster({"priority": "info", "title": "OK", "message": "已经发消息提醒管理员批准。请耐心等待。"});
+                            $("#dialog-confirm-leave").modal("toggle");
                             $("#confirm_leave").addClass("disabled");
                         }
                     } catch (ex) {

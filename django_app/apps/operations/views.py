@@ -34,6 +34,8 @@ class MessageView(View):
                 return self.render_msg_leave_group(request, data)
             elif message.message_type == UserMessage.MSG_TYPE_CREATE_GROUP:
                 return self.render_msg_create_group(request, data)
+            elif message.message_type == UserMessage.MSG_TYPE_JOIN_GROUP_OK:
+                return self.render_msg_join_group_ok(request, data)
 
     def render_msg_join_group(self, request, data):
         user = UserProfile.objects.filter(id=data["user_id"]).get()
@@ -48,6 +50,12 @@ class MessageView(View):
             "group": group
         })
         return render(request, 'message_join_group.html', data)
+
+    def render_msg_join_group_ok(self, request, data):
+        group = Group.objects.filter(id=data["group_id"]).get()
+        data.update({"group": group})
+        return render(request, "message_join_group_ok.html", data)
+
 
     def render_msg_leave_group(self, request, data):
         user = UserProfile.objects.filter(id=data["user_id"]).get()
