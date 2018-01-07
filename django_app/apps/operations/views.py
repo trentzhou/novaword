@@ -94,9 +94,13 @@ class DictionaryView(View):
         word = find_word(spelling)
         if not word:
             raise Http404()
+        try:
+            detail = json.loads(word.detailed_meanings)
+        except:
+            raise Http404()
         return render(request, "dictionary.html", {
             "word": word,
-            "detail": json.loads(word.detailed_meanings)
+            "detail": detail
         })
 
 

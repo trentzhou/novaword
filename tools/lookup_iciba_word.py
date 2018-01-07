@@ -163,5 +163,5 @@ def lookup_iciba_word_api(word, api_key="5F843722A010097F76053C819EA9DF49"):
 
 
 if __name__ == '__main__':
-    result = lookup_iciba_word(sys.argv[1])
+    result = lookup_iciba_word_api(sys.argv[1])
     json.dump(result, sys.stdout, indent=4, sort_keys=True)

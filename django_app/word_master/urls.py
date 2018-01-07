@@ -46,3 +46,7 @@ urlpatterns = [
     url(r'^learn/', include('learn.urls')),
     url(r'^testings/', include('testings.urls')),
 ]
+
+
+handler404 = 'word_master.views.handler404'
+handler500 = 'word_master.views.handler500'
