@@ -12,7 +12,7 @@ import os
 import django
 import json
 
-from lookup_iciba_word import lookup_iciba_word_api
+from .lookup_iciba_word import lookup_iciba_word_api
 
 
 def setup_django_env():
