@@ -125,6 +125,43 @@
                     </div>
                     <!-- /.modal-dialog -->
 
+
+                    <div class="modal fade" id="dialog-batch-input">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span></button>
+                                    <h4 class="modal-title">批量增加单词</h4>
+                                </div>
+                                <div class="modal-body margin-bottom">
+
+                                    <div class="form-group">
+                                        <p>
+                                            在下面的输入框中贴入你需要增加的单词。每个单词占用一行。每一行的格式如下：
+                                            <pre>This is a sentence.    这是一句话。</pre>
+                                            一行中的单词和解释之间用 tab键 或 4个以上空格 隔开。
+                                        </p>
+                                        <textarea class="form-control"
+                                                  id="batch-lines"
+                                                  placeholder="word    单词解释"
+                                                  rows="8"
+                                                  value=""></textarea>
+                                    </div>
+
+                                    <div id="batch-uploading">单词上传中，请耐心等待。</div>
+                                    <div id="batch-success">批量增加单词成功，除了剩下的这几行。</div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default pull-left" id="btn-close-batch">关闭并刷新</button>
+                                    <button type="button" class="btn btn-primary" id="confirm_batch_input">确定</button>
+                                </div>
+                            </div>
+                            <!-- /.modal-content -->
+                        </div>
+                    </div>
+                    <!-- /.modal-dialog -->
+
                 {% endif %}
 
             </div>
@@ -169,6 +206,7 @@
                 {% if unit.book.uploaded_by == request.user %}
                     <a class="btn btn-primary" id="btn-add-word">增加单词</a>
                     <a class="btn btn-primary" id="btn-delete-words">删除选中的单词</a>
+                    <a class="btn btn-primary" id="btn-batch-input">批量添加</a>
                 {% endif %}
 
                 {% if records %}
@@ -390,6 +428,56 @@
             });
         });
 
+        $("#btn-batch-input").click(function() {
+            $("#batch-lines").val("");
+            $("#confirm_batch_input").removeAttr("disabled");
+            $("#batch-uploading").hide();
+            $("#batch-success").hide();
+            $("#dialog-batch-input").modal();
+        });
+
+        $("#confirm_batch_input").click(function() {
+            var url = "{% url 'learn.ajax_batch_input_unit_words' %}";
+            var data = {
+                "unit_id": {{ unit.id }},
+                "text": $("#batch-lines").val()
+            };
+            $("#batch-success").hide();
+            $("#batch-uploading").show();
+            $("#confirm_batch_input").attr("disabled", "disabled");
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function(data) {
+                    try {
+                        $("#batch-uploading").hide();
+                        if (data.status == "ok") {
+                            if (data.failed_lines.length == 0) {
+                                location.reload();
+                            } else {
+                                $("#batch-lines").val(data.failed_lines.join("\n"));
+                                $("#batch-success").show();
+                                $("#confirm_batch_input").removeAttr("disabled");
+                            }
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+        $("#btn-close-batch").click(function() {
+            location.reload();
+        });
 
     {% endif %}
     });

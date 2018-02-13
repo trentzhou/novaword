@@ -22,7 +22,7 @@
     <section class="content container-fluid">
         <p>
             用户
-            <a href="{% url 'users.contact' user.id %}">{{ user.nick_name }}</a>
+            <a href="{% url 'users.contact' user.id %}">{{ user }}</a>
             请求加入班级
             <a href="{% url 'user.group_detail' group.id %}">{{ group }}</a>。
             身份是 {{ role_verbose }}。
@@ -91,7 +91,7 @@
                 success: function(data) {
                     try {
                         if (data.status == "success") {
-                            show_message("批准", "用户{{ user.nick_name }}成功加入班级{{ group }}，身份是{{ role_verbose }}。");
+                            show_message("批准", "用户{{ user }}成功加入班级{{ group }}，身份是{{ role_verbose }}。");
                         }
                     } catch (ex) {
                         console.log(ex);
@@ -116,7 +116,7 @@
                 success: function(data) {
                     try {
                         if (data.status == "success") {
-                            show_message("拒绝", "已经拒绝用户{{ user.nick_name }}加入班级{{ group }}的申请。");
+                            show_message("拒绝", "已经拒绝用户{{ user }}加入班级{{ group }}的申请。");
                         }
                     } catch (ex) {
                         console.log(ex);

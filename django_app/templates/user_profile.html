@@ -90,7 +90,7 @@
                             <table class="table table-bordered">
                                 <tr>
                                     <td>昵称</td>
-                                    <td><span class="nickname">{{ request.user.nick_name }}</span></td>
+                                    <td><span class="nickname">{{ request.user }}</span></td>
                                     <td>
                                         <a class="btn btn-primary" id="btn_show_nickname_dialog">修改昵称</a>
                                     </td>
@@ -404,7 +404,7 @@
             });
 
             $("#btn_show_nickname_dialog").click(function() {
-                $("#nickname").val("{{ request.user.nick_name }}")
+                $("#nickname").val("{{ request.user }}")
                 $("#dialog-change-nickname").modal("toggle");
             });
 

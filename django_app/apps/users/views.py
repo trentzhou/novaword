@@ -481,7 +481,7 @@ class AjaxJoinGroupView(LoginRequiredMixin, View):
             msg = UserMessage()
             msg.to_user = target.id
             msg.from_user = None    # system message
-            msg.title = u"用户{0}请求加入班级".format(request.user.nick_name)
+            msg.title = u"用户{0}请求加入班级".format(request.user)
             msg.message_type = UserMessage.MSG_TYPE_JOIN_GROUP
             msg.message = json.dumps({
                 "group_id": group_id,
@@ -511,7 +511,7 @@ class AjaxLeaveGroupView(LoginRequiredMixin, View):
             msg = UserMessage()
             msg.to_user = target.id
             msg.from_user = None  # system message
-            msg.title = u"用户{0}请求退出班级".format(request.user.nick_name)
+            msg.title = u"用户{0}请求退出班级".format(request.user)
             msg.message_type = UserMessage.MSG_TYPE_LEAVE_GROUP
             msg.message = json.dumps({
                 "group_id": group_id,
@@ -550,7 +550,7 @@ class AjaxCreateGroupView(LoginRequiredMixin, View):
                 msg = UserMessage()
                 msg.to_user = target.id
                 msg.from_user = None  # system message
-                msg.title = u"用户{0}请求创建班级".format(request.user.nick_name)
+                msg.title = u"用户{0}请求创建班级".format(request.user)
                 msg.message_type = UserMessage.MSG_TYPE_CREATE_GROUP
                 msg.message = json.dumps({
                     "organization_id": organization_id,

@@ -2,6 +2,7 @@
 import datetime
 import json
 
+import re
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q, Max
@@ -14,6 +15,7 @@ from operations.models import GroupLearningPlan
 from testings.models import QuizResult
 from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
+from utils import lookup_word_in_db
 
 
 class BookListView(View):
@@ -226,6 +228,40 @@ class AjaxDeleteUnitView(View):
         })
 
 
+def add_word_to_unit(unit_id, spelling, meaning, detailed_meaning=""):
+    """
+    把单词添加到单元里
+    :param unit_id:
+    :param spelling:
+    :param meaning:
+    :param detailed_meaning:
+    :return:
+    """
+    unit = WordUnit.objects.filter(id=unit_id).get()
+
+    # in case the word already exists
+    if not WordInUnit.objects.filter(unit=unit, word__spelling=spelling).count():
+        unit_word = WordInUnit()
+        max_order = WordInUnit.objects.filter(unit=unit).aggregate(Max("order"))["order__max"]
+        if not max_order:
+            max_order = 0
+        if spelling and meaning:
+            # try to find the word first
+            word = lookup_word_in_db.find_word(spelling)
+            if not word:
+                word = Word()
+                word.spelling = spelling
+                word.short_meaning = meaning
+                word.save()
+
+        unit_word.word = word
+        unit_word.unit = unit
+        unit_word.simple_meaning = meaning
+        unit_word.detailed_meaning = detailed_meaning
+        unit_word.order = max_order + 1
+        unit_word.save()
+
+
 class AjaxNewWordInUnitView(View):
     def post(self, request):
         spelling = request.POST.get("spelling", "")
@@ -234,28 +270,7 @@ class AjaxNewWordInUnitView(View):
         unit_id = request.POST.get("unit_id", "")
 
         try:
-            unit = WordUnit.objects.filter(id=unit_id).get()
-
-            if spelling and meaning:
-                # try to find the word first
-                word = Word.objects.filter(spelling=spelling).first()
-                if not word:
-                    word = Word()
-                    word.spelling = spelling
-                    word.short_meaning = meaning
-                    word.save()
-
-            unit_word = WordInUnit()
-            max_order = WordInUnit.objects.filter(unit=unit).aggregate(Max("order"))["order__max"]
-            if not max_order:
-                max_order = 0
-            unit_word.word = word
-            unit_word.unit = unit
-            unit_word.simple_meaning = meaning
-            unit_word.detailed_meaning = detailed_meaning
-            unit_word.order = max_order + 1
-            unit_word.save()
-
+            add_word_to_unit(unit_id, spelling, meaning, detailed_meaning)
             return JsonResponse({
                 "status": "ok"
             })
@@ -264,6 +279,57 @@ class AjaxNewWordInUnitView(View):
             pass
         return JsonResponse({
             "status": "fail"
+        })
+
+
+line_word_re = re.compile("(.*)(\t| {4})(.*)")
+
+
+def parse_word_line(line):
+    m = line_word_re.match(line)
+    if m:
+        word = m.group(1).strip()
+        meaning = m.group(3).strip()
+        return {
+            "word": word,
+            "meaning": meaning
+        }
+    return None
+
+class AjaxBatchInputWordView(View):
+    def post(self, request):
+        data = json.loads(request.body.decode("utf-8"))
+        unit_id = data.get('unit_id', None)
+        text = data.get('text', '')
+
+        if not unit_id or not text:
+            return JsonResponse({
+                "status": "fail"
+            })
+        failed_lines = []
+        lines = text.split("\n")
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            good = False
+
+            try:
+                parsed = parse_word_line(line)
+
+                if parsed:
+                    word = parsed["word"]
+                    meaning = parsed["meaning"]
+                    add_word_to_unit(unit_id, word, meaning)
+                    good = True
+            except:
+                pass
+            if not good:
+                failed_lines.append(line)
+
+        return JsonResponse({
+            "status": "ok",
+            "failed_lines": failed_lines
         })
 
 

@@ -40,7 +40,7 @@
                 {% if r.user.avatar %}
                     <img src="{{ MEDIA_URL }}{{ r.user.avatar }}" class="img-circle img-sm" alt="User Image" />
                 {% endif %}
-                <span class="username">{{ r.user.nick_name }}</span>
+                <span class="username">{{ r.user }}</span>
                 </a>
             </td>
             <td>{{ r.finish_time }}</td>

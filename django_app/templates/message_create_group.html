@@ -22,7 +22,7 @@
     <section class="content container-fluid">
         <p>
             用户
-            <a href="{% url 'users.contact' user.id %}">{{ user.nick_name }}</a>
+            <a href="{% url 'users.contact' user.id %}">{{ user }}</a>
             请求创建班级 {{ organization }} - {{ group_name }}。
             <div class="small">
                 {{ group_description }}
@@ -93,7 +93,7 @@
                 success: function(data) {
                     try {
                         if (data.status == "success") {
-                            show_message("批准", "用户{{ user.nick_name }}成功创建班级{{ group_name }}。");
+                            show_message("批准", "用户{{ user }}成功创建班级{{ group_name }}。");
                         }
                     } catch (ex) {
                         console.log(ex);
@@ -118,7 +118,7 @@
                 success: function(data) {
                     try {
                         if (data.status == "success") {
-                            show_message("拒绝", "已经拒绝用户{{ user.nick_name }}创建班级{{ group_name }}的申请。");
+                            show_message("拒绝", "已经拒绝用户{{ user }}创建班级{{ group_name }}的申请。");
                         }
                     } catch (ex) {
                         console.log(ex);

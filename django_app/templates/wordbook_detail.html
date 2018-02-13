@@ -26,7 +26,7 @@
             </div>
             <div class="box-body">
                 <ul>
-                    <li>本书由 <a href="{% url 'users.contact' book.uploaded_by.id %}">{{ book.uploaded_by.nick_name }}</a> 上传</li>
+                    <li>本书由 <a href="{% url 'users.contact' book.uploaded_by.id %}">{{ book.uploaded_by }}</a> 上传</li>
                     <li>单个单词最长学习时间： {{ book.max_word_learn_time }}</li>
                     <li>单元最长学习时间： {{ book.max_unit_learn_time }}</li>
                     <li>最多几个单元同时学习： {{ book.max_working_units }}</li>
