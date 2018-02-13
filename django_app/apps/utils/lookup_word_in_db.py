@@ -38,6 +38,7 @@ def find_word(word):
     """
     Find word from DB, or iciba.com
     """
+    result = None
     try:
         from learn.models import Word
         result = find_word_in_db(word)
@@ -66,7 +67,7 @@ def find_word(word):
 
         return result
     except:
-        print("Failed to look up word {0}".format(word))
+        print("Failed to look up word {0}. result={1}".format(word, result))
         return result
 
 
