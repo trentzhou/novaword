@@ -97,7 +97,7 @@ class DictionaryView(View):
         try:
             detail = json.loads(word.detailed_meanings)
         except:
-            raise Http404()
+            detail = {}
         return render(request, "dictionary.html", {
             "word": word,
             "detail": detail

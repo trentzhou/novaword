@@ -67,7 +67,7 @@ def find_word(word):
         return result
     except:
         print("Failed to look up word {0}".format(word))
-        return None
+        return result
 
 
 def main():

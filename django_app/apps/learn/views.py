@@ -252,6 +252,7 @@ def add_word_to_unit(unit_id, spelling, meaning, detailed_meaning=""):
                 word = Word()
                 word.spelling = spelling
                 word.short_meaning = meaning
+                word.detailed_meanings = "{}"
                 word.save()
 
         unit_word.word = word
