@@ -29,7 +29,7 @@ def find_word_in_db(word):
     from learn.models import Word
     word_in_db = Word.objects.filter(spelling=word)
     result = None
-    if word_in_db:
+    if word_in_db.count():
         result = word_in_db[0]
     return result
 
@@ -67,8 +67,10 @@ def find_word(word):
 
         return result
     except:
-        print("Failed to look up word {0}. result={1}".format(word, result))
-        return result
+        print("Failed to look up word {0}. result={1}".format(word, result.short_meaning))
+        if result and result.short_meaning:
+            return result
+        return None
 
 
 def main():
