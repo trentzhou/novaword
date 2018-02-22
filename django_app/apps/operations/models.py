@@ -91,3 +91,18 @@ class GroupLearningPlan(models.Model):
     def __unicode__(self):
         return u"{0} - {1}".format(self.group.description, self.unit)
 
+
+class UserFeedback(models.Model):
+    reporter = models.ForeignKey(UserProfile, verbose_name=u"汇报人")
+    title = models.CharField(max_length=100, verbose_name=u"标题")
+    detail = models.TextField(verbose_name=u"消息描述")
+
+    class Meta:
+        verbose_name = u"用户反馈"
+        verbose_name_plural = u"用户反馈"
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return self.title

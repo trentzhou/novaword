@@ -108,11 +108,12 @@ class RegisterView(View):
             user_message = UserMessage()
             user_message.to_user = user_profile.id
             user_message.from_user = user_profile
-            user_message.message = "欢迎注册"
+            user_message.title = "欢迎注册"
+            user_message.message = "欢迎来到Nova背单词。你可以先看看有没有感兴趣的单词书，或者去找到感兴趣的班级。"
             user_message.save()
 
             send_register_email(user_name, "register", request.get_host())
-            return render(request, "user_login.html", {"login_title": u"注册成功，请登录"})
+            return render(request, "user_login.html", {"login_title": u"注册成功，请检查你的邮箱中的确认邮件。账号激活之后就可以登录了。"})
         else:
             return render(request, "user_register.html", {
                 "register_form": register_form,
@@ -182,7 +183,11 @@ class UserVirificationSmsView(View):
 
 class AcivateUserView(View):
     def get(self, request, activate_code):
-        record = EmailVerifyRecord.objects.filter(code=activate_code).get()
+        record = None
+        try:
+            record = EmailVerifyRecord.objects.filter(code=activate_code).get()
+        except:
+            pass
         if record:
             email = record.email
             user = UserProfile.objects.get(email=email)

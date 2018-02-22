@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import UserMessage, GroupBook, GroupLearningPlan
+from .models import UserMessage, GroupBook, GroupLearningPlan, UserFeedback
 
 
 class UserMessageAdmin(object):
@@ -23,6 +23,15 @@ class GroupLearningPlanAdmin(object):
     list_filter = list_display
     model_icon = 'fa fa-check'
 
+
+class UserFeedbackAdmin(object):
+    list_display = ['reporter', 'title', 'detail']
+    search_fields = ['title', 'detail']
+    list_filter = list_display
+    model_icon = 'fa fa-question'
+
+
 xadmin.site.register(UserMessage, UserMessageAdmin)
 xadmin.site.register(GroupBook, GroupBookAdmin)
 xadmin.site.register(GroupLearningPlan, GroupLearningPlanAdmin)
+xadmin.site.register(UserFeedback, UserFeedbackAdmin)

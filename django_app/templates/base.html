@@ -87,6 +87,7 @@ desired effect
                     <a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">
                         <span class="sr-only">切换导航栏</span>
                     </a>
+                    {% if request.user.is_authenticated %}
                     <!-- Navbar Right Menu -->
                     <div class="navbar-custom-menu">
                         <ul class="nav navbar-nav">
@@ -163,6 +164,7 @@ desired effect
 
                         </ul>
                     </div>
+                    {% endif %}
                 </nav>
             </header>
         {% endblock %}
@@ -174,6 +176,7 @@ desired effect
                 <!-- sidebar: style can be found in sidebar.less -->
                 <section class="sidebar">
 
+                {% if request.user.is_authenticated %}
                     <!-- Sidebar user panel (optional) -->
                     <div class="user-panel">
                         <div class="pull-left image">
@@ -185,7 +188,7 @@ desired effect
                             <a href="#"><i class="fa fa-circle text-success"></i> 在线</a>
                         </div>
                     </div>
-
+                {% endif %}
                     <!-- search form (Optional) -->
                     <form method="post" action="{% url 'operations.dictionary_form' %}" class="sidebar-form">
                         <div class="input-group">
@@ -260,6 +263,7 @@ desired effect
                 </div>
                 <!-- Default to the left -->
                 <strong>Copyright &copy; 2017 <a href="#">XXX 公司</a></strong> 版权所有
+                <a href="{% url 'operations.user_feedback' %}" class="btn btn-flat">我要吐槽</a>
             <!--
             本网站的开发者是 Trent Zhou (trent.zhou@qq.com)。欢迎技术探讨。
             -->

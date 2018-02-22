@@ -117,7 +117,7 @@ class AjaxBookUnitsView(View):
         })
 
 
-class AjaxNewBookView(View):
+class AjaxNewBookView(LoginRequiredMixin, View):
     def post(self, request):
         description = request.POST.get("description", "")
         if description:
@@ -136,7 +136,7 @@ class AjaxNewBookView(View):
             })
 
 
-class AjaxEditBookView(View):
+class AjaxEditBookView(LoginRequiredMixin, View):
     def post(self, request):
         book_id = request.POST.get("book_id", 0)
         description = request.POST.get("description", "")
@@ -158,7 +158,7 @@ class AjaxEditBookView(View):
         })
 
 
-class AjaxDeleteBookView(View):
+class AjaxDeleteBookView(LoginRequiredMixin, View):
     def post(self, request):
         book_id = request.POST.get("book_id", 0)
         WordBook.objects.filter(id=book_id).delete()
@@ -167,7 +167,7 @@ class AjaxDeleteBookView(View):
         })
 
 
-class AjaxNewUnitView(View):
+class AjaxNewUnitView(LoginRequiredMixin, View):
     def post(self, request):
         book_id = request.POST.get("book_id", 0)
         description = request.POST.get("description", "")
@@ -197,7 +197,7 @@ class AjaxNewUnitView(View):
         })
 
 
-class AjaxEditUnitView(View):
+class AjaxEditUnitView(LoginRequiredMixin, View):
     def post(self, request):
         unit_id = request.POST.get("unit_id", 0)
         description = request.POST.get('description', "")
@@ -219,7 +219,7 @@ class AjaxEditUnitView(View):
         })
 
 
-class AjaxDeleteUnitView(View):
+class AjaxDeleteUnitView(LoginRequiredMixin, View):
     def post(self, request):
         unit_id = request.POST.get("unit_id", 0)
         WordUnit.objects.filter(id=unit_id).delete()
@@ -263,7 +263,7 @@ def add_word_to_unit(unit_id, spelling, meaning, detailed_meaning=""):
         unit_word.save()
 
 
-class AjaxNewWordInUnitView(View):
+class AjaxNewWordInUnitView(LoginRequiredMixin, View):
     def post(self, request):
         spelling = request.POST.get("spelling", "")
         meaning = request.POST.get("meaning", "")
@@ -297,7 +297,7 @@ def parse_word_line(line):
         }
     return None
 
-class AjaxBatchInputWordView(View):
+class AjaxBatchInputWordView(LoginRequiredMixin, View):
     def post(self, request):
         data = json.loads(request.body.decode("utf-8"))
         unit_id = data.get('unit_id', None)
@@ -334,7 +334,7 @@ class AjaxBatchInputWordView(View):
         })
 
 
-class AjaxDeleteWordInUnitView(View):
+class AjaxDeleteWordInUnitView(LoginRequiredMixin, View):
     def post(self, request):
         unit_words = request.POST.get("unit_word_ids", "")
         words = unit_words.split(",")
@@ -359,7 +359,7 @@ class BookDetailView(View):
         })
 
 
-class UnitListView(View):
+class UnitListView(LoginRequiredMixin, View):
     # list all units which are in the learning plan
     def get(self, request):
         plans = LearningPlan.objects.filter(user=request.user).order_by("unit__book", "unit__order").all()
@@ -381,14 +381,35 @@ class UnitDetailView(View):
             raise Http404()
 
         words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
-        records = LearningRecord.objects.filter(unit=unit, user=request.user).order_by("-learn_time").all()
+
+        is_planned = False
+        records = []
+        if request.user.is_authenticated():
+            is_planned = unit.is_planned(request.user)
+            records = LearningRecord.objects.filter(unit=unit, user=request.user).order_by("-learn_time").all()
         return render(request, 'unit_detail.html', {
             "page": "books",
             "unit": unit,
             "records": records,
             "words": words,
-            "is_planned": unit.is_planned(request.user)
+            "is_planned": is_planned
         })
+
+
+class UnitWordsTextView(View):
+    def get(self, request, unit_id):
+        unit = WordUnit.objects.filter(id=unit_id).get()
+        if not unit:
+            raise Http404()
+
+        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
+        result = ""
+        for w in words:
+            spelling = w.word.spelling
+            meaning = w.simple_meaning
+            line = "%-20s    %s\r\n" % (spelling, meaning)
+            result += line
+        return HttpResponse(result, **{"content_type": "application/text"})
 
 
 class AjaxAddBookToLearningPlanView(LoginRequiredMixin, View):
@@ -743,7 +764,7 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             })
 
 
-class UnitReviewView(View):
+class UnitReviewView(LoginRequiredMixin, View):
     def get(self, request, unit_id):
         try:
             unit = WordUnit.objects.filter(id=unit_id).get()
@@ -759,7 +780,7 @@ class UnitReviewView(View):
             raise Http404()
 
 
-class ErrorWordListView(View):
+class ErrorWordListView(LoginRequiredMixin, View):
     def get(self, request):
         error_words = ErrorWord.objects.filter(user=request.user).order_by("-latest_error_time").all()
         return render(request, "error_word_list.html", {
@@ -768,7 +789,7 @@ class ErrorWordListView(View):
         })
 
 
-class ErrorWordTextView(View):
+class ErrorWordTextView(LoginRequiredMixin, View):
     def get(self, request):
         error_words = ErrorWord.objects.filter(user=request.user).order_by("-latest_error_time").all()
         result = ""
@@ -780,7 +801,7 @@ class ErrorWordTextView(View):
         return HttpResponse(result, **{"content_type": "application/text"})
 
 
-class AmendErrorWordView(View):
+class AmendErrorWordView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, 'unit_learn.html', {
             "page": "learning",
@@ -791,7 +812,7 @@ class AmendErrorWordView(View):
         })
 
 
-class AjaxErrorWordsView(View):
+class AjaxErrorWordsView(LoginRequiredMixin, View):
     def get(self, request):
         error_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).order_by("-latest_error_time").all()
         result = []
@@ -817,7 +838,7 @@ class AjaxErrorWordsView(View):
         })
 
 
-class AjaxAmendErrorWordsView(View):
+class AjaxAmendErrorWordsView(LoginRequiredMixin, View):
     def post(self, request):
         data = json.loads(request.body.decode("utf-8"))
         if "correct_words" in data:

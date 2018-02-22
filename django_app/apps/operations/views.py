@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
@@ -9,12 +10,12 @@ from django.shortcuts import render, redirect
 from django.templatetags.static import static
 from django.views.generic import View
 
-from operations.models import UserMessage, GroupBook, GroupLearningPlan
+from operations.models import UserMessage, GroupBook, GroupLearningPlan, UserFeedback
 from users.models import UserProfile, Group, UserGroup, Organization
 from utils.lookup_word_in_db import find_word
 
 
-class MessageView(View):
+class MessageView(LoginRequiredMixin, View):
     def get(self, request, message_id):
         message = UserMessage.objects.filter(id=message_id).get()
         data = {
@@ -79,7 +80,7 @@ class MessageView(View):
         return redirect(reverse('operations.message_list'))
 
 
-class MessageListView(View):
+class MessageListView(LoginRequiredMixin, View):
     def get(self, request):
         messages = UserMessage.objects.filter(to_user=request.user.id).order_by("-add_time").all()
         return render(request, 'message_list.html', {
@@ -117,7 +118,7 @@ class HighscoreView(View):
         })
 
 
-class AjaxUnreadMessageView(View):
+class AjaxUnreadMessageView(LoginRequiredMixin, View):
     def get(self, request):
         messages = UserMessage.objects\
             .filter(to_user=request.user.id, has_read=False)\
@@ -139,7 +140,7 @@ class AjaxUnreadMessageView(View):
         })
 
 
-class AjaxGroupBooksView(View):
+class AjaxGroupBooksView(LoginRequiredMixin, View):
     def get(self, request, group_id):
         books = GroupBook.objects.filter(group_id=group_id).values("book_id", "book__description")
         return JsonResponse({
@@ -170,7 +171,7 @@ class AjaxGroupBooksView(View):
         })
 
 
-class AjaxGroupLearningPlanView(View):
+class AjaxGroupLearningPlanView(LoginRequiredMixin, View):
     def get(self, request, group_id):
         units = GroupLearningPlan.objects.filter(group_id=group_id).values("unit_id",
                                                                            "unit__book_id",
@@ -202,3 +203,22 @@ class AjaxGroupLearningPlanView(View):
         return JsonResponse({
             "status": "ok"
         })
+
+
+class UserFeedbackView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'user_feedback.html', {
+            "page": "messages"
+        })
+
+    def post(self, request):
+        title = request.POST.get("title", "")
+        detail = request.POST.get("detail", "")
+
+        msg = UserFeedback()
+        msg.reporter = request.user
+        msg.title = title
+        msg.detail = detail
+        msg.save()
+
+        return render(request, 'user_feedback_done.html')
