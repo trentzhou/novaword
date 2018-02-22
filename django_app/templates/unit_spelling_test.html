@@ -107,6 +107,15 @@
           return array;
         }
 
+        $(document).keypress(function (e) {
+            if (e.keyCode == 13) {
+                if ($("#explain").is(":visible")) {
+                    $("#btn-continue").click();
+                } else if ($("#choose").is(":visible")) {
+                    $("#btn-showme").click();
+                }
+            }
+        });
 
         function show_quiz(index) {
             // show a quiz for a given word
@@ -133,6 +142,7 @@
             $("#simple-meaning").text(word.simple_meaning);
             $("#detailed-meaning").text(word.detailed_meaning);
             show_detailed_meaning_in_dict(word.detailed_meaning_in_dict);
+            $("#btn-continue").focus();
         }
 
 
@@ -312,10 +322,17 @@
             });
         }
 
+        // 去除所有的非英文字符
+        function strip(str) {
+            return str.replace(/[^\x00-\x7F]/g, "").replace(/\W/g, '').toLowerCase();
+        }
+
+
         $("#btn-showme").click(function() {
             var word = unit_words[word_index].spelling;
             var answer = $("#english_spelling").val();
-            if (word == answer)
+            // 注意！ 比较的时候忽略了所有的空格和非英文字符
+            if (strip(word) == strip(answer))
                 unit_words[word_index].correct = true;
             else
                 unit_words[word_index].correct = false;
