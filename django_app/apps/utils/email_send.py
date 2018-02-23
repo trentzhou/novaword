@@ -2,7 +2,42 @@
 __author__ = 'bobby'
 __date__ = '2016/10/30 22:11'
 from random import Random
-#from django.core.mail import send_mail
+
+import os
+
+if os.getenv("DISABLE_SMTP", None):
+    # SMTP is disabled, we need to use HTTP to send mail
+
+    # 发邮件的服务。因为aws不允许连接到smtp服务器，所以我试用了 sendcloud.net 来发送邮件。
+    def send_mail(title, body, email_from, email_to):
+        """
+        Send a mail using service provided by sendcloud.net.
+        The interface is identical to django.core.mail#send_mail.
+
+        :param str title: mail title
+        :param str body: mail body
+        :param str email_from: mail from
+        :param list email_to: recipients
+        :return None:
+        """
+        url = "http://api.sendcloud.net/apiv2/mail/send"
+
+        # 您需要登录SendCloud创建API_USER，使用API_USER和API_KEY才可以进行邮件的发送。
+        params = {
+            "apiUser": "word_master_test_XW4ZqJ",
+            "apiKey": "oqQ8UN2BCa5utxRH",
+            "from": "service@sendcloud.im",
+            "fromName": email_from,
+            "to": email_to,
+            "subject": title,
+            "html": body
+        }
+
+        requests.post(url, files={}, data=params)
+        return True
+
+else:
+    from django.core.mail import send_mail
 import requests
 import json
 from users.models import EmailVerifyRecord
@@ -18,34 +53,6 @@ def random_str(randomlength=8):
         str+=chars[random.randint(0, length)]
     return str
 
-
-# 发邮件的服务。因为aws不允许连接到smtp服务器，所以我试用了 sendcloud.net 来发送邮件。
-def send_mail(title, body, email_from, email_to):
-    """
-    Send a mail using service provided by sendcloud.net.
-    The interface is identical to django.core.mail#send_mail.
-
-    :param str title: mail title
-    :param str body: mail body
-    :param str email_from: mail from
-    :param list email_to: recipients
-    :return None:
-    """
-    url = "http://api.sendcloud.net/apiv2/mail/send"
-
-    # 您需要登录SendCloud创建API_USER，使用API_USER和API_KEY才可以进行邮件的发送。
-    params = {
-        "apiUser": "word_master_test_XW4ZqJ",
-        "apiKey": "oqQ8UN2BCa5utxRH",
-        "from": "service@sendcloud.im",
-        "fromName": email_from,
-        "to": email_to,
-        "subject": title,
-        "html": body
-    }
-
-    requests.post(url, files={}, data=params)
-    return True
 
 
 def save_email_verify_record(email, send_type):
