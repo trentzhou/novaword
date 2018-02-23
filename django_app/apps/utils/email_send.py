@@ -76,14 +76,14 @@ def send_register_email(email, send_type="register", host="localhost:8000"):
 
     if send_type == "register":
         email_title = "Nova背单词 -- 注册激活链接"
-        email_body = "请点击下面的链接激活你的账号: http://{0}/activate/{1}".format(host, code)
+        email_body = "请点击下面的链接激活你的账号: https://{0}/activate/{1}".format(host, code)
 
         send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
             pass
     elif send_type == "forget":
         email_title = "Nova背单词 -- 注册密码重置链接"
-        email_body = "请点击下面的链接重置密码: http://{0}/reset_password/{1}".format(host, code)
+        email_body = "请点击下面的链接重置密码: https://{0}/reset_password/{1}".format(host, code)
 
         send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
