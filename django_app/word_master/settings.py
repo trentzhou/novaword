@@ -158,7 +158,7 @@ EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.sina.com")
 EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "word_master@sina.com")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "word_master")
-EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
 EMAIL_FROM = os.getenv("EMAIL_FROM", "word_master@sina.com")
 
 MEDIA_URL = '/media/'
