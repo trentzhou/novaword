@@ -74,7 +74,7 @@ class GroupBook(models.Model):
         return self.__unicode__()
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.group.description, self.unit)
+        return u"{0} - {1}".format(self.group.description, self.book.description)
 
 
 class GroupLearningPlan(models.Model):
