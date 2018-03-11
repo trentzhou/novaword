@@ -49,5 +49,5 @@ Nova背单词
 
 ## 部署环境 ##
 
-试用环境 http://novaword.trentzhou.com
+试用环境 https://trentzhou.com
 

@@ -2,32 +2,35 @@ version: '2'
 
 services:
   mysql:
-    image: mysql:latest
-    environment:
-      - MYSQL_ROOT_PASSWORD=test123
-      - MYSQL_DATABASE=novaword
-    command: --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    image: mysql
     volumes:
-      - ${HOME}/mysql_data:/var/lib/mysql
-    ports:
-      - 3306:3306
+      - ./mysql_data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=Novaword123
+      - MYSQL_DATABASE=novaword
+      - TZ=Asia/Shanghai
+    command: --character-set-server=utf8 --collation-server=utf8_unicode_ci
   novaword:
-    image: trentzhou/novaword
+    image: registry.cn-hangzhou.aliyuncs.com/trentzhou/novaword
     volumes:
       - ./upload:/upload
     ports:
       - 8000:8000
+    links:
+      - mysql
+    restart: always
     environment:
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE_NAME=novaword
       - MYSQL_USERNAME=root
-      - MYSQL_PASSWORD=test123
+      - MYSQL_PASSWORD=Novaword123
       - DJANGO_MANAGEPY_MIGRATE=on
       - STARTUP_DELAY=30
       - ADMIN_USERNAME=admin
       - ADMIN_PASSWORD=admin123
       - ADMIN_EMAIL=quan@zhouyequan.com
-    links:
-      - mysql
-    depends_on:
-      - mysql
+      - EMAIL_HOST=smtp.novaword.cn
+      - EMAIL_PORT=465
+      - EMAIL_HOST_USER=mailer@novaword.cn
+      - EMAIL_HOST_PASSWORD=Novaword123
+      - EMAIL_FROM="mailer@novaword.cn"
