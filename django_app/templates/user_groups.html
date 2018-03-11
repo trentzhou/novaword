@@ -20,7 +20,7 @@
             <ol>
                 {% for group in groups %}
                     <li>
-                        <a href="{% url 'user.group_detail' group.group.id %}">{{ group.group.organization }} - {{ group.group }}</a>
+                        <a href="{% url 'user.group_detail' group.group.id %}">{{ group.group }}</a>
                     </li>
                 {% endfor %}
             </ol>

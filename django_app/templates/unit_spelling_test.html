@@ -24,20 +24,22 @@
     <!-- Main content -->
     <section class="content container-fluid">
 
-    {% if quiz %}
-        <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
-    {% elif unit %}
-        <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
-    {% endif %}
-    <a class="btn btn-primary" id="btn_start_over">重新答题</a>
+    <div class="btn-bar">
+        {% if quiz %}
+            <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
+        {% elif unit %}
+            <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
+        {% endif %}
+        <a class="btn btn-primary" id="btn_start_over">重新答题</a>
+    </div>
     <div class="box">
         <div class="box-body">
             <div id="choose">
                 <div id="count"></div>
                 <h2 id="chinese_meaning"></h2>
 
-                <input class="input-lg form-control margin-bottom" type="text" placeholder="英文拼写" id="english_spelling" />
-                <a class="btn btn-primary btn-block" id="btn-showme">看结果</a>
+                <input class="input-lg form-control" type="text" placeholder="英文拼写" id="english_spelling" />
+                <a class="btn btn-primary btn-block" id="btn-showme" title="你也可以用回车键哦">看结果</a>
             </div>
 
             <div id="explain">
@@ -45,9 +47,9 @@
                 <h2 id="word_spelling"></h2>
                 <div id="simple-meaning"></div>
                 <div id="detailed-meaning"></div>
-                <div id="detailed-meaning-in-dict" class="margin-bottom"></div>
+                <div id="detailed-meaning-in-dict"></div>
 
-                <a id="btn-continue" class="btn btn-primary btn-block">继续</a>
+                <a id="btn-continue" class="btn btn-primary btn-block btn-bar" title="你也可以用回车键哦">继续</a>
             </div>
 
             <div id="congratulations">

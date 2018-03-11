@@ -25,25 +25,26 @@
         </div>
 
         <div class="box-body">
-            <div id="answer">
-                <a class="btn btn-success" id="btn-familiar">认识</a>
+            <div id="answer" class="btn-bar">
+                <a class="btn btn-success" id="btn-familiar" title="你也可以按回车键哦">认识</a>
                 <a class="btn btn-danger" id="btn-unfamiliar">不熟悉</a>
             </div>
 
             <div id="word_browser">
                 <div id="simple-meaning"></div>
+                <a class="btn btn-primary btn-next btn-bar" title="你也可以按回车键哦">继续</a>
                 <div id="detailed-meaning"></div>
                 <div id="simple-meaning-in-dict"></div>
                 <div id="detailed-meaning-in-dict"></div>
 
-                <a class="btn btn-primary" id="btn-next">继续</a>
+                <a class="btn btn-primary btn-next btn-bar btn-bottom" title="你也可以按回车键哦">继续</a>
 
             </div>
 
             <div id="result">
                 <a class="btn btn-primary" href="{% url 'learn.unit_detail' unit.id %}">返回单元</a>
                 <a class="btn btn-primary" href="{% url 'learn.unit_test' unit.id %}">单元测试</a>
-                <a class="btn btn-primary" id="btn-walkthrough">再来一次</a>
+                <a class="btn btn-primary btn-bar" id="btn-walkthrough">再来一次</a>
             </div>
         </div>
 
@@ -159,6 +160,7 @@
         function show_detailed_meaning_in_dict(detail) {
             var root_div = $("#detailed-meaning-in-dict");
             root_div.html("");
+            $(".btn-bottom").hide();
             for (var i = 0; i < detail.symbols.length; i++) {
                 var symbol = detail.symbols[i];
                 var symbol_div = $("<div>");
@@ -183,28 +185,31 @@
                 }
                 symbol_div.append(pron_list_div);
                 // append meaning
-                var meaning_div = $("<div>").attr("class", "word_symbol");
-                meaning_div.append($("<h3>").html("解释："));
-                for (var i = 0; i < symbol.parts.length; i++) {
-                    var part = symbol.parts[i];
-                    var part_div = $("<div>").attr("class", "word_part");
-                    part_div.append($("<div>").attr("class", "word_property").html(part.part));
-                    var ul_div = $("<ul>");
-                    part_div.append(ul_div);
-                    for (var j = 0; j < part.means.length; j++) {
-                        ul_div.append($("<li>").attr("class", "word_mean").html(part.means[j]));
+                if (symbols.parts.length > 0) {
+                    var meaning_div = $("<div>").attr("class", "word_symbol");
+                    meaning_div.append($("<h3>").html("解释："));
+                    for (var i = 0; i < symbol.parts.length; i++) {
+                        var part = symbol.parts[i];
+                        var part_div = $("<div>").attr("class", "word_part");
+                        part_div.append($("<div>").attr("class", "word_property").html(part.part));
+                        var ul_div = $("<ul>");
+                        part_div.append(ul_div);
+                        for (var j = 0; j < part.means.length; j++) {
+                            ul_div.append($("<li>").attr("class", "word_mean").html(part.means[j]));
+                        }
+                        meaning_div.append(part_div);
                     }
-                    meaning_div.append(part_div);
+                    symbol_div.append(meaning_div);
                 }
-                symbol_div.append(meaning_div);
                 root_div.append(symbol_div);
 
                 $(".play_mp3").click(function() {
                     $(this).find("audio").get(0).play();
                 });
+                $(".btn-bottom").show();
             }
             // append sentenses
-            if (detail.sentenses) {
+            if (detail.sentenses.length > 0) {
                 var sentenses_div = $("<div>").attr("class", "word_sentenses");
                 sentenses_div.append($("<h3>").html("例句："));
                 for (var i = 0; i < detail.sentenses.length; i++) {
@@ -231,14 +236,20 @@
 
         $("#btn-walkthrough").click(start_walk_through);
         $("#btn-familiar").click(answer_familiar);
-        $("#btn-next").click(continue_walk_through);
+        $(".btn-next").click(continue_walk_through);
         $("#btn-unfamiliar").click(answer_unfamiliar);
 
         $(document).keydown(function(event) {
-            if (event.which == 39) {
-                answer_familiar();
-            } else if (event.which == 37) {
-                answer_unfamiliar();
+            if ($("#answer").is(":visible")) {
+                if ((event.which == 39) || (event.which == 13)) {
+                    answer_familiar();
+                } else if (event.which == 37) {
+                    answer_unfamiliar();
+                }
+            } else if ($("#word_browser").is(":visible")) {
+                if (event.which == 13) {
+                    continue_walk_through();
+                }
             }
         });
     });

@@ -70,8 +70,7 @@
                                 </td>
                                 <td>
                                     {{ member.get_role_display }}
-
-                                    {% if my_role.role > 1 %}
+                                    {% if my_role.role > 1 and member.user.id != request.user.id %}
                                         <a id="btn-kickout" title="踢出去" onclick="kickout({{ member.user.id }})"><span class="fa fa-trash"></span></a>
                                     {% endif %}
                                 </td>

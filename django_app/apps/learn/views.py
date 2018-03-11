@@ -196,6 +196,80 @@ class AjaxNewUnitView(LoginRequiredMixin, View):
             "reason": "输入不对"
         })
 
+def get_next_unit_name(name):
+    regex = re.compile(r"(\D*)(\d+)(\D*)")
+    m = regex.match(name)
+    if m:
+        index = int(m.group(2)) + 1
+        return m.group(1) + str(index) + m.group(3)
+    else:
+        return name + "1"
+
+
+class AjaxBatchAddUnitView(LoginRequiredMixin, View):
+    def post(self, request):
+        data = json.loads(request.body.decode("utf-8"))
+        book_id = data.get('book_id', None)
+        first_unit_name = data.get('first_unit_name', None)
+        unit_size_limit = int(data.get('unit_size_limit', 20))
+        text = data.get('text', "")
+
+        failed_lines = []
+        try:
+            parsed_words = []
+
+            lines = text.split("\n")
+            for line in lines:
+                line = line.strip()
+                if not line:
+                    continue
+                good = False
+
+                try:
+                    parsed = parse_word_line(line)
+                    if parsed:
+                        parsed_words.append(parsed)
+                        good = True
+                except:
+                    pass
+                if not good:
+                    failed_lines.append(line)
+            # generate data to be added
+            units_to_add = []
+            unit_name = first_unit_name
+            book = WordBook.objects.filter(id=book_id).get()
+            max_order = WordUnit.objects.filter(book=book).aggregate(Max("order"))["order__max"]
+            order = max_order + 1
+            while len(parsed_words) > 0:
+                words = parsed_words[:unit_size_limit]
+                unit = {
+                    'name': unit_name,
+                    'order': order,
+                    'words': words
+                }
+                units_to_add.append(unit)
+                parsed_words = parsed_words[unit_size_limit:]
+                unit_name = get_next_unit_name(unit_name)
+                order += 1
+            # now create the units
+            for unit in units_to_add:
+                wordunit = WordUnit()
+                wordunit.book = book
+                wordunit.description = unit['name']
+                wordunit.order = unit['order']
+                wordunit.save()
+                # generate the words
+                for word in unit['words']:
+                    add_word_to_unit(wordunit.id, word['word'], word['meaning'])
+            return JsonResponse({
+                'status': 'ok',
+                'failed_lines': failed_lines
+            })
+        except:
+            return JsonResponse({
+                'status': 'fail'
+            })
+
 
 class AjaxEditUnitView(LoginRequiredMixin, View):
     def post(self, request):

@@ -24,12 +24,14 @@
     <!-- Main content -->
     <section class="content container-fluid">
 
-    {% if quiz %}
-        <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
-    {% elif unit %}
-        <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
-    {% endif %}
-    <a class="btn btn-primary" id="btn_start_over">重新答题</a>
+    <div class="btn-bar">
+        {% if quiz %}
+            <a href="{% url 'testings.quiz_state' quiz.id %}" class="btn btn-primary">返回考卷</a>
+        {% elif unit %}
+            <a href="{% url 'learn.unit_detail' unit.id %}" class="btn btn-primary">返回单元</a>
+        {% endif %}
+        <a class="btn btn-primary" id="btn_start_over">重新答题</a>
+    </div>
     <div class="box">
         <div class="box-body">
             <div id="choose">
@@ -42,7 +44,7 @@
                     <li id="option3" class="candidate"></li>
                     <li id="option4" class="candidate"></li>
                 </ul>
-                <a class="btn btn-primary" id="btn-showme">看答案</a>
+                <a class="btn btn-primary btn-bar" id="btn-showme" title="你也可以按回车键哦">看答案</a>
             </div>
 
             <div id="explain">
@@ -51,7 +53,7 @@
                 <div id="detailed-meaning"></div>
                 <div id="detailed-meaning-in-dict"></div>
 
-                <a id="btn-continue" class="btn btn-primary">继续</a>
+                <a id="btn-continue" class="btn btn-primary btn-bar" title="你也可以按回车键哦">继续</a>
             </div>
 
             <div id="congratulations">
@@ -399,6 +401,7 @@
 
         $("#btn-showme").click(function() {
             unit_words[word_index].correct = false;
+            waiting_answer = false;
             show_explain(word_index);
         });
 
@@ -429,9 +432,12 @@
                 } else if (key == 68 || key == 100) {
                     // D
                     $("#option4").click();
+                } else if (key == 13) {
+                    $("#btn-showme").click();
                 }
             } else {
-                if (event.which == 32) {
+                if (event.which == 13) {
+                    // 回车
                     if ($("#btn-continue").is(":visible")) {
                         $("#btn-continue").click();
                     }

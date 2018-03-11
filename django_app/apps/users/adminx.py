@@ -9,8 +9,8 @@ class BaseSetting(object):
 
 
 class GlobalSetting(object):
-    site_title = u"谁能背过我"
-    site_footer = u"谁能背过我"
+    site_title = u"Nova背单词"
+    site_footer = u"Nova背单词"
     #menu_style = "accordion"
 
 

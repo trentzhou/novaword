@@ -20,9 +20,15 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
-        <div class="box">
-            <div class="box-header">
-                <h3>参数</h3>
+        <div class="box collapsed-box">
+            <div class="box-header with-border">
+                <h3 class="box-title">单词书信息</h3>
+
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                </div>
             </div>
             <div class="box-body">
                 <ul>
@@ -100,15 +106,12 @@
 
         <div class="box">
             <div class="box-header">
-                <h3>
+                <h3 class="box-title">
                     书里的单元
-                    <button class="btn btn-primary" id="btn-add-plan">全部加入学习计划</button>
-                    {% if book.uploaded_by == request.user %}
-                        <a class="btn btn-primary" id="btn-add-unit">新建单元</a>
-                    {% endif %}
                 </h3>
             </div>
             <div class="box-body">
+
                 <ul class="todo-list">
                     {% for unit in units %}
                         <li>
@@ -116,8 +119,65 @@
                         </li>
                     {% endfor %}
                 </ul>
+                <div class="btn-bar">
+                    <button class="btn btn-primary" id="btn-add-plan">全部加入学习计划</button>
+                    {% if book.uploaded_by == request.user %}
+                        <a class="btn btn-primary" id="btn-add-unit">新建单元</a>
+                        <a class="btn btn-primary" id="btn-batch-add">批量新建单元</a>
+                    {% endif %}
+                </div>
             </div>
         </div>
+
+        {% if book.uploaded_by == request.user %}
+
+            <div class="modal fade" id="dialog-batch-input">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">批量新建单元</h4>
+                        </div>
+                        <div class="modal-body margin-bottom">
+
+                            <div class="form-group">
+                                <label for="batch_first_unit_name">批量新建的第一个单元名:</label>
+                                <input type="text" id="batch_first_unit_name" class="form-control" value="unit {{ book.wordunit_set.count|add:'1' }}"/>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="batch_unit_size_limit">每个单元最多几个单词？</label>
+                                <input type="number" id="batch_unit_size_limit" class="form-control" value="20"/>
+                            </div>
+
+                            <div class="form-group">
+                                <p>
+                                    在下面的输入框中贴入你需要增加的单词。每个单词占用一行。每一行的格式如下：
+                                    <pre>This is a sentence.    这是一句话。</pre>
+                                    一行中的单词和解释之间用 tab键 或 4个以上空格 隔开。
+                                </p>
+                                <textarea class="form-control"
+                                          id="batch-lines"
+                                          placeholder="word    单词解释"
+                                          rows="4"
+                                          value=""></textarea>
+                            </div>
+
+                            <div id="batch-uploading">单词上传中，请耐心等待。</div>
+                            <div id="batch-success">批量增加单词成功，除了剩下的这几行。</div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" id="btn-close-batch">关闭并刷新</button>
+                            <button type="button" class="btn btn-primary" id="confirm_batch_input">确定</button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+            </div>
+            <!-- /.modal-dialog -->
+
+        {% endif %}
 
     </section>
 {% endblock %}
@@ -232,6 +292,60 @@
                 }
             });
         });
+
+        $("#btn-batch-add").click(function() {
+            $("#batch-lines").val("");
+            $("#confirm_batch_input").removeAttr("disabled");
+            $("#batch-uploading").hide();
+            $("#batch-success").hide();
+            $("#dialog-batch-input").modal();
+        });
+
+        $("#confirm_batch_input").click(function() {
+            var url = "{% url 'learn.ajax_batch_new_unit' %}";
+            var data = {
+                "book_id": {{ book.id }},
+                "first_unit_name": $("#batch_first_unit_name").val(),
+                "unit_size_limit": $("#batch_unit_size_limit").val(),
+                "text": $("#batch-lines").val()
+            };
+            $("#batch-success").hide();
+            $("#batch-uploading").show();
+            $("#confirm_batch_input").attr("disabled", "disabled");
+            $.ajax({
+                type: "POST",
+                url: url,
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: JSON.stringify(data),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+
+                success: function(data) {
+                    try {
+                        $("#batch-uploading").hide();
+                        if (data.status == "ok") {
+                            if (data.failed_lines.length == 0) {
+                                location.reload();
+                            } else {
+                                $("#batch-lines").val(data.failed_lines.join("\n"));
+                                $("#batch-success").show();
+                                $("#confirm_batch_input").removeAttr("disabled");
+                            }
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        });
+
+        $("#btn-close-batch").click(function() {
+            location.reload();
+        });
+
     {% endif %}
     });
     </script>
