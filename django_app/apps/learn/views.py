@@ -239,6 +239,8 @@ class AjaxBatchAddUnitView(LoginRequiredMixin, View):
             unit_name = first_unit_name
             book = WordBook.objects.filter(id=book_id).get()
             max_order = WordUnit.objects.filter(book=book).aggregate(Max("order"))["order__max"]
+            if not max_order:
+                max_order = 0
             order = max_order + 1
             while len(parsed_words) > 0:
                 words = parsed_words[:unit_size_limit]
