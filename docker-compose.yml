@@ -14,12 +14,13 @@ services:
     image: registry.cn-hangzhou.aliyuncs.com/trentzhou/novaword
     volumes:
       - ./upload:/upload
+      - ./static:/static
     ports:
       - 8000:8000
     links:
       - mysql
     restart: always
-    environment:
+    environment: &common_env
       - MYSQL_HOST=mysql
       - MYSQL_DATABASE_NAME=novaword
       - MYSQL_USERNAME=root
@@ -34,3 +35,27 @@ services:
       - EMAIL_HOST_USER=mailer@novaword.cn
       - EMAIL_HOST_PASSWORD=Novaword123
       - EMAIL_FROM="mailer@novaword.cn"
+      - REDIS_HOST=redis
+      - DJANGO_MANAGEPY_COLLECTSTATIC=on
+  redis:
+    image: redis
+  celery:
+    image: registry.cn-hangzhou.aliyuncs.com/trentzhou/novaword
+    volumes:
+      - ./upload:/upload
+    command: celery
+    links:
+      - mysql
+      - redis
+    restart: always
+    environment: *common_env
+  beat:
+    image: registry.cn-hangzhou.aliyuncs.com/trentzhou/novaword
+    volumes:
+      - ./upload:/upload
+    command: beat
+    links:
+      - mysql
+      - redis
+    restart: always
+    environment: *common_env

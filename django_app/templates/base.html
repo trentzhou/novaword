@@ -205,6 +205,11 @@ desired effect
                     <!-- Sidebar Menu -->
                     <ul class="sidebar-menu" data-widget="tree">
 
+                    {% if request.user.is_staff %}
+                        <li>
+                            <a href="/xadmin"><i class="fa fa-cog"></i> <span>后台管理</span></a>
+                        </li>
+                    {% endif %}
                         <li {% ifequal page "overview" %} class="active" {% endifequal %}>
                             <a href="{% url 'index' %}"><i class="fa fa-table"></i> <span>概况</span></a>
                         </li>

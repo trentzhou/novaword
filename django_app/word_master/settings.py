@@ -167,3 +167,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # wild dog sms
 WILDDOG_APP_ID = os.getenv("WILDDOG_APP_ID", "")
 WILDDOG_API_KEY = os.getenv("WILDDOG_API_KEY", "")
+
+# redis
+# CELERY STUFF
+REDIS_HOST=os.getenv("REDIS_HOST", "localhost")
+BROKER_URL = 'redis://{0}:6379'.format(REDIS_HOST)
+CELERY_RESULT_BACKEND = 'redis://{0}:6379'.format(REDIS_HOST)
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Shanghai'

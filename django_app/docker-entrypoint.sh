@@ -7,17 +7,27 @@ if [ -n "$STARTUP_DELAY" ]; then
     echo "Starting..."
 fi
 
-if [ "x$DJANGO_MANAGEPY_MIGRATE" = 'xon' ]; then
-    /venv/bin/python manage.py migrate --noinput
-fi
+if [ "$1" = "celery" ]; then
+    exec /venv/bin/celery -A word_master worker -E -l info
+elif [ "$1" = "beat" ]; then
+    exec /venv/bin/celery -A word_master beat -l info
+else
+    if [ "x$DJANGO_MANAGEPY_MIGRATE" = 'xon' ]; then
+        /venv/bin/python manage.py migrate --noinput
+    fi
 
-if [ "x$DJANGO_MANAGEPY_COLLECTSTATIC" = 'xon' ]; then
-    /venv/bin/python manage.py collectstatic --noinput
-fi
+    if [ "x$DJANGO_MANAGEPY_COLLECTSTATIC" = 'xon' ]; then
+        /venv/bin/python manage.py collectstatic --noinput
+        if [ -d /static ]; then
+            cp -r static/* /static/
+        fi
+    fi
 
-if [ -n "$ADMIN_USERNAME" -a -n "$ADMIN_PASSWORD" -a -n "$ADMIN_EMAIL" ]; then
-    echo "Creating Admin user $ADMIN_USERNAME ($ADMIN_EMAIL)"
-    # create super user
-    echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$ADMIN_USERNAME', '$ADMIN_EMAIL', '$ADMIN_PASSWORD')" | /venv/bin/python manage.py shell
+    if [ -n "$ADMIN_USERNAME" -a -n "$ADMIN_PASSWORD" -a -n "$ADMIN_EMAIL" ]; then
+        echo "Creating Admin user $ADMIN_USERNAME ($ADMIN_EMAIL)"
+        # create super user
+        echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('$ADMIN_USERNAME', '$ADMIN_EMAIL', '$ADMIN_PASSWORD')" | /venv/bin/python manage.py shell
+    fi
+
+    exec "$@"
 fi
-exec "$@"

@@ -16,7 +16,7 @@ from testings.models import QuizResult
 from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
 from utils import lookup_word_in_db
-
+from .tasks import do_add
 
 class BookListView(View):
     def get(self, request):
@@ -84,6 +84,7 @@ def make_string_groups(m):
 
 class AjaxBookTreeView(View):
     def get(self, request):
+        do_add.delay(100, 200)
         wordbooks = WordBook.objects.all()
         wordbook_map = {}
         for book in wordbooks:

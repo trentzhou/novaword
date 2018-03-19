@@ -17,7 +17,7 @@
     <!-- Main content -->
     <section class="content container-fluid">
 
-    <a class="btn btn-primary" id="btn_start_over">重新答题</a>
+    <a class="btn btn-primary btn-bar" id="btn_start_over">重新答题</a>
     <div class="box">
         <div class="box-body">
             <div id="answer">
@@ -36,7 +36,7 @@
                     <li id="option3" class="candidate"></li>
                     <li id="option4" class="candidate"></li>
                 </ul>
-                <a class="btn btn-primary" id="btn-showme">看答案</a>
+                <a class="btn btn-primary btn-bar" id="btn-showme" title="你也可以按回车键哦">看答案</a>
             </div>
 
             <div id="explain">
@@ -45,7 +45,7 @@
                 <div id="detailed-meaning"></div>
                 <div id="detailed-meaning-in-dict"></div>
 
-                <a id="btn-continue" class="btn btn-primary">继续</a>
+                <a id="btn-continue" class="btn btn-primary btn-bar" title="你也可以按回车键哦">继续</a>
             </div>
 
             <div id="congratulations">
@@ -260,6 +260,7 @@
         }
 
         function show_explain(index) {
+            waiting_answer = false;
             $("#explain").show();
             $("#choose").hide();
             $("#answer").hide();
@@ -473,8 +474,12 @@
         });
 
         $(document).keypress(function(event) {
+            var key = event.which;
+            if (key == 88 || key == 120) {
+                // X，作为后门，直接通过
+                finish_learning();
+            }
             if (waiting_answer) {
-                var key = event.which;
                 if (key == 65 || key == 97) {
                     // A
                     $("#option1").click();
@@ -487,13 +492,17 @@
                 } else if (key == 68 || key == 100) {
                     // D
                     $("#option4").click();
-                } else if (key == 88 || key == 120) {
-                    // X，作为后门，直接通过
-                    finish_learning();
+                } else if (key == 13) {
+                    // 回车，看答案
+                    $("#btn-showme").click();
                 }
             } else {
-                if (event.which == 32) {
-                    if ($("#btn-continue").is(":visible")) {
+                if (event.which == 13) {
+                    if ($("#btn-next").is(":visible")) {
+                        $("#btn-next").click();
+                    } else if ($("#btn-unfamiliar").is(":visible")) {
+                        $("#btn-unfamiliar").click();
+                    } else if ($("#btn-continue").is(":visible")) {
                         $("#btn-continue").click();
                     }
                 }
