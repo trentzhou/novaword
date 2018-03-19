@@ -66,8 +66,8 @@ def find_word(word):
                 result.save()
 
         return result
-    except:
-        print("Failed to look up word {0}. result={1}".format(word, result.short_meaning))
+    except KeyError:
+        print("Failed to look up word {0}. result={1}".format(word, result))
         if result and result.short_meaning:
             return result
         return None
