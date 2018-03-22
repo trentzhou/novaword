@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import Word, WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord
+from .models import Word, WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, UserTask
 
 
 class WordAdmin(object):
@@ -63,6 +63,13 @@ class ErrorWordAdmin(object):
     model_icon = 'fa fa-bug'
 
 
+class UserTaskAdmin(object):
+    list_display = ['user', 'unit', 'type']
+    search_fields = ['user__username', 'user__nick_name', 'unit__description', 'type']
+    list_filter = list_display
+    model_icon = 'fa fa-tasks'
+
+
 xadmin.site.register(Word, WordAdmin)
 xadmin.site.register(WordBook, WordBookAdmin)
 xadmin.site.register(WordUnit, WordUnitAdmin)
@@ -70,3 +77,4 @@ xadmin.site.register(WordInUnit, WordInUnitAdmin)
 xadmin.site.register(LearningPlan, LearningPlanAdmin)
 xadmin.site.register(LearningRecord, LearningRecordAdmin)
 xadmin.site.register(ErrorWord, ErrorWordAdmin)
+xadmin.site.register(UserTask, UserTaskAdmin)

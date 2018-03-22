@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
+import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, JsonResponse
@@ -174,6 +175,7 @@ class AjaxGroupBooksView(LoginRequiredMixin, View):
 class AjaxGroupLearningPlanView(LoginRequiredMixin, View):
     def get(self, request, group_id):
         units = GroupLearningPlan.objects.filter(group_id=group_id).values("unit_id",
+                                                                           "start_date",
                                                                            "unit__book_id",
                                                                            "unit__book__description",
                                                                            "unit__description")
@@ -186,6 +188,12 @@ class AjaxGroupLearningPlanView(LoginRequiredMixin, View):
         unit_id = request.POST.get("unit_id", None)
         # quick hack: I know it's not neat...
         action = request.POST.get('action', "add")
+        start_date = request.POST.get("start_date", None)
+        if not start_date:
+            start_date = datetime.datetime.today()
+        else:
+            start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y')
+
         if not group_id or not unit_id:
             return JsonResponse({
                 "status": "fail",
@@ -193,10 +201,17 @@ class AjaxGroupLearningPlanView(LoginRequiredMixin, View):
             })
         # create new if not present
         if action == "add":
-            if not GroupLearningPlan.objects.filter(group_id=group_id, unit_id=unit_id).count():
+            existing = GroupLearningPlan.objects.filter(group_id=group_id, unit_id=unit_id)
+
+            if not existing.count():
                 group_plan = GroupLearningPlan()
                 group_plan.group_id = group_id
                 group_plan.unit_id = unit_id
+                group_plan.start_date = start_date
+                group_plan.save()
+            else:
+                group_plan = existing.first()
+                group_plan.start_date = start_date
                 group_plan.save()
         elif action == "delete":
             GroupLearningPlan.objects.filter(group_id=group_id, unit_id=unit_id).delete()
@@ -222,3 +237,15 @@ class UserFeedbackView(LoginRequiredMixin, View):
         msg.save()
 
         return render(request, 'user_feedback_done.html')
+
+
+class UserSummaryView(LoginRequiredMixin, View):
+    def get(self, request, user_id):
+        pass
+
+
+class GroupUnitSummaryView(LoginRequiredMixin, View):
+    def get(self, request, group_id, unit_id):
+        pass
+
+

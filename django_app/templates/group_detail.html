@@ -4,6 +4,7 @@
 
 {% block extra_head %}
     <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bower_components/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -227,6 +228,11 @@
                         <label class="control-label">单元</label>
                         <select class="form-control" id="select_group_unit"></select>
                     </div>
+
+                    <div class="form-group">
+                        <label class="control-label">开始日期</label>
+                        <input class="form-control" id="start_date" />
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
@@ -240,7 +246,7 @@
 
 
 
-    <!-- 选择单元 -->
+    <!-- 班级公告 -->
     <div class="modal fade" id="dialog-set-banner">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -272,6 +278,7 @@
     <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
     <script src="{% static 'jquery.toaster/jquery.toaster.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
 
     <script>
     $.fn.multiline = function(text){
@@ -382,6 +389,10 @@
         });
 
     {% if my_role %}
+        $("#start_date").datepicker({
+            autocolor: true,
+            language: "zh-CN"
+        });
         // 读取班级学习计划
         function load_group_books() {var url = "{% url 'operations.ajax_group_books' group.id %}";
             $.get(url, function(data) {
@@ -450,10 +461,12 @@
                 if (data.status == "ok") {
                     var units = data.units;
                     if (units.length > 0) {
-                        var ul = $("<ul>");
+                        var table = $("<table class='table'> <thead> <td>单元</td> <td>开始时间</td> </thead> </table>");
+                        var tbody = $("<tbody>");
+                        table.append(tbody);
                         for (var i = 0; i < units.length; i++) {
                             var unit = units[i];
-                            var li = $("<li>")
+                            var td = $("<td>")
                                 .append($("<a>")
                                     .attr("href", "{% url 'learn.book_detail' 0 %}".replace("0", unit.unit__book_id))
                                     .html(unit.unit__book__description))
@@ -462,23 +475,24 @@
                                     .attr("href", "{% url 'learn.unit_detail' 0 %}".replace("0", unit.unit_id))
                                     .html(unit.unit__description));
                             {% if my_role.role > 1 %}
-                            li.append($("<a>")
+                            td.append($("<a>")
                                     .attr("class", "delete_unit")
                                     .attr("unit_id", unit.unit_id)
                                     .attr("title", "删除")
                                     .html(' <span class="fa fa-trash"></span>'));
                             {% endif %}
-                            ul.append(li);
+                            tbody.append($("<tr>").append(td).append($("<td>").text(unit.start_date)));
                         }
-                        $("#group_units").html("").append(ul);
+                        $("#group_units").html("").append(table);
                     } else {
                         $("#group_units").html("").append($("<p>").html("现在还没有在学习的单元"));
                     }
                     {% if my_role.role > 1 %}
                     // add a button to edit
-                    $("#group_units").append($("<a>").attr("id", "btn_add_unit").attr("class", "btn btn-primary").html("添加单元"));
+                    $("#group_units").append($("<a>").attr("id", "btn_add_unit").attr("class", "btn btn-primary").html("添加或修改单元"));
                     $("#btn_add_unit").click(function() {
                         $("#dialog-select-unit").modal();
+                        $("#start_date").val("");
                         var book_id = $("#select_group_book").val();
                         if (book_id) {
                             load_book_units(book_id);
@@ -488,7 +502,7 @@
                     $(".delete_unit").click(function() {
                         var unit_id = $(this).attr("unit_id");
                         console.log("Going to delete " + unit_id);
-                        modify_learning_plan(unit_id, "delete");
+                        modify_learning_plan(unit_id, "delete", null);
                     });
                     {% endif %}
                 }
@@ -523,7 +537,7 @@
             });
         }
 
-        function modify_learning_plan(unit_id, action) {
+        function modify_learning_plan(unit_id, action, start_date) {
             // add it
             var url = "{% url 'operations.ajax_group_learning_plan' 0 %}".replace("0", "{{ group.id }}");
             $.ajax({
@@ -535,6 +549,7 @@
                 async: true,
                 data: {
                     "unit_id": unit_id,
+                    "start_date": start_date,
                     "action": action
                 },
                 success: function(data) {
@@ -560,8 +575,9 @@
         $("#confirm_select_unit").click(function() {
             console.log("Confirm select unit");
             var unit_id = $("#select_group_unit").val();
+            var start_date = $("#start_date").val();
             $("#dialog-select-unit").modal("toggle");
-            modify_learning_plan(unit_id, "add");
+            modify_learning_plan(unit_id, "add", start_date);
         });
 
         function load_book_units(book_id) {

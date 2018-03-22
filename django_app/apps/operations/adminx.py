@@ -18,7 +18,7 @@ class GroupBookAdmin(object):
 
 
 class GroupLearningPlanAdmin(object):
-    list_display = ['group', 'unit']
+    list_display = ['group', 'unit', 'start_date']
     search_fields = ['group__description', 'unit__description']
     list_filter = list_display
     model_icon = 'fa fa-check'

@@ -123,6 +123,25 @@ class LearningPlan(models.Model):
         return u"{0} - {1}".format(self.user.username, self.unit)
 
 
+class UserTask(models.Model):
+    user = models.ForeignKey(UserProfile, verbose_name=u"用户")
+    unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
+    type = models.IntegerField(choices=((1, u"初次学习"),
+                                        (2, u"单元测试"),
+                                        (3, u"复习")),
+                               default=2,
+                               verbose_name=u"学习类型")
+    class Meta:
+        verbose_name = u"学习任务"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return u"{0} - {1}".format(self.user.username, self.unit)
+
+
 class LearningRecord(models.Model):
     user = models.ForeignKey(UserProfile, verbose_name=u"用户")
     unit = models.ForeignKey(WordUnit, verbose_name=u"单元")

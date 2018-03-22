@@ -80,6 +80,7 @@ class GroupBook(models.Model):
 class GroupLearningPlan(models.Model):
     group = models.ForeignKey(Group, verbose_name=u"班级")
     unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
+    start_date = models.DateField(verbose_name=u"开始日期", default=datetime.today)
 
     class Meta:
         verbose_name = u"班级学习计划"
