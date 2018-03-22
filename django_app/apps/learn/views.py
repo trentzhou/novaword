@@ -84,7 +84,6 @@ def make_string_groups(m):
 
 class AjaxBookTreeView(View):
     def get(self, request):
-        do_add.delay(100, 200)
         wordbooks = WordBook.objects.all()
         wordbook_map = {}
         for book in wordbooks:
@@ -122,6 +121,12 @@ class AjaxNewBookView(LoginRequiredMixin, View):
     def post(self, request):
         description = request.POST.get("description", "")
         if description:
+            # 是否重名？
+            if WordBook.objects.filter(description=description).count():
+                return JsonResponse({
+                    "status": "fail",
+                    "reason": "名为'{0}'的单词书已经存在了".format(description)
+                })
             book = WordBook()
             book.description = description
             book.uploaded_by = request.user
@@ -726,7 +731,7 @@ class ReviewView(LoginRequiredMixin, View):
         })
 
 
-class AjaxUnitDataView(View):
+class AjaxUnitDataView(LoginRequiredMixin, View):
     def get(self, request, unit_id):
         words_in_unit = WordInUnit.objects.filter(unit_id=unit_id).order_by("order").all()
         if not words_in_unit:

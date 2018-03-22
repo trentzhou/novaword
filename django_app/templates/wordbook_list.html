@@ -90,6 +90,7 @@
 {% block extra_script %}
     <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'jquery.toaster/jquery.toaster.js' %}"></script>
 
     <script>
     $(function() {
@@ -189,7 +190,6 @@
         });
 
         $("#confirm_new_book").click(function() {
-            $("#dialog-new-book").modal('toggle');
             // ajax
             var url = "{% url 'learn.ajax_new_book' %}";
             $.ajax({
@@ -207,8 +207,11 @@
                         console.log(data);
                         if (data.status == "ok") {
                             console.log("Good");
+                            $("#dialog-new-book").modal('toggle');
                             var target = "{% url 'learn.book_detail' 0 %}".replace("0", data.book_id);
                             window.location = target;
+                        } else {
+                            $.toaster({"priority": "warning", "title": "失败了", "message": data.reason});
                         }
                     } catch (ex) {
 

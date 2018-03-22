@@ -71,7 +71,7 @@
         var url = "{{ data_url }}";
         var word_index = -1;
         var waiting_answer = false;
-        var learn_type = {{ type|default:1 }};    // 1 for learn, 2 for test, 3 for review;
+        var learn_type = {{ type|default:2 }};    // 1 for learn, 2 for test, 3 for review;
 
         var start_seconds = 0;
         var finish_seconds = 0;
@@ -83,6 +83,7 @@
             for (var i = 0; i < unit_words.length; i++) {
                 var word = unit_words[i];
                 word.correct = false;
+                word.my_answer = "";
                 word.index = i;
             }
             continue_quiz();
@@ -287,6 +288,23 @@
 
                 var stat = "共" + unit_words.length + "个单词，答对" + correct_count + "个。正确率" + correct_rate + "%。";
                 $("#result-stat").text(stat);
+                // show details of the answer:
+                if (correct_rate != 100) {
+                    $("#result-stat").append("<h3>答错的单词如下：</h3>");
+                    var error_table = $("<table class='table'><thead><td>中文</td><td>正确拼写</td><td>我的拼写</td></thead></table>");
+                    var tbody = $("<tbody>");
+                    error_table.append(tbody);
+                    for (var i = 0; i < unit_words.length; i++) {
+                        var word = unit_words[i];
+                        if (!word.correct) {
+                            tbody.append($("<tr>")
+                                .append($("<td>").text(word.simple_meaning))
+                                .append($("<td>").text(word.spelling))
+                                .append($("<td>").text(word.my_answer)));
+                        }
+                    }
+                    $("#result-stat").append(error_table)
+                }
             }
 
             var data = {
@@ -333,6 +351,7 @@
         $("#btn-showme").click(function() {
             var word = unit_words[word_index].spelling;
             var answer = $("#english_spelling").val();
+            unit_words[word_index].my_answer = answer;
             // 注意！ 比较的时候忽略了所有的空格和非英文字符
             if (strip(word) == strip(answer))
                 unit_words[word_index].correct = true;

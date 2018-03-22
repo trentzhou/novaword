@@ -2,8 +2,11 @@
 {% load staticfiles %}
 
 {% block extra_head %}
+    <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
     <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-dialog/bootstrap-dialog.min.css' %}">
 {% endblock %}
+
 
 {% block content %}
     <section class="content-header">
@@ -208,9 +211,11 @@
                 </table>
 
                 {% if unit.book.uploaded_by == request.user %}
-                    <a class="btn btn-primary" id="btn-add-word">增加单词</a>
-                    <a class="btn btn-primary" id="btn-delete-words">删除选中的单词</a>
-                    <a class="btn btn-primary" id="btn-batch-input">批量添加</a>
+                    <div class="btn-bar">
+                        <a class="btn btn-primary" id="btn-add-word">增加单词</a>
+                        <a class="btn btn-primary" id="btn-delete-words">删除选中的单词</a>
+                        <a class="btn btn-primary" id="btn-batch-input">批量添加</a>
+                    </div>
                 {% endif %}
 
                 {% if records %}
@@ -344,26 +349,38 @@
 
         $("#btn-delete-unit").click(function() {
             var url = "{% url 'learn.ajax_delete_unit' %}";
-            $.ajax({
-                type: "POST",
-                url: url,
-                beforeSend:function(xhr, settings) {
-                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
-                },
-                async: true,
-                data: {
-                    "unit_id": {{ unit.id }}
-                },
-                success: function(data) {
-                    try {
-                        if (data.status == "ok") {
-                            window.location = "{% url 'learn.book_detail' unit.book_id %}"
-                        }
-                    } catch (ex) {
-                        console.log(ex);
+
+            BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
+            BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
+            BootstrapDialog.confirm({
+                title: "小心！",
+                message: '真的要删除{{ unit.description }}吗?',
+                callback: function (result) {
+                    if (result) {
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            beforeSend:function(xhr, settings) {
+                                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                            },
+                            async: true,
+                            data: {
+                                "unit_id": {{ unit.id }}
+                            },
+                            success: function(data) {
+                                try {
+                                    if (data.status == "ok") {
+                                        window.location = "{% url 'learn.book_detail' unit.book_id %}"
+                                    }
+                                } catch (ex) {
+                                    console.log(ex);
+                                }
+                            }
+                        });
                     }
                 }
             });
+
         });
 
         $("#btn-add-word").click(function() {

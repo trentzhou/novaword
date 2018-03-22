@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
+{% block extra_head %}
+    <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'bootstrap-dialog/bootstrap-dialog.min.css' %}">
+{% endblock %}
+
 {% block content %}
     <section class="content-header">
         <h1>
@@ -40,7 +45,6 @@
 
                 {% if book.uploaded_by == request.user %}
                     <a class="btn btn-primary" id="btn-edit-book">修改参数</a>
-                    <a class="btn btn-primary" id="btn-delete-book">删除这本书</a>
 
                     <div class="modal fade" id="dialog-edit-book">
                         <div class="modal-dialog">
@@ -71,34 +75,6 @@
                     <!-- /.modal-dialog -->
 
 
-                    <div class="modal fade" id="dialog-new-unit">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span></button>
-                                    <h4 class="modal-title">新建单元</h4>
-                                </div>
-                                <div class="modal-body margin-bottom">
-
-                                    <div class="form-group">
-                                        <label for="unit_description" class="col-sm-2 control-label">名称</label>
-
-                                        <div class="col-sm-10">
-                                            <input type="text" class="form-control" id="unit_description" placeholder="名称" value="某个单元">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
-                                    <button type="button" class="btn btn-primary" id="confirm_new_unit">确定</button>
-                                </div>
-                            </div>
-                            <!-- /.modal-content -->
-                        </div>
-                    </div>
-                    <!-- /.modal-dialog -->
-
                 {% endif %}
 
             </div>
@@ -116,12 +92,14 @@
                     {% for unit in units %}
                         <li>
                             <a href="{% url 'learn.unit_detail' unit.id %}">{{ unit.description }}</a>
+                            <a title="删除单元" unit_title="{{ unit.description }}" unit_id="{{ unit.id }}" class="pull-right btn-delete-unit"><span class="fa fa-trash"></span></a>
                         </li>
                     {% endfor %}
                 </ul>
                 <div class="btn-bar">
                     <button class="btn btn-primary" id="btn-add-plan">全部加入学习计划</button>
                     {% if book.uploaded_by == request.user %}
+                        <a class="btn btn-primary" id="btn-delete-book">删除这本书</a>
                         <a class="btn btn-primary" id="btn-add-unit">新建单元</a>
                         <a class="btn btn-primary" id="btn-batch-add">批量新建单元</a>
                     {% endif %}
@@ -130,6 +108,35 @@
         </div>
 
         {% if book.uploaded_by == request.user %}
+
+
+            <div class="modal fade" id="dialog-new-unit">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">新建单元</h4>
+                        </div>
+                        <div class="modal-body margin-bottom">
+
+                            <div class="form-group">
+                                <label for="unit_description" class="col-sm-2 control-label">名称</label>
+
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="unit_description" placeholder="名称" value="某个单元">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
+                            <button type="button" class="btn btn-primary" id="confirm_new_unit">确定</button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>
+            </div>
+            <!-- /.modal-dialog -->
 
             <div class="modal fade" id="dialog-batch-input">
                 <div class="modal-dialog">
@@ -241,27 +248,39 @@
         });
 
         $("#btn-delete-book").click(function() {
-            var url = "{% url 'learn.ajax_delete_book' %}";
-            $.ajax({
-                type: "POST",
-                url: url,
-                beforeSend:function(xhr, settings) {
-                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
-                },
-                async: true,
-                data: {
-                    "book_id": {{ book.id }}
-                },
-                success: function(data) {
-                    try {
-                        if (data.status == "ok") {
-                            window.location = "{% url 'learn.books' %}";
-                        }
-                    } catch (ex) {
-                        console.log(ex);
+
+            BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
+            BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
+            BootstrapDialog.confirm({
+                title: "小心！",
+                message: '真的要删除{{ book.description }}吗?',
+                callback: function(yes) {
+                    if (yes) {
+                        var url = "{% url 'learn.ajax_delete_book' %}";
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            beforeSend:function(xhr, settings) {
+                                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                            },
+                            async: true,
+                            data: {
+                                "book_id": {{ book.id }}
+                            },
+                            success: function(data) {
+                                try {
+                                    if (data.status == "ok") {
+                                        window.location = "{% url 'learn.books' %}";
+                                    }
+                                } catch (ex) {
+                                    console.log(ex);
+                                }
+                            }
+                        });
                     }
                 }
             });
+
         });
 
         $("#btn-add-unit").click(function() {
@@ -344,6 +363,45 @@
 
         $("#btn-close-batch").click(function() {
             location.reload();
+        });
+
+        $(".btn-delete-unit").click(function() {
+            var unit_title = $(this).attr("unit_title");
+            var unit_id = $(this).attr("unit_id");
+
+            BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
+            BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
+            BootstrapDialog.confirm({
+                    title: "小心！",
+                    message: '真的要删除'+ unit_title + '吗?',
+                    callback: function (result) {
+                        if (result) {
+                            var url = "{% url 'learn.ajax_delete_unit' %}";
+                            $.ajax({
+                                type: "POST",
+                                url: url,
+                                beforeSend:function(xhr, settings) {
+                                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                                },
+                                async: true,
+                                data: {
+                                    "unit_id": unit_id
+                                },
+                                success: function(data) {
+                                    try {
+                                        if (data.status == "ok") {
+                                            location.reload();
+                                        }
+                                    } catch (ex) {
+                                        console.log(ex);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            );
+
         });
 
     {% endif %}

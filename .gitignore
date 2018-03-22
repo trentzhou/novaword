@@ -17,3 +17,4 @@ django_app/static/xadmin/
 upload/
 mysql_data/
 celerybeat-schedule
+.vscode/
