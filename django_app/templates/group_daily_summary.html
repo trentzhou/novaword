@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load learn_status %}
+{% load staticfiles  %}
+
+{% block extra_head %}
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+{% endblock %}
+
+{% block content %}
+        <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            班级学习记录
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">{{ group }} - {{ date }}</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+    <div class="box">
+        <div class="box-header">
+            <h3>{{ date }} <a href="{% url 'user.group_detail' group.id %}">{{ group }}</a>的学习记录</h3>
+        </div>
+        <div class="box-body">
+            <table class="table table-responsive" id="table-record">
+                <tr>
+                    <th>用户</th>
+                    <th>学习单元数目</th>
+                    <th>总学习时长</th>
+                </tr>
+                <thead>
+                </thead>
+                <tbody>
+                {% for record in records %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'operations.user_daily_summary' record.student.id year month day %}">
+                                                <img src="{{ record.student.avatar_url }}" class="img-circle img-sm" alt="User Image" />
+                                                 <span class="username">{{ record.student }}</span>
+                            </a>
+                        </td>
+
+                        <td>{{ record.count }}</td>
+                        <td>{{ record.total_time|readable_time }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    </section>
+{% endblock %}
+
+{% block extra_script %}
+
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <script>
+
+    $(function() {
+        $("#table-record").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "pageLength": 50
+        });
+    });
+    </script>
+
+{% endblock %}

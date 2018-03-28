@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from learn.views import BookListView, UnitListView, LearningView, ReviewView, BookDetailView, UnitDetailView, \
+from learn.views import BookListView, LearningPlanView, LearningView, ReviewView, BookDetailView, UnitDetailView, \
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
     AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
     AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
@@ -25,7 +25,7 @@ urlpatterns = [
     url(r'^ajax-new-word-in-unit/$', AjaxNewWordInUnitView.as_view(), name="learn.ajax_new_word_in_unit"),
     url(r'^ajax-batch-input-unit-words/$', AjaxBatchInputWordView.as_view(), name="learn.ajax_batch_input_unit_words"),
     url(r'^ajax-delete-word-in-unit/$', AjaxDeleteWordInUnitView.as_view(), name="learn.ajax_delete_word_in_unit"),
-    url(r'^units/$', UnitListView.as_view(), name="learn.units"),
+    url(r'^learning-plan/(?P<user_id>\d+)$', LearningPlanView.as_view(), name="learn.learning_plan"),
     url(r'^units/(?P<unit_id>\d+)$', UnitDetailView.as_view(), name="learn.unit_detail"),
     url(r'^units/(?P<unit_id>\d+)/text$', UnitWordsTextView.as_view(), name="learn.unit_words_text"),
     url(r'^ajax-add-book-learning-plan/$', AjaxAddBookToLearningPlanView.as_view(), name="learn.ajax_add_book_learning_plan"),
@@ -34,7 +34,7 @@ urlpatterns = [
     url(r'^ajax-query-learning-plan/(?P<unit_id>\d+)/$', AjaxIsUnitInLearningPlan.as_view(), name="learn.ajax_query_learning_plan"),
     url(r'^start_learn/$', StartLearnView.as_view(), name='learn.start'),
     url(r'^ajax-today-units/$', AjaxGetTodayUnitsView.as_view(), name='learn.ajax_today_units'),
-    url(r'^learning/$', LearningView.as_view(), name='learn.learning'),
+    url(r'^learning/(?P<user_id>\d+)$', LearningView.as_view(), name='learn.learning'),
     url(r'^review/$', ReviewView.as_view(), name='learn.review'),
     url(r'^ajax-unit-data/(?P<unit_id>\d+)/$', AjaxUnitDataView.as_view(), name="learn.ajax_unit_data"),
     url(r'^unit_walkthrough/(?P<unit_id>\d+)/$', UnitWalkThroughView.as_view(), name="learn.unit_walkthrough"),

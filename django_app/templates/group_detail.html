@@ -3,7 +3,6 @@
 {% load learn_status %}
 
 {% block extra_head %}
-    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'bower_components/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
 {% endblock %}
 
@@ -64,7 +63,7 @@
                         {% for member in members %}
                             <tr>
                                 <td class="user-block">
-                                    <a href="{% url 'users.contact' member.user.id %}">
+                                    <a href="{% url 'learn.learning' member.user.id %}">
                                         <img src="{{ member.user.avatar_url }}" class="img-circle img-sm" alt="User Image" />
                                          <span class="username">{{ member.user }}</span>
                                     </a>
@@ -115,8 +114,20 @@
             </div>
 
         </div>
+
     {% endif %}
 
+    {% if my_role.role > 1 %}
+        <div class="box box-solid bg-green-gradient">
+            <div class="box-header">
+                <h3 class="box-title">近期学习记录</h3>
+            </div>
+            <div class="box-body">
+                <div id="recent_records" style="width:100%"></div>
+            </div>
+
+        </div>
+    {% endif %}
     </section>
 
     <!-- 确认加入班级 -->
@@ -275,10 +286,9 @@
 
 {% block extra_script %}
 
-    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
-    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
     <script src="{% static 'jquery.toaster/jquery.toaster.js' %}"></script>
     <script src="{% static 'bower_components/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="{% static 'bower_components/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
 
     <script>
     $.fn.multiline = function(text){
@@ -411,7 +421,7 @@
                             li.append($("<a>")
                                     .attr("class", "delete_book")
                                     .attr("book_id", book.book_id)
-                                    .attr("title", "删除")
+                                    .attr("title", "删除计划")
                                     .html(' <span class="fa fa-trash"></span>'));
                             {% endif %}
                             ul.append(li);
@@ -478,7 +488,7 @@
                             td.append($("<a>")
                                     .attr("class", "delete_unit")
                                     .attr("unit_id", unit.unit_id)
-                                    .attr("title", "删除")
+                                    .attr("title", "删除计划")
                                     .html(' <span class="fa fa-trash"></span>'));
                             {% endif %}
                             tbody.append($("<tr>").append(td).append($("<td>").text(unit.start_date)));
@@ -637,6 +647,15 @@
 
         load_group_books();
         load_group_units();
+
+        $("#recent_records").datepicker({"language": "zh-CN"}).on('changeDate', function(a) {
+            var date = a.date;
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var day = date.getDate();
+            var url = "{% url 'operations.group_daily_summary' group.id 9999 88 77 %}".replace("9999-88-77", "" + year + "-" + month + "-" + day);
+            window.location = url;
+        })
 
     {% endif %}
     });

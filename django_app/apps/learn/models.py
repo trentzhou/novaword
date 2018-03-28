@@ -78,11 +78,6 @@ class WordUnit(models.Model):
     def __unicode__(self):
         return u"{0} - {1}".format(self.book.description, self.description)
 
-    def is_planned(self, user):
-        if LearningPlan.objects.filter(unit=self, user=user).count():
-            return True
-        return False
-
     def learn_count(self, user):
         return self.learningrecord_set.filter(Q(type=1)|Q(type=2), user=user).count()
 
@@ -152,6 +147,7 @@ class LearningRecord(models.Model):
                                verbose_name=u"学习类型")
     learn_time = models.DateTimeField(default=datetime.now,
                                       verbose_name=u"学习时间")
+    duration = models.IntegerField(default=0, verbose_name=u"学习时长")
     correct_rate = models.IntegerField(default=100, verbose_name=u"正确率")
 
     class Meta:

@@ -18,3 +18,14 @@ def get_recent_learn_times(value, arg):
     days = arg
     start_time = date.today() - timedelta(days=days)
     return LearningRecord.objects.filter(user_id=user_id, learn_time__gt=start_time).count()
+
+@register.filter(name="readable_time")
+def readable_time(seconds):
+    """
+    将秒数转换成人比较容易读的时间值
+    :param seconds: 秒数
+    :return:
+    """
+    minutes = int(seconds / 60)
+    s = int(seconds) % 60
+    return "{0}分{1}秒".format(minutes, s)

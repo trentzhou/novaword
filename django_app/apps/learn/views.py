@@ -441,11 +441,21 @@ class BookDetailView(View):
         })
 
 
-class UnitListView(LoginRequiredMixin, View):
+class LearningPlanView(LoginRequiredMixin, View):
     # list all units which are in the learning plan
-    def get(self, request):
-        plans = LearningPlan.objects.filter(user=request.user).order_by("unit__book", "unit__order").all()
-        units = [x.unit for x in plans]
+    def get(self, request, user_id):
+        my_plans = LearningPlan.objects.filter(user_id=user_id).values("unit_id").all()
+        group_plans = GroupLearningPlan.objects.filter(group__usergroup__user_id=request.user.id).values("unit_id").all()
+
+        all_planned_units = {}
+        for u in my_plans:
+            unit_id = u["unit_id"]
+            all_planned_units[unit_id] = True
+        for u in group_plans:
+            unit_id = u["unit_id"]
+            all_planned_units[unit_id] = True
+
+        units = WordUnit.objects.filter(id__in=all_planned_units.keys()).all()
         for u in units:
             u.learn_times = u.learn_count(request.user)
             u.review_times = u.review_count(request.user)
@@ -455,6 +465,18 @@ class UnitListView(LoginRequiredMixin, View):
             "units": units
         })
 
+def is_unit_in_plan(unit_id, user_id):
+    """
+    判断是否某个单元在某人的计划中
+    :param int unit_id: unit id
+    :param int user_id: user id
+    :return:
+    """
+    if LearningPlan.objects.filter(unit_id=unit_id, user_id=user_id).count():
+        return True
+    # 有可能单元在班级计划里面
+    if GroupLearningPlan.objects.filter(group__usergroup__user_id=user_id, unit_id=unit_id).count():
+        return True
 
 class UnitDetailView(View):
     def get(self, request, unit_id):
@@ -465,14 +487,11 @@ class UnitDetailView(View):
         words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
 
         is_planned = False
-        records = []
         if request.user.is_authenticated():
-            is_planned = unit.is_planned(request.user)
-            records = LearningRecord.objects.filter(unit=unit, user=request.user).order_by("-learn_time").all()
+            is_planned = is_unit_in_plan(unit_id, request.user.id)
         return render(request, 'unit_detail.html', {
             "page": "books",
             "unit": unit,
-            "records": records,
             "words": words,
             "is_planned": is_planned
         })
@@ -697,10 +716,7 @@ class LearningOverviewView(LoginRequiredMixin, View):
                 u["progress"] = int(100 * count / 6)
         mastered_unit_count = len(active_units["all_active_units"]) - len(active_units["result"])
         all_my_learned_units = LearningRecord.objects.filter(user=request.user).values("unit_id")
-        backlog_units = LearningPlan.objects\
-            .filter(user=request.user)\
-            .filter(~Q(unit_id__in=all_my_learned_units))\
-            .order_by("unit__book_id", "unit__order").all()
+
         groups = Group.objects.filter(usergroup__user=request.user).all()
         return render(request, 'index.html', {
             "page": "overview",
@@ -708,7 +724,6 @@ class LearningOverviewView(LoginRequiredMixin, View):
             "quiz_count": quiz_count,
             "erroneous_words": erroneous_words,
             "today_units": today_units,
-            "backlog_units": backlog_units,
             "recent_units": recent_units[:10],
             "mastered_unit_count": mastered_unit_count,
             "groups": groups
@@ -716,12 +731,47 @@ class LearningOverviewView(LoginRequiredMixin, View):
 
 
 class LearningView(LoginRequiredMixin, View):
-    def get(self, request):
-        records = LearningRecord.objects.filter(user=request.user).order_by("-learn_time").all()
+    def get(self, request, user_id):
+        user = UserProfile.objects.filter(id=user_id).get()
+        records = LearningRecord.objects.filter(user=user).order_by("-learn_time").all()
+        # 取得最近一个月学习记录
+        today = datetime.date.today()
+        recent_learning_times = []
+        for i in range(30):
+            d = today - datetime.timedelta(days=29-i)
+            count = LearningRecord.objects.filter(user=user, learn_time__year = d.year,
+                                                  learn_time__month=d.month,
+                                                  learn_time__day=d.day).count()
+            recent_learning_times.append({
+                "date": d.isoformat(),
+                "count": count
+            })
+        # 获取最近学习过的10个单元
+        recent_units = LearningRecord\
+            .objects\
+            .filter(user=user) \
+            .values('unit_id', "unit__description").distinct()\
+            .annotate(recent_learn_time=Max("learn_time")).order_by("-recent_learn_time")[:10]
+        # 获取每个单元里面的错词
+        error_table = []
+        for u in recent_units:
+            unit_id = u['unit_id']
+            error_words = ErrorWord.objects.filter(user_id=user.id, word__unit_id=unit_id).values('word_id', 'word__word__spelling', 'word__simple_meaning').distinct()
+            error_table.append({
+                "unit_id": unit_id,
+                "unit_title": u["unit__description"],
+                "error_words": [{
+                    "id": x["word_id"],
+                    "spelling": x["word__word__spelling"],
+                    "meaning": x["word__simple_meaning"]
+                } for x in error_words]
+            })
 
         return render(request, 'learn_records.html', {
+            "user": user,
+            "recent_records": recent_learning_times,
             "page": "learning",
-            "records": records
+            "recent_error_records": error_table
         })
 
 
@@ -812,6 +862,7 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
         unit_id = data.get("unit_id", None)
         type = data.get("type", None)
         correct_rate = data.get("correct_rate", 0)
+        seconds_used = data.get("seconds_used", 0)
 
         if not unit_id or not type:
             return JsonResponse({
@@ -824,6 +875,7 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             record.unit = unit
             record.type = type
             record.correct_rate = correct_rate
+            record.duration = seconds_used
             record.save()
             if "error_words" in data:
                 error_words = data["error_words"]

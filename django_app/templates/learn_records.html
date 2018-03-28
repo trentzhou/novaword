@@ -1,47 +1,69 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
+{% block extra_head %}
+
+  <!-- Morris chart -->
+  <link rel="stylesheet" href="{% static 'bower_components/morris.js/morris.css' %}">
+{% endblock %}
+
 {% block content %}
     <section class="content-header">
         <h1>
-            学习记录
+            {{ user }}的学习记录
         </h1>
         <ol class="breadcrumb">
             <li>
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
-            <li class="active">学习记录</li>
+            <li class="active">{{ user }}的学习记录</li>
         </ol>
     </section>
 
     <!-- Main content -->
     <section class="content container-fluid">
-        {% if records %}
-            <a href="{% url 'learn.units' %}" class="btn btn-primary btn-bar">我要学习的单元</a>
-            <table class="table table-responsive" id="record_table">
-                <thead>
-                <tr>
-                    <th>单元</th>
-                    <th>类型</th>
-                    <th>时间</th>
-                    <th>正确率</th>
-                </tr>
-                </thead>
-                <tbody>
-                    {% for record in records %}
-                        <tr>
-                            <td><a href="{% url 'learn.unit_detail' record.unit.id %}">{{ record.unit }}</a></td>
-                            <td>{{ record.get_type_display }}</td>
-                            <td>{{ record.learn_time }}</td>
-                            <td>{{ record.correct_rate }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            您还没有学习任何记录，快去看看有<a href="{% url 'learn.units' %}">哪些单元</a>可以学习吧。
-        {% endif %}
+        <div class="box box-solid bg-teal-gradient">
+            <div class="box-header">
+                <h3 class="box-title">一个月内学习次数</h3>
+            </div>
+            <div class="box-body">
+                <div class="chart" id="line-chart" style="height: 250px;"></div>
+            </div>
+        </div>
 
+
+        {% for u in recent_error_records %}
+            {% if u.error_words %}
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">近期答错过的词 - <a href="{% url 'learn.unit_detail' u.unit_id %}">{{ u.unit_title }}</a></h3>
+                    </div>
+                    <div class="box-body">
+                        <table class="table table-responsive">
+                            <thead>
+                            <tr>
+                                <th>英文</th>
+                                <th>中文</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for w in u.error_words %}
+                                <tr>
+                                <td>{{ w.spelling }}</td>
+                                <td>{{ w.meaning }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+
+
+
+    <a href="{% url 'learn.learning_plan' user.id %}" class="btn btn-primary btn-bar">{{ user }}的学习计划</a>
+    <a href="{% url 'users.contact' user.id %}" class="btn btn-primary btn-bar">给{{ user }}发消息</a>
     </section>
 {% endblock %}
 
@@ -49,6 +71,10 @@
 
     <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+
+    <!-- Morris.js charts -->
+    <script src="{% static 'bower_components/raphael/raphael.min.js' %}"></script>
+    <script src="{% static 'bower_components/morris.js/morris.min.js' %}"></script>
 
     <script>
     $(function() {
@@ -59,6 +85,37 @@
             },
             "pageLength": 50
         });
+
+        // render chart
+
+        var line = new Morris.Line({
+            element: 'line-chart',
+            resize: true,
+            data: [
+                {% for item in recent_records %}
+                    {y: '{{item.date}}', item1: {{ item.count }}},
+                {% endfor %}
+            ],
+            xkey: 'y',
+            ykeys: ['item1'],
+            labels: ['Item 1'],
+            lineColors: ['#efefef'],
+            lineWidth: 2,
+            hideHover: 'auto',
+            gridTextColor: '#fff',
+            gridStrokeWidth: 0.4,
+            pointSize: 4,
+            pointStrokeColors: ['#efefef'],
+            gridLineColor: '#efefef',
+            gridTextFamily: 'Open Sans',
+            gridTextSize: 10
+        });
+        line.on('click', function(i, row) {
+            console.log("Clicking on item", i, row);
+            var date = row['y'];
+            var url = "{% url 'operations.user_daily_summary' user.id 9999 88 77%}".replace('9999-88-77', date);
+            window.location = url;
+        })
     });
     </script>
 {% endblock %}

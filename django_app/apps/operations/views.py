@@ -4,6 +4,7 @@ import json
 import datetime
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
+from django.db.models import Count, Sum
 from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, redirect
 
@@ -11,6 +12,7 @@ from django.shortcuts import render, redirect
 from django.templatetags.static import static
 from django.views.generic import View
 
+from learn.models import LearningRecord
 from operations.models import UserMessage, GroupBook, GroupLearningPlan, UserFeedback
 from users.models import UserProfile, Group, UserGroup, Organization
 from utils.lookup_word_in_db import find_word
@@ -239,13 +241,50 @@ class UserFeedbackView(LoginRequiredMixin, View):
         return render(request, 'user_feedback_done.html')
 
 
-class UserSummaryView(LoginRequiredMixin, View):
-    def get(self, request, user_id):
-        pass
+class UserDailySummaryView(LoginRequiredMixin, View):
+    def get(self, request, user_id, year, month, day):
+        user = UserProfile.objects.filter(id=user_id).get()
+        learning_records = LearningRecord.objects.filter(user_id=user_id,
+                                                         learn_time__year=year,
+                                                         learn_time__month=month,
+                                                         learn_time__day=day).all()
+        return render(request, 'user_daily_summary.html', {
+            "user": user,
+            "records": learning_records,
+            "date": "{0}-{1}-{2}".format(year, month, day)
+        })
 
 
-class GroupUnitSummaryView(LoginRequiredMixin, View):
-    def get(self, request, group_id, unit_id):
-        pass
+class GroupDailySummaryView(LoginRequiredMixin, View):
+    def get(self, request, group_id, year, month, day):
+        group = Group.objects.filter(id=group_id).get()
+        # 看班级里每个人的学习次数
+        students = UserProfile.objects.filter(usergroup__group_id=group_id).all()
+        learn_records = []
+        for s in students:
+            records = LearningRecord.objects.filter(user=s,
+                                                        learn_time__year=year,
+                                                        learn_time__month=month,
+                                                        learn_time__day=day).values("user_id").annotate(count=Count("unit"), total_time=Sum("duration"))
+            if records:
+                record = records[0]
+                count = record["count"]
+                total_time = record["total_time"]
+            else:
+                count = 0
+                total_time = 0
+            learn_records.append({
+                "student": s,
+                "count": count,
+                "total_time": total_time
+            })
+        return render(request, 'group_daily_summary.html', {
+            "group": group,
+            "records": learn_records,
+            "date": "{0}-{1}-{2}".format(year, month, day),
+            "year": year,
+            "month": month,
+            "day": day
+        })
 
 

@@ -61,9 +61,9 @@
         </div>
 
         <div class="row">
-            <div class="col-lg-3 col-xs-6" href="{% url 'learn.learning' %}">
+            <div class="col-lg-3 col-xs-6" href="{% url 'learn.learning' request.user.id %}">
                 <!-- small box -->
-                <a class="small-box bg-aqua" href="{% url 'learn.learning' %}">
+                <a class="small-box bg-aqua" href="{% url 'learn.learning' request.user.id %}">
                     <div class="inner">
                         <h3>{{ learn_count }}</h3>
 
@@ -177,36 +177,6 @@
                 </div>
                 <!-- /.box -->
 
-                <div class="box">
-                    <div class="box-header">
-                        <h3 class="box-title">计划中的单元</h3>
-                    </div>
-                    <!-- /.box-header -->
-                    <div class="box-body table-responsive no-padding">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>单元</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-
-                            {% for u in backlog_units %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'learn.book_detail' u.unit.book_id %}">{{ u.unit.book.description }}</a>
-                                        -
-                                        <a href="{% url 'learn.unit_detail' u.unit.id %}">{{ u.unit.description }}</a>
-                                    </td>
-                                    <td>
-                                        <a class="btn btn-primary" href="{% url 'learn.unit_walkthrough' u.unit_id %}">开始学习</a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </table>
-                    </div>
-                    <!-- /.box-body -->
-                </div>
             </div>
         </div>
         <!-- /.row -->
