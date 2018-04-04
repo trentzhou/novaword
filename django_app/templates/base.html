@@ -213,9 +213,15 @@ desired effect
                         <li {% ifequal page "overview" %} class="active" {% endifequal %}>
                             <a href="{% url 'index' %}"><i class="fa fa-table"></i> <span>概况</span></a>
                         </li>
+                    {% if request.user.is_authenticated %}
                         <li {% ifequal page "units" %} class="active" {% endifequal %}>
                             <a href="{% url 'learn.learning_plan' request.user.id %}"><i class="fa fa-cube"></i> <span>学习计划</span></a>
                         </li>
+
+                        <li {% ifequal page "learning" %} class="active" {% endifequal %}>
+                            <a href="{% url 'learn.learning' request.user.id %}"><i class="fa fa-battery-half"></i> <span>记录</span></a>
+                        </li>
+                    {% endif %}
 
                         <li {% ifequal page "testings" %} class="active" {% endifequal %}>
                             <a href="{% url 'testings.index' %}"><i class="fa fa-binoculars"></i> <span>考卷</span></a>
@@ -225,9 +231,6 @@ desired effect
                             <a href="{% url 'learn.error_word_list' %}"><i class="fa fa-bug"></i> <span>错题集</span></a>
                         </li>
 
-                        <li {% ifequal page "learning" %} class="active" {% endifequal %}>
-                            <a href="{% url 'learn.learning' request.user.id %}"><i class="fa fa-battery-half"></i> <span>记录</span></a>
-                        </li>
 
                         <li {% ifequal page "books" %} class="active" {% endifequal %}>
                             <a href="{% url 'learn.books' %}"><i class="fa fa-cubes"></i> <span>单词书</span></a>

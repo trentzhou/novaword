@@ -29,7 +29,8 @@ RUN set -ex \
                     | sort -u \
     )" \
     && apk add --virtual .python-rundeps $runDeps \
-    && apk del .build-deps
+    && apk del .build-deps \
+    && apk add --no-cache vim
 
 # Copy your application code to the container (make sure you create a .dockerignore file if any large files or directories should be excluded)
 RUN mkdir /django_app/
