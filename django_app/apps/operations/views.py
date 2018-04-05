@@ -194,7 +194,7 @@ class AjaxGroupLearningPlanView(LoginRequiredMixin, View):
         if not start_date:
             start_date = datetime.datetime.today()
         else:
-            start_date = datetime.datetime.strptime(start_date, '%m/%d/%Y')
+            start_date = datetime.datetime.strptime(start_date, '%Y年%m月%d日')
 
         if not group_id or not unit_id:
             return JsonResponse({
