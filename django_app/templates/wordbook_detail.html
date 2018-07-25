@@ -9,8 +9,12 @@
 {% block content %}
     <section class="content-header">
         <h1>
-            单词书详情
-            <small>{{ book.description }}</small>
+            {{ book.description }}
+            <small>
+                {% if book.uploaded_by == request.user %}
+                    <a class="btn btn-primary" id="btn-edit-book">改名</a>
+                {% endif %}
+            </small>
         </h1>
         <ol class="breadcrumb">
             <li>
@@ -43,8 +47,18 @@
                     <li>最多几个单元同时学习： {{ book.max_working_units }}</li>
                 </ul>
 
+
+            </div>
+        </div>
+
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">
+                    书里的单元
+                </h3>
+            </div>
+            <div class="box-body">
                 {% if book.uploaded_by == request.user %}
-                    <a class="btn btn-primary" id="btn-edit-book">修改参数</a>
 
                     <div class="modal fade" id="dialog-edit-book">
                         <div class="modal-dialog">
@@ -73,20 +87,7 @@
                         </div>
                     </div>
                     <!-- /.modal-dialog -->
-
-
                 {% endif %}
-
-            </div>
-        </div>
-
-        <div class="box">
-            <div class="box-header">
-                <h3 class="box-title">
-                    书里的单元
-                </h3>
-            </div>
-            <div class="box-body">
 
                 <ul class="todo-list">
                     {% for unit in units %}

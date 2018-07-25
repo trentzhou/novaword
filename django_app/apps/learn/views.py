@@ -63,13 +63,13 @@ def make_string_groups(m):
         }
     }
 
-    :param dict[str, object] m: the map object which has key as ' ' separated string
+    :param dict[str, object] m: the map object which has key as '/' separated string
     :return tree
     """
     result = {}
     for k, v in m.items():
         container = result
-        row = k.split(' ')
+        row = k.split('/')
         for folder in row[:-1]:
             if folder not in container:
                 container[folder] = {}
@@ -88,7 +88,7 @@ class AjaxBookTreeView(View):
         wordbook_map = {}
         for book in wordbooks:
             wordbook_map[book.description] = {
-                "description": book.description,
+                "description": book.description.split('/')[-1],
                 "id": book.id
             }
         # construct a map

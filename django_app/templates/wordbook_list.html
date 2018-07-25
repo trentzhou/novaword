@@ -22,7 +22,7 @@
     <!-- Main content -->
     <section class="content container-fluid">
     {% if request.user.id|is_teacher %}
-        <a class="btn btn-primary" id="btn_new_book">新建单词书</a>
+        <a class="btn btn-primary" id="btn_new_book" title="书名用斜杠/分层次">新建单词书</a>
 
         <!-- 创建班级对话框 -->
         <div class="modal fade" id="dialog-new-book">
@@ -39,7 +39,7 @@
                             <label for="description" class="col-sm-2 control-label">名称</label>
 
                             <div class="col-sm-10">
-                                <input type="text" class="form-control" id="description" placeholder="名称" value="自建单词书 {{ request.user }}">
+                                <input type="text" class="form-control" id="description" placeholder="名称" value="自建单词书/{{ request.user }}">
                             </div>
                         </div>
                     </div>

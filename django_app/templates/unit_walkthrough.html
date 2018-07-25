@@ -22,6 +22,7 @@
     <div class="box">
         <div class="box-header">
             <h2 id="word-spelling"></h2>
+            <div id="pronounciation"></div>
         </div>
 
         <div class="box-body">
@@ -142,6 +143,24 @@
             $("#word_browser").hide();
             $("#answer").show();
             $("#word-spelling").html(word.spelling);
+            // show pronounciation
+            $("#pronounciation").html("");
+            if (word.pronounciation_uk && word.mp3_uk_url) {
+                $("#pronounciation").append($("<a>").attr("class", "play_mp3")
+                    .html("英<span class=\"ion ion-speakerphone text-blue\"></span> [" + word.pronounciation_uk + "]")
+                    .append($("<audio>").append($("<source>").attr("src", word.mp3_uk_url))));
+            }
+            $("#pronounciation").append("  ");
+            if (word.pronounciation_us && word.mp3_us_url) {
+                $("#pronounciation").append($("<a>").attr("class", "play_mp3")
+                    .html("美<span class=\"ion ion-speakerphone text-blue\"></span> [" + word.pronounciation_us + "]")
+                    .append($("<audio>").append($("<source>").attr("src", word.mp3_us_url))));
+            }
+
+            $(".play_mp3").click(function() {
+                $(this).find("audio").get(0).play();
+            });
+
         }
 
         function show_word_explain(word) {
@@ -165,27 +184,29 @@
                 var symbol = detail.symbols[i];
                 var symbol_div = $("<div>");
                 // append pronounciation
+                /*
                 if (symbol.ph_am || symbol.ph_en) {
                     var pron_list_div = $("<div>").attr("class", "pronounciation_list");
                     pron_list_div.append($("<h3>").html("发音："));
                     if (symbol.ph_am) {
                         var pron_div = $("<div>").attr("class", "pronounciation");
                         pron_div.append($("<a>").attr("class", "play_mp3")
-                            .html("美式发音 [" + symbol.ph_am + "]")
+                            .html("美<span class=\"ion ion-speakerphone text-blue\"></span> [" + symbol.ph_am + "]")
                             .append($("<audio>").append($("<source>").attr("src", symbol.ph_am_mp3))));
                         pron_list_div.append(pron_div);
                     }
                     if (symbol.ph_en) {
                         var pron_div = $("<div>").attr("class", "pronounciation");
                         pron_div.append($("<a>").attr("class", "play_mp3")
-                            .html("英式发音 [" + symbol.ph_en + "]")
+                            .html("英<span class=\"ion ion-speakerphone text-blue\"></span> [" + symbol.ph_en + "]")
                             .append($("<audio>").append($("<source>").attr("src", symbol.ph_en_mp3))));
                         pron_list_div.append(pron_div);
                     }
                 }
                 symbol_div.append(pron_list_div);
+                */
                 // append meaning
-                if (symbols.parts.length > 0) {
+                if (symbol.parts.length > 0) {
                     var meaning_div = $("<div>").attr("class", "word_symbol");
                     meaning_div.append($("<h3>").html("解释："));
                     for (var i = 0; i < symbol.parts.length; i++) {
@@ -203,9 +224,6 @@
                 }
                 root_div.append(symbol_div);
 
-                $(".play_mp3").click(function() {
-                    $(this).find("audio").get(0).play();
-                });
                 $(".btn-bottom").show();
             }
             // append sentenses

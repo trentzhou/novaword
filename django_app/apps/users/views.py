@@ -453,9 +453,12 @@ class GroupDetailView(LoginRequiredMixin, View):
         if not group:
             raise Http404()
         my_role = None
-        my_membership = UserGroup.objects.filter(user=request.user, group_id=group_id).all()
-        if my_membership:
-            my_role = my_membership[0]
+        if request.user.is_staff:
+            my_role = 3 # 管理员
+        else:
+            my_membership = UserGroup.objects.filter(user=request.user, group_id=group_id).all()
+            if my_membership:
+                my_role = my_membership[0]
         members = UserGroup.objects.filter(group_id=group_id).all()
         return render(request, 'group_detail.html', {
             "group": group,
