@@ -26,7 +26,7 @@
             {% if group.banner %}
                 <div class="alert alert-warning alert-dismissible">
                     <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <h4><i class="icon fa fa-info"></i>班级公告 - {{ group.description }}</h4>
+                    <h4><i class="icon fa fa-info"></i>班级公告 - {{ group.name }}</h4>
                     {{ group.banner|linebreaksbr }}
                 </div>
             {% endif %}

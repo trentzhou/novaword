@@ -22,6 +22,7 @@
         <div class="box-body">
             <div id="answer">
                 <h2 id="word-spelling"></h2>
+                <div id="pronounciation"></div>
                 <a class="btn btn-success" id="btn-familiar">认识</a>
                 <a class="btn btn-danger" id="btn-unfamiliar">不熟悉</a>
             </div>
@@ -165,6 +166,24 @@
             $("#congratulations").hide();
             $("#answer").show();
             $("#word-spelling").html(word.spelling);
+            // show pronounciation
+            $("#pronounciation").html("");
+            if (word.pronounciation_uk && word.mp3_uk_url) {
+                $("#pronounciation").append($("<a>").attr("class", "play_mp3")
+                    .html("英<span class=\"ion ion-speakerphone text-blue\"></span> [" + word.pronounciation_uk + "]")
+                    .append($("<audio>").append($("<source>").attr("src", word.mp3_uk_url))));
+            }
+            $("#pronounciation").append("  ");
+            if (word.pronounciation_us && word.mp3_us_url) {
+                $("#pronounciation").append($("<a>").attr("class", "play_mp3")
+                    .html("美<span class=\"ion ion-speakerphone text-blue\"></span> [" + word.pronounciation_us + "]")
+                    .append($("<audio>").append($("<source>").attr("src", word.mp3_us_url))));
+            }
+
+            $(".play_mp3").click(function() {
+                $(this).find("audio").get(0).play();
+            });
+
         }
 
         function answer_familiar() {

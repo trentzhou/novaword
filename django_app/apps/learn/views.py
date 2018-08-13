@@ -587,11 +587,15 @@ def get_active_units(user_id):
     learned_units = LearningRecord.objects.filter(user_id=user_id).values("unit_id").distinct().all()
     for u in learned_units:
         active_units[u["unit_id"]] = True
-    user_groups = UserGroup.objects.filter(user_id=user_id).values("group")
+    user_groups = UserGroup.objects.filter(user_id=user_id, role__exact=1).all()
     today = datetime.date.today()
-    group_units = GroupLearningPlan.objects.filter(start_date__lte=today, group__in=user_groups).values("unit_id", "start_date").distinct().all()
-    for u in group_units:
-        active_units[u["unit_id"]] = True
+    for group in user_groups:
+        group_units = GroupLearningPlan.objects.filter(start_date__lte=today,
+                                                       start_date__gte=group.join_time,
+                                                       group=group).values("unit_id",
+                                                                           "start_date").distinct().all()
+        for u in group_units:
+            active_units[u["unit_id"]] = True
     all_active_units = active_units.keys()
     # if we have finished this unit, delete it
     result = [x for x in all_active_units if get_unit_learn_count(user_id, x) < 6]
@@ -609,7 +613,6 @@ def get_active_units(user_id):
         "all_active_units": all_active_units,
         "result": result
     }
-
 
 
 def get_unit_learn_count(user_id, unit_id):
@@ -746,6 +749,7 @@ class LearningView(LoginRequiredMixin, View):
                 "date": d.isoformat(),
                 "count": count
             })
+
         # 获取最近学习过的10个单元
         recent_units = LearningRecord\
             .objects\
@@ -767,10 +771,33 @@ class LearningView(LoginRequiredMixin, View):
                 } for x in error_words]
             })
 
+            # 计算最近单元的百分比
+            active_units = get_active_units(user_id)
+            recent_units = []
+            for u in active_units["result"]:
+                unit = WordUnit.objects.get(id=u)
+                obj = {
+                    'unit_id': unit.id,
+                    'unit__book_id': unit.book.id,
+                    'unit__book__description': unit.book.description,
+                    'unit__description': unit.description,
+                    'learn_count': get_unit_learn_count(user_id, unit.id)
+                }
+                recent_units.append(obj)
+            recent_units = sorted(recent_units, key=lambda x: x['learn_count'])
+
+            # try to get progress for the units
+            for u in recent_units:
+                count = int(u["learn_count"])
+                if count > 5:
+                    u["progress"] = 100
+                else:
+                    u["progress"] = int(100 * count / 6)
         return render(request, 'learn_records.html', {
             "user": user,
             "recent_records": recent_learning_times,
             "page": "learning",
+            "recent_units": recent_units[:10],
             "recent_error_records": error_table
         })
 

@@ -22,6 +22,43 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">近期学习</h3>
+            </div>
+            <!-- /.box-header -->
+            <div class="box-body table-responsive no-padding">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>单元</th>
+                        </tr>
+                    </thead>
+
+                    {% for u in recent_units %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'learn.book_detail' u.unit__book_id %}">{{ u.unit__book__description }}</a>
+                                -
+                                <a href="{% url 'learn.unit_detail' u.unit_id %}">{{ u.unit__description }}</a>
+
+                                <div class="clearfix">
+                                    <span class="pull-left">已经学习{{ u.learn_count }}次</span>
+                                    <small class="pull-right">{{ u.progress }}%</small>
+                                </div>
+                                    <div class="progress xs">
+                                    <div class="progress-bar progress-bar-green" style="width: {{ u.progress }}%;"></div>
+                                </div>
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+            <!-- /.box-body -->
+        </div>
+        <!-- /.box -->
+
         <div class="box box-solid bg-teal-gradient">
             <div class="box-header">
                 <h3 class="box-title">一个月内学习次数</h3>
