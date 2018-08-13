@@ -592,7 +592,7 @@ def get_active_units(user_id):
     for group in user_groups:
         group_units = GroupLearningPlan.objects.filter(start_date__lte=today,
                                                        start_date__gte=group.join_time,
-                                                       group=group).values("unit_id",
+                                                       group=group.group).values("unit_id",
                                                                            "start_date").distinct().all()
         for u in group_units:
             active_units[u["unit_id"]] = True
