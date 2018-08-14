@@ -6,6 +6,34 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.templatetags.static import static
 
+import random
+
+
+def generate_token():
+    adj_list = [
+        'great', 'big', 'little', 'wonderful', 'amazing',
+        'agile', 'quick', 'fast', 'dark', 'pretty',
+        'new', 'old', 'small', 'important', 'bad',
+        'real', 'best', 'right', 'only', 'early',
+        'strong', 'free', 'clear', 'short', 'single',
+        'fine', 'poor', 'hot', 'happy', 'serious',
+        'left', 'cold', 'huge', 'popular', 'nice',
+        'high', 'long', 'late', 'whole', 'recent',
+        'wrong', 'similar', 'general', 'blue', 'light'
+            ]
+    noun_list = [
+        'car', 'truck', 'rooster', 'monkey', 'apple',
+        'time', 'year', 'people', 'way', 'day',
+        'man', 'thing', 'life', 'world', 'school',
+        'family', 'group', 'country', 'problem', 'place',
+        'case', 'question', 'work', 'number', 'point',
+        'area', 'money',  'water', 'story', 'fact',
+        'month', 'book', 'issue', 'house', 'service',
+        'city', 'name', 'team', 'moment', 'minute',
+        'idea', 'information', 'face', 'party', 'morning'
+            ]
+    return "{0} {1}".format(random.choice(adj_list), random.choice(noun_list))
+
 
 class UserProfile(AbstractUser):
     nick_name = models.CharField(blank=True,
@@ -96,7 +124,7 @@ class Group(models.Model):
     is_admin = models.BooleanField(default=False, verbose_name=u"是不是学校管理员")
     create_time = models.DateTimeField(default=datetime.now,
                                        verbose_name=u"创建时间")
-    password = models.CharField(blank=True, max_length=100,
+    password = models.CharField(max_length=100, default=generate_token,
                                 verbose_name=u"进组密码")
     banner = models.TextField(default="", verbose_name=u"班级公告")
 

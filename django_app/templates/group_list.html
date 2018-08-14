@@ -39,10 +39,26 @@
             {% endfor %}
         </table>
         {% else %}
-            <p>还没有任何班级</p>
+            <p>
+                {{ message|default:"班级是看不到的哦，你需要用班级暗号来搜索才行。"}}
+            </p>
         {% endif %}
 
-        <a class="btn btn-primary" id="btn_create_group">申请创建新班级</a>
+        <a class="btn btn-primary margin-bottom" id="btn_create_group">申请创建新班级</a>
+
+        <div class="box">
+            <div class="box-body">
+                <form method="post">
+                    <div class="form-group">
+                        <label>班级暗号：</label>
+                        <input class="form-control" type="text" name="password" placeholder="some secret" />
+                    </div>
+                    <button type="submit" class="btn btn-primary">搜索班级</button>
+                    {% csrf_token %}
+                </form>
+            </div>
+        </div>
+
     </section>
 
     <!-- 创建班级对话框 -->

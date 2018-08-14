@@ -38,9 +38,10 @@
                         <div id="banner_content">{{ group.banner|linebreaksbr }}</div>
                     </div>
                     <button class="btn btn-success" id="btn-toggle-member">我是班级成员 - 申请退出</button>
-                    {% if my_role.role > 1 %}
+                    {% if my_role > 1 %}
                         <!-- 我是老师，可以设置班级公告 -->
                         <a id="btn-set-banner" class="btn btn-primary">设置班级公告</a>
+                        <span>加入班级暗号： <strong style="color: red">{{ group.password }}</strong></span>
                     {% endif %}
                 {% else %}
                     <button class="btn btn-warning" id="btn-toggle-member">我不是班级成员 - 申请加入</button>
@@ -70,7 +71,7 @@
                                 </td>
                                 <td>
                                     {{ member.get_role_display }}
-                                    {% if my_role.role > 1 and member.user.id != request.user.id %}
+                                    {% if my_role > 1 and member.user.id != request.user.id %}
                                         <a id="btn-kickout" title="踢出去" onclick="kickout({{ member.user.id }})"><span class="fa fa-trash"></span></a>
                                     {% endif %}
                                 </td>
@@ -117,7 +118,7 @@
 
     {% endif %}
 
-    {% if my_role.role > 1 %}
+    {% if my_role > 1 %}
         <div class="box box-solid bg-green-gradient">
             <div class="box-header">
                 <h3 class="box-title">近期学习记录</h3>
@@ -296,7 +297,7 @@
         this.html(this.html().replace(/\n/g,'<br/>'));
         return this;
     }
-    {% if my_role.role > 1 %}
+    {% if my_role %}
     function kickout(user_id) {
         $.ajax({
             type: "POST",
@@ -417,7 +418,7 @@
                                 .append($("<a>")
                                     .attr("href", "{% url 'learn.book_detail' 0 %}".replace("0", book.book_id))
                                     .html(book.book__description));
-                            {% if my_role.role > 1 %}
+                            {% if my_role > 1 %}
                             li.append($("<a>")
                                     .attr("class", "delete_book")
                                     .attr("book_id", book.book_id)
@@ -431,7 +432,7 @@
                     } else {
                         $("#group_books").html("").append($("<p>").html("现在还没有课本"));
                     }
-                    {% if my_role.role > 1 %}
+                    {% if my_role > 1 %}
                     // add a button to edit
                     $("#group_books").append($("<a>").attr("id", "btn_add_book").attr("class", "btn btn-primary").html("添加课本"));
 
@@ -484,7 +485,7 @@
                                 .append($("<a>")
                                     .attr("href", "{% url 'learn.unit_detail' 0 %}".replace("0", unit.unit_id))
                                     .html(unit.unit__description));
-                            {% if my_role.role > 1 %}
+                            {% if my_role > 1 %}
                             td.append($("<a>")
                                     .attr("class", "delete_unit")
                                     .attr("unit_id", unit.unit_id)
@@ -497,7 +498,7 @@
                     } else {
                         $("#group_units").html("").append($("<p>").html("现在还没有在学习的单元"));
                     }
-                    {% if my_role.role > 1 %}
+                    {% if my_role > 1 %}
                     // add a button to edit
                     $("#group_units").append($("<a>").attr("id", "btn_add_unit").attr("class", "btn btn-primary").html("添加或修改单元"));
                     $("#btn_add_unit").click(function() {

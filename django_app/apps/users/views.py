@@ -422,7 +422,7 @@ class UserContactView(LoginRequiredMixin, View):
         m.from_user = request.user
         m.to_user = user_id
         m.save()
-        return render(request, 'user_contact.html', {
+        return render(request, 'user_cowntact.html', {
             "message": u"消息发送成功"
         })
 
@@ -437,8 +437,31 @@ class MyGroupView(LoginRequiredMixin, View):
 
 
 class GroupListView(LoginRequiredMixin, View):
+    def post(self, request):
+        password = request.POST["password"]
+        groups = Group.objects.filter(password=password).all()
+        organizations = Organization.objects.all()
+        if groups.count() > 1:
+            return render(request, 'group_list.html', {
+                "page": "groups",
+                "groups": groups,
+                "organizations": organizations
+            })
+        elif groups.count() == 1:
+            group = groups.first()
+            return redirect(reverse('user.group_detail', kwargs={
+                "group_id": group.id
+            }))
+        else:
+            return render(request, 'group_list.html', {
+                "page": "groups",
+                "groups": groups,
+                "message": "没有找到你要的班级",
+                "organizations": organizations
+            })
+
     def get(self, request):
-        groups = Group.objects.filter(is_admin=False).order_by("organization").all()
+        groups = []
         organizations = Organization.objects.all()
         return render(request, 'group_list.html', {
             "page": "groups",
@@ -458,7 +481,7 @@ class GroupDetailView(LoginRequiredMixin, View):
         else:
             my_membership = UserGroup.objects.filter(user=request.user, group_id=group_id).all()
             if my_membership:
-                my_role = my_membership[0]
+                my_role = my_membership[0].role
         members = UserGroup.objects.filter(group_id=group_id).all()
         return render(request, 'group_detail.html', {
             "group": group,
