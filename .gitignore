@@ -18,3 +18,4 @@ upload/
 mysql_data/
 celerybeat-schedule
 .vscode/
+/static/
