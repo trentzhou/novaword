@@ -19,6 +19,7 @@ class Quiz(models.Model):
                                 verbose_name=u"参加测试的密码")
     is_public = models.BooleanField(default=False, verbose_name=u"是否公开")
     groups = models.ManyToManyField(Group, verbose_name=u"班级")
+    create_time = models.DateTimeField(default=datetime.now, verbose_name=u"创建时间")
 
     class Meta:
         verbose_name = u"考卷"

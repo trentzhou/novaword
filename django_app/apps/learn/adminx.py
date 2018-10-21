@@ -8,7 +8,6 @@ class WordAdmin(object):
                     'pronounciation_us',
                     'pronounciation_uk',
                     'short_meaning',
-                    'detailed_meanings',
                     'wrong_meaning1',
                     'wrong_meaning2',
                     'wrong_meaning3']

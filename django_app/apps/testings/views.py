@@ -295,28 +295,35 @@ class AjaxSaveQuizResultView(View):
 class QuizRankView(View):
     def get(self, request, quiz_id):
         quiz = Quiz.objects.filter(id=quiz_id).get()
-        if quiz.author == request.user:
-            # 我是作者，可以看到所有人的排名
-            results = QuizResult.objects.filter(quiz_id=quiz_id).order_by("-correct_count").distinct()
-        else:
-            group_ids = UserGroup.objects.filter(user=request.user).values("group_id").all()
 
-            results = QuizResult.\
+        # 分班显示排名
+        groups = Group.objects.filter(usergroup__user=request.user).distinct()
+        group_ranks = []
+        quiz_question_count = quiz.quizquestion_set.count()
+        for group in groups:
+            group_results = QuizResult.\
                 objects.\
-                filter(user__usergroup__group__in=group_ids, quiz_id=quiz_id).\
+                filter(user__usergroup__group=group, quiz_id=quiz_id).\
                 order_by("-correct_count").distinct()
-        # put the order in the result.
-        # possibly there are two results with same correct count.
-        # the order should be same in this case.
-        order = 0
-        correct_count = 0
-        for r in results:
-            if r.correct_count != correct_count:
-                order += 1
-            r.order = order
-            correct_count = r.correct_count
+            # put the order in the result.
+            # possibly there are two results with same correct count.
+            # the order should be same in this case.
+            order = 0
+            correct_count = 0
+            for r in group_results:
+                if r.correct_count != correct_count:
+                    order += 1
+                r.order = order
+                r.correct_rate = int(r.correct_count * 100 / quiz_question_count)
+                correct_count = r.correct_count
+            obj = {
+                "group": group,
+                "result": group_results
+            }
+            group_ranks.append(obj)
+
         return render(request, 'quiz_rank.html', {
             "quiz_id": quiz_id,
-            "rank": results,
+            "group_ranks": group_ranks,
             "is_teacher": is_teacher(request.user.id)
         })

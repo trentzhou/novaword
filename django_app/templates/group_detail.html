@@ -3,7 +3,9 @@
 {% load learn_status %}
 
 {% block extra_head %}
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'bower_components/bootstrap-datepicker/css/bootstrap-datepicker.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-dialog/bootstrap-dialog.min.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -12,6 +14,10 @@
             班级详情
             <small>
                 {{ group.name }}
+
+                {% if my_role == 3 %}
+                    <a id="btn-change-name" class="btn btn-danger">修改</a>
+                {% endif %}
             </small>
         </h1>
         <ol class="breadcrumb">
@@ -56,6 +62,7 @@
                         <thead>
                         <tr>
                             <th>用户</th>
+                            <th>学号</th>
                             <th>权限</th>
                             <th>累计学习次数</th>
                             <th>一周内学习次数</th>
@@ -69,6 +76,7 @@
                                          <span class="username">{{ member.user }}</span>
                                     </a>
                                 </td>
+                                <td>{{ member.student_id }}</td>
                                 <td>
                                     {{ member.get_role_display }}
                                     {% if my_role > 1 and member.user.id != request.user.id %}
@@ -145,6 +153,10 @@
                         点击“确定”按钮，系统会发送一条消息给班级管理员。等管理员批准以后，你就被加入班级了。
                     </p>
                     <form>
+                        <div class="form-group">
+                            <label class="control-label">学号：</label>
+                            <input id="student_id" type="number" class="form-control"/>
+                        </div>
                         <div class="form-group">
                             <label class="control-label">给管理员留言：</label>
                             <input id="join_message" type="text" class="form-control"/>
@@ -286,7 +298,9 @@
 {% endblock %}
 
 {% block extra_script %}
-
+    <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
+    <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
+    <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
     <script src="{% static 'jquery.toaster/jquery.toaster.js' %}"></script>
     <script src="{% static 'bower_components/bootstrap-datepicker/js/bootstrap-datepicker.min.js' %}"></script>
     <script src="{% static 'bower_components/bootstrap-datepicker/locales/bootstrap-datepicker.zh-CN.min.js' %}"></script>
@@ -296,7 +310,13 @@
         this.text(text);
         this.html(this.html().replace(/\n/g,'<br/>'));
         return this;
-    }
+    };
+    $("#members_table").DataTable({
+            "language": {
+                url: "{% static 'datatables/Chinese.txt' %}"
+            },
+            "pageLength": 50
+        });
     {% if my_role %}
     function kickout(user_id) {
         $.ajax({
@@ -344,6 +364,45 @@
                 $("#leave_confirm_msg").text("");
                 $("#dialog-confirm-leave").modal("toggle");
             }
+        });
+
+        $("#btn-change-name").click(function() {
+            BootstrapDialog.show({
+                title: '班级改名',
+                message: '<div class="form-group"><label class="control-label">班级的新名称</label><input type="text" class="form-control group-name" value="{{ group.name }}"></div>' +
+                        '<div class="form-group"><label class="control-label">班级的新暗号</label><input type="text" class="form-control group-password" value="{{ group.password }}"></div>',
+                buttons: [ {
+                    label: '确定',
+                    action: function(dialogRef) {
+                        var name = dialogRef.getModalBody().find('input.group-name').val();
+                        var password = dialogRef.getModalBody().find('input.group-password').val();
+
+                        name = $.trim(name);
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'user.group_change_name' group.id %}",
+                            beforeSend:function(xhr, settings) {
+                                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                            },
+                            async: true,
+                            data: {
+                                "name": name,
+                                "password": password
+                            },
+                            success: function(data) {
+                                try {
+                                    if (data.status == "ok") {
+                                        location.reload();
+                                    }
+                                } catch (ex) {
+                                    console.log(ex);
+                                }
+                            }
+                        });
+                        dialogRef.close();
+                    }
+                }]
+            })
         });
 
         $("#confirm_join").click(function() {

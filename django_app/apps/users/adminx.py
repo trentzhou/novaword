@@ -36,9 +36,9 @@ class GroupAdmin(object):
 
 
 class UserGroupAdmin(object):
-    list_display = ['user', 'group', 'role', 'join_time']
-    search_fields = ['user', 'group', 'role']
-    list_filter = ['user', 'group', 'role', 'join_time']
+    list_display = ['user', 'group', 'role', 'student_id', 'join_time']
+    search_fields = ['user', 'group', 'role', 'student_id']
+    list_filter = ['user', 'group', 'role', 'student_id', 'join_time']
     model_icon = 'fa fa-link'
 
 

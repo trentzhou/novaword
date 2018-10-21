@@ -462,12 +462,32 @@ class GroupListView(LoginRequiredMixin, View):
 
     def get(self, request):
         groups = []
+        if request.user.is_staff:
+            groups = Group.objects.all()
         organizations = Organization.objects.all()
         return render(request, 'group_list.html', {
             "page": "groups",
             "groups": groups,
             "organizations": organizations
         })
+
+
+class GroupChangeNameView(LoginRequiredMixin, View):
+    def post(self, request, group_id):
+        group = Group.objects.filter(id=group_id).get()
+        if not group:
+            raise Http404()
+        name = request.POST.get("name", None)
+        password = request.POST.get("password", None)
+        if name:
+            group.name = name
+        if password:
+            group.password = password
+        group.save()
+        return JsonResponse({
+            "status": "ok"
+        })
+
 
 
 class GroupDetailView(LoginRequiredMixin, View):
@@ -494,6 +514,7 @@ class GroupDetailView(LoginRequiredMixin, View):
 class AjaxJoinGroupView(LoginRequiredMixin, View):
     def post(self, request):
         group_id = request.POST.get("group_id", None)
+        student_id = request.POST.get("student_id", 0)
         is_teacher = parse_bool(request.POST.get("is_teacher", False))
         message = request.POST.get("message", "")
         if not group_id:
@@ -522,6 +543,7 @@ class AjaxJoinGroupView(LoginRequiredMixin, View):
                 "group_id": group_id,
                 "user_id": request.user.id,
                 "is_teacher": is_teacher,
+                "student_id": student_id,
                 "extra_message": message
             })
             msg.save()
@@ -610,6 +632,7 @@ class AjaxApproveJoinGroupView(LoginRequiredMixin, View):
         user_id = request.POST.get("user_id", 0)
         group_id = request.POST.get("group_id", 0)
         role = request.POST.get("role", 1)
+        student_id = request.POST.get("student_id", 0)
         try:
             user = UserProfile.objects.filter(id=user_id).get()
             group = Group.objects.filter(id=group_id).get()
@@ -618,6 +641,7 @@ class AjaxApproveJoinGroupView(LoginRequiredMixin, View):
                 ug.user = user
                 ug.group = group
                 ug.role = role
+                ug.student_id = student_id
                 ug.save()
 
                 m = UserMessage()

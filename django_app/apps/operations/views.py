@@ -41,6 +41,7 @@ class MessageView(LoginRequiredMixin, View):
             elif message.message_type == UserMessage.MSG_TYPE_JOIN_GROUP_OK:
                 return self.render_msg_join_group_ok(request, data)
 
+
     def render_msg_join_group(self, request, data):
         user = UserProfile.objects.filter(id=data["user_id"]).get()
         group = Group.objects.filter(id=data["group_id"]).get()
@@ -54,6 +55,7 @@ class MessageView(LoginRequiredMixin, View):
             "group": group
         })
         return render(request, 'message_join_group.html', data)
+
 
     def render_msg_join_group_ok(self, request, data):
         group = Group.objects.filter(id=data["group_id"]).get()
@@ -75,6 +77,8 @@ class MessageView(LoginRequiredMixin, View):
         organization_id = data["organization_id"]
         organization = Organization.objects.filter(id=organization_id).get()
         data["organization"] = organization
+        user = UserProfile.objects.filter(id=data["user_id"]).get()
+        data.update({"user": user})
         return render(request, 'message_create_group.html', data)
 
     def post(self, request, message_id):

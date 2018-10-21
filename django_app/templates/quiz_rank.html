@@ -18,39 +18,45 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
-    {% if rank %}
-        我的同学里已经有了{{ rank |length }}份答卷。排名如下：
-        <table class="table table-responsive">
-        <thead>
-        <tr>
-            <th>排名</th>
-            <th>昵称</th>
-            <th>交卷时间</th>
-            {% if is_teacher %}
-                <th>答对题数</th>
-            {% endif %}
-        </tr>
-        </thead>
-        <tbody>
-        {% for r in rank %}
+    {% if group_ranks %}
+        {% for g in group_ranks %}
+            <h2><a href="{% url 'user.group_detail' g.group.id %}">{{ g.group }}</a>有{{ g.result|length }}份答卷，排名如下：</h2>
+
+            <table class="table table-responsive">
+            <thead>
             <tr>
-            <td>{{ r.order }}</td>
-            <td class="user-block">
-                <a href="{% url 'users.contact' r.user.id %}">
-                {% if r.user.avatar %}
-                    <img src="{{ MEDIA_URL }}{{ r.user.avatar }}" class="img-circle img-sm" alt="User Image" />
+                <th>排名</th>
+                <th>昵称</th>
+                <th>交卷时间</th>
+                {% if is_teacher %}
+                    <th>答对题数</th>
+                    <th>正确率</th>
                 {% endif %}
-                <span class="username">{{ r.user }}</span>
-                </a>
-            </td>
-            <td>{{ r.finish_time }}</td>
-            {% if is_teacher %}
-                <td>{{r.correct_count }}</td>
-            {% endif %}
             </tr>
+            </thead>
+            <tbody>
+            {% for r in g.result %}
+                <tr>
+                <td>{{ r.order }}</td>
+                <td class="user-block">
+                    <a href="{% url 'users.contact' r.user.id %}">
+                    {% if r.user.avatar %}
+                        <img src="{{ MEDIA_URL }}{{ r.user.avatar }}" class="img-circle img-sm" alt="User Image" />
+                    {% endif %}
+                    <span class="username">{{ r.user }}</span>
+                    </a>
+                </td>
+                <td>{{ r.finish_time }}</td>
+                {% if is_teacher %}
+                    <td>{{r.correct_count }}</td>
+                    <td>{{r.correct_rate }}%</td>
+                {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+            </table>
         {% endfor %}
-        </tbody>
-        </table>
+
     {% else %}
         我的同学里面还没有人交过答卷。
     {% endif %}

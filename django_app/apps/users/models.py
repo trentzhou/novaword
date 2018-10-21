@@ -150,6 +150,7 @@ class UserGroup(models.Model):
                                ),
                                default=1,
                                verbose_name=u"组内的角色")
+    student_id = models.IntegerField(default=0, verbose_name=u"学号")
     join_time = models.DateField(default=datetime.now,
                                  verbose_name=u"加入时间")
 

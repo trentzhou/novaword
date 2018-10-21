@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
+{% block extra_head %}
+    <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'bootstrap-dialog/bootstrap-dialog.min.css' %}">
+{% endblock %}
+
+
 {% block content %}
     <section class="content-header">
         <h1>
@@ -42,35 +48,21 @@
 
     </section>
 
-
-    <div class="modal fade" id="dialog-message">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="message-title"></h4>
-                </div>
-                <div class="modal-body margin-bottom">
-                    <p id="message-text"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">关闭</button>
-                </div>
-            </div>
-            <!-- /.modal-content -->
-        </div>
-    </div>
-    <!-- /.modal-dialog -->
-
 {% endblock %}
 
 {% block extra_script %}
     <script>
     function show_message(title, text) {
-        $("#message-text").text(text);
-        $("#message-title").text(title);
-        $("#dialog-message").modal();
+        BootstrapDialog.show({
+            title: title,
+            message: text,
+            buttons: [{
+                label: '知道了',
+                action: function(dialog) {
+                    location.href = "{% url 'operations.message_list' %}";
+                }
+            }]
+        });
     }
 
     $(function() {
@@ -86,6 +78,7 @@
                 data: {
                     "user_id": {{ user_id }},
                     "group_id": {{ group_id }},
+                    "student_id": {{ student_id }},
                     "role": {{ role }}
                 },
                 success: function(data) {
