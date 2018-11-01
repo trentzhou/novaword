@@ -6,7 +6,7 @@ from users.views import UserInfoView, AvatarUploadView, AjaxChangeNickNameView, 
     AjaxGetEmailVerificationView, AjaxUpdateEmailView, AjaxChangePasswordView, AjaxChangeMobileView, MyGroupView, \
     GroupListView, GroupDetailView, AjaxJoinGroupView, AjaxLeaveGroupView, UserContactView, AjaxApproveJoinGroupView, \
     AjaxApproveLeaveGroupView, AjaxRejectRequestView, AjaxCreateGroupView, AjaxApproveCreateGroupView, \
-    AjaxSetGroupBannerView, GroupChangeNameView
+    AjaxSetGroupBannerView, GroupChangeNameView, AjaxChangeStudentIdView
 
 urlpatterns = [
     url(r'^profile/$', UserInfoView.as_view(), name="users.profile"),
@@ -31,4 +31,5 @@ urlpatterns = [
     url(r'^ajax-approve-create-group/$', AjaxApproveCreateGroupView.as_view(), name="user.approve_create_group"),
     url(r'^ajax-reject-request/$', AjaxRejectRequestView.as_view(), name="user.reject_request"),
     url(r'^ajax-set-group-banner/$', AjaxSetGroupBannerView.as_view(), name="user.ajax_set_group_banner"),
+    url(r'^ajax-change-student-id/$', AjaxChangeStudentIdView.as_view(), name="user.ajax_change_student_id"),
 ]

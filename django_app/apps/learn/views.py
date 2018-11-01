@@ -457,8 +457,8 @@ class LearningPlanView(LoginRequiredMixin, View):
 
         units = WordUnit.objects.filter(id__in=all_planned_units.keys()).all()
         for u in units:
-            u.learn_times = u.learn_count(request.user)
-            u.review_times = u.review_count(request.user)
+            u.learn_times = u.learn_count(user_id)
+            u.review_times = u.review_count(user_id)
 
         return render(request, 'unit_list.html', {
             "page": "units",

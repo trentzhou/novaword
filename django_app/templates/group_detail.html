@@ -76,7 +76,15 @@
                                          <span class="username">{{ member.user }}</span>
                                     </a>
                                 </td>
-                                <td>{{ member.student_id }}</td>
+                                <td>
+                                    {{ member.student_id }}
+                                    {% if my_role > 1 or member.user_id == request.user.id %}
+                                        <a title="修改学号" onclick="change_student_id({{ member.id }}, {{ member.student_id }})">
+                                            <span class="fa fa-pencil"></span>
+                                        </a>
+                                    {% endif %}
+                                </td>
+
                                 <td>
                                     {{ member.get_role_display }}
                                     {% if my_role > 1 and member.user.id != request.user.id %}
@@ -341,6 +349,42 @@
                 }
             }
         });
+    }
+
+    function change_student_id(user_group_id, default_student_id) {
+        BootstrapDialog.show({
+            title: '班级学号',
+            message: '<div class="form-group"><label class="control-label">新学号</label><input type="text" class="form-control" value="' + default_student_id + '"></div>',
+            buttons: [ {
+                label: '确定',
+                action: function(dialogRef) {
+                    var new_student_id = dialogRef.getModalBody().find('input').val();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'user.ajax_change_student_id' %}",
+                        beforeSend:function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        },
+                        async: true,
+                        data: {
+                            "user_group_id": user_group_id,
+                            "student_id": new_student_id
+                        },
+                        success: function(data) {
+                            try {
+                                if (data.status == "ok") {
+                                    location.reload();
+                                }
+                            } catch (ex) {
+                                console.log(ex);
+                            }
+                        }
+                    });
+                    dialogRef.close();
+                }
+            }]
+        })
     }
     {% endif %}
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import xadmin
-from .models import EmailVerifyRecord, Group, UserGroup, Organization
+from xadmin.plugins.auth import UserAdmin
+from .models import EmailVerifyRecord, Group, UserGroup, Organization, UserProfile
 
 
 class BaseSetting(object):
@@ -12,6 +13,12 @@ class GlobalSetting(object):
     site_title = u"Nova背单词"
     site_footer = u"Nova背单词"
     #menu_style = "accordion"
+
+
+class UserProfileAdmin(UserAdmin):
+    list_display = ('username', 'nick_name', 'email', 'mobile_phone')
+    list_filter = ('is_staff', 'is_superuser', 'is_active')
+    search_fields = ('username', 'nick_name', 'email', 'mobile_phone')
 
 
 class EmailVerifyRecordAdmin(object):
@@ -37,11 +44,13 @@ class GroupAdmin(object):
 
 class UserGroupAdmin(object):
     list_display = ['user', 'group', 'role', 'student_id', 'join_time']
-    search_fields = ['user', 'group', 'role', 'student_id']
+    search_fields = ['user__nick_name', 'group__name', 'role', 'student_id']
     list_filter = ['user', 'group', 'role', 'student_id', 'join_time']
     model_icon = 'fa fa-link'
 
 
+xadmin.site.unregister(UserProfile)
+xadmin.site.register(UserProfile, UserProfileAdmin)
 xadmin.site.register(EmailVerifyRecord, EmailVerifyRecordAdmin)
 xadmin.site.register(Organization, OrganizationAdmin)
 xadmin.site.register(Group, GroupAdmin)

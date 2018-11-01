@@ -78,11 +78,11 @@ class WordUnit(models.Model):
     def __unicode__(self):
         return u"{0} - {1}".format(self.book.description, self.description)
 
-    def learn_count(self, user):
-        return self.learningrecord_set.filter(Q(type=1)|Q(type=2), user=user).count()
+    def learn_count(self, user_id):
+        return LearningRecord.objects.filter(Q(type=1)|Q(type=2), user_id=user_id, unit=self).count()
 
-    def review_count(self, user):
-        return self.learningrecord_set.filter(user=user, type=3).count()
+    def review_count(self, user_id):
+        return LearningRecord.objects.filter(type=3, user_id=user_id, unit=self).count()
 
 
 class WordInUnit(models.Model):
@@ -115,7 +115,7 @@ class LearningPlan(models.Model):
         return self.__unicode__()
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.user.username, self.unit)
+        return u"{0} - {1}".format(self.user, self.unit)
 
 
 class UserTask(models.Model):
@@ -134,7 +134,7 @@ class UserTask(models.Model):
         return self.__unicode__()
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.user.username, self.unit)
+        return u"{0} - {1}".format(self.user, self.unit)
 
 
 class LearningRecord(models.Model):
@@ -158,7 +158,7 @@ class LearningRecord(models.Model):
         return self.__unicode__()
 
     def __unicode__(self):
-        return u"{0} - {1}".format(self.user.username, self.unit)
+        return u"{0} - {1} - {2}".format(self.user, self.unit, self.type)
 
 
 class ErrorWord(models.Model):

@@ -12,7 +12,7 @@ class QuizAdmin(object):
                     'max_word_time',
                     'password',
                     'is_public']
-    search_fields = list_display
+    search_fields = ['description', 'author__nick_name', 'book__description']
     list_filter = ['description',
                    'author',
                    'groups',
@@ -26,14 +26,14 @@ class QuizAdmin(object):
 
 class QuizQuestionAdmin(object):
     list_display = ['word', 'quiz', 'quiz_format']
-    search_fields = list_display
+    search_fields = ['word__word__spelling', 'quiz__description', 'word__unit__description']
     list_filter = ['word__word__spelling', 'quiz__description', 'quiz_format']
     model_icon = 'fa fa-question'
 
 
 class QuizResultAdmin(object):
     list_display = ['user', 'quiz', 'start_time', 'finish_time', 'correct_count']
-    search_fields = ['user', 'quiz']
+    search_fields = ['user__nick_name', 'quiz__description']
     list_filter = ['user__username',
                    'quiz__description',
                    'start_time',

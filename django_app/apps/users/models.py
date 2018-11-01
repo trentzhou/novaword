@@ -126,7 +126,7 @@ class Group(models.Model):
                                        verbose_name=u"创建时间")
     password = models.CharField(max_length=100, default=generate_token,
                                 verbose_name=u"进组密码")
-    banner = models.TextField(default="", verbose_name=u"班级公告")
+    banner = models.TextField(default="", verbose_name=u"班级公告", null=True, blank=True)
 
     class Meta:
         verbose_name = u"班级"

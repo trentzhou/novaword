@@ -489,6 +489,17 @@ class GroupChangeNameView(LoginRequiredMixin, View):
         })
 
 
+class AjaxChangeStudentIdView(LoginRequiredMixin, View):
+    def post(self, request):
+        user_group_id = request.POST.get("user_group_id")
+        student_id = request.POST.get("student_id")
+        membership = UserGroup.objects.filter(id=user_group_id).get()
+        membership.student_id = student_id
+        membership.save()
+        return JsonResponse({
+            "status": "ok"
+        })
+
 
 class GroupDetailView(LoginRequiredMixin, View):
     def get(self, request, group_id):
