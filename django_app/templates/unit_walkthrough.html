@@ -161,6 +161,11 @@
                 $(this).find("audio").get(0).play();
             });
 
+            $("#word-spelling").click(function() {
+                var div = $(".play_mp3").find("audio").get(0);
+                if (div != null)
+                    div.play();
+            });
         }
 
         function show_word_explain(word) {

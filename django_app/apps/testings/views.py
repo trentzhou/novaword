@@ -77,7 +77,7 @@ class EditQuizView(View):
     def get(self, request, quiz_id):
         try:
             quiz = Quiz.objects.filter(id=quiz_id).get()
-            my_groups = UserGroup.objects.filter(user=request.user).values("group_id", "group__description")
+            my_groups = UserGroup.objects.filter(user=request.user).values("group_id", "group__name")
             units = WordUnit.objects.filter(book=quiz.book).order_by("order").all()
             return render(request, 'quiz_edit.html', {
                 "page": "testings",
@@ -300,7 +300,9 @@ class QuizRankView(View):
         groups = Group.objects.filter(usergroup__user=request.user).distinct()
         group_ranks = []
         quiz_question_count = quiz.quizquestion_set.count()
+
         for group in groups:
+            my_rank = 9999
             group_results = QuizResult.\
                 objects.\
                 filter(user__usergroup__group=group, quiz_id=quiz_id).\
@@ -313,11 +315,16 @@ class QuizRankView(View):
             for r in group_results:
                 if r.correct_count != correct_count:
                     order += 1
+                if r.user == request.user and order < my_rank:
+                    my_rank = order
                 r.order = order
                 r.correct_rate = int(r.correct_count * 100 / quiz_question_count)
                 correct_count = r.correct_count
+            if my_rank == 9999:
+                my_rank = None
             obj = {
                 "group": group,
+                "my_rank": my_rank,
                 "result": group_results
             }
             group_ranks.append(obj)

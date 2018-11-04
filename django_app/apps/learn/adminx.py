@@ -11,7 +11,9 @@ class WordAdmin(object):
                     'wrong_meaning1',
                     'wrong_meaning2',
                     'wrong_meaning3']
-    search_fields = list_display
+    search_fields = ['spelling',
+                     'short_meaning',
+                     'detailed_meanings']
     list_filter = list_display
     model_icon = 'fa fa-bars'
     relfield_style = 'fk-ajax'

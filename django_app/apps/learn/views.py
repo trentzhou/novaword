@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
 from django.db.models import Count, Q, Max
 from django.http import Http404, JsonResponse, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.generic import View
 
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, Word
@@ -669,7 +669,7 @@ def get_todays_units(user_id):
     """
     active_units = get_active_units(user_id)["result"]
     result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
-    return result
+    return result[:5]
 
 
 class StartLearnView(LoginRequiredMixin, View):
@@ -689,7 +689,7 @@ class AjaxGetTodayUnitsView(LoginRequiredMixin, View):
 
 
 class LearningOverviewView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get_for_student(self, request):
         learn_count = LearningRecord.objects.filter(user=request.user).count()
         quiz_count = QuizResult.objects.filter(user=request.user).count()
         erroneous_words = ErrorWord.objects.filter(user=request.user, amend_count__lt=2).count()
@@ -718,7 +718,6 @@ class LearningOverviewView(LoginRequiredMixin, View):
             else:
                 u["progress"] = int(100 * count / 6)
         mastered_unit_count = len(active_units["all_active_units"]) - len(active_units["result"])
-        all_my_learned_units = LearningRecord.objects.filter(user=request.user).values("unit_id")
 
         groups = Group.objects.filter(usergroup__user=request.user).all()
         return render(request, 'index.html', {
@@ -731,6 +730,15 @@ class LearningOverviewView(LoginRequiredMixin, View):
             "mastered_unit_count": mastered_unit_count,
             "groups": groups
         })
+
+    def get_for_teacher(self, request):
+        return redirect(reverse('user.my_groups'))
+
+    def get(self, request):
+        if is_teacher(request.user.id):
+            return self.get_for_teacher(request)
+        else:
+            return self.get_for_student(request)
 
 
 class LearningView(LoginRequiredMixin, View):

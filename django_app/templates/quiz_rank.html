@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load user_info %}
+
 {% block content %}
         <!-- Content Header (Page header) -->
     <section class="content-header">
@@ -20,41 +22,50 @@
     <section class="content container-fluid">
     {% if group_ranks %}
         {% for g in group_ranks %}
-            <h2><a href="{% url 'user.group_detail' g.group.id %}">{{ g.group }}</a>有{{ g.result|length }}份答卷，排名如下：</h2>
+            {% if request.user.id|is_teacher %}
+                <h2><a href="{% url 'user.group_detail' g.group.id %}">{{ g.group }}</a>有{{ g.result|length }}份答卷，排名如下：</h2>
 
-            <table class="table table-responsive">
-            <thead>
-            <tr>
-                <th>排名</th>
-                <th>昵称</th>
-                <th>交卷时间</th>
-                {% if is_teacher %}
-                    <th>答对题数</th>
-                    <th>正确率</th>
-                {% endif %}
-            </tr>
-            </thead>
-            <tbody>
-            {% for r in g.result %}
+                <table class="table table-responsive">
+                <thead>
                 <tr>
-                <td>{{ r.order }}</td>
-                <td class="user-block">
-                    <a href="{% url 'users.contact' r.user.id %}">
-                    {% if r.user.avatar %}
-                        <img src="{{ MEDIA_URL }}{{ r.user.avatar }}" class="img-circle img-sm" alt="User Image" />
+                    <th>排名</th>
+                    <th>昵称</th>
+                    <th>交卷时间</th>
+                    {% if is_teacher %}
+                        <th>答对题数</th>
+                        <th>正确率</th>
                     {% endif %}
-                    <span class="username">{{ r.user }}</span>
-                    </a>
-                </td>
-                <td>{{ r.finish_time }}</td>
-                {% if is_teacher %}
-                    <td>{{r.correct_count }}</td>
-                    <td>{{r.correct_rate }}%</td>
-                {% endif %}
                 </tr>
-            {% endfor %}
-            </tbody>
-            </table>
+                </thead>
+                <tbody>
+                {% for r in g.result %}
+                    <tr>
+                    <td>{{ r.order }}</td>
+                    <td class="user-block">
+                        <a href="{% url 'users.contact' r.user.id %}">
+                        {% if r.user.avatar %}
+                            <img src="{{ MEDIA_URL }}{{ r.user.avatar }}" class="img-circle img-sm" alt="User Image" />
+                        {% endif %}
+                        <span class="username">{{ r.user }}</span>
+                        </a>
+                    </td>
+                    <td>{{ r.finish_time }}</td>
+                    {% if is_teacher %}
+                        <td>{{r.correct_count }}</td>
+                        <td>{{r.correct_rate }}%</td>
+                    {% endif %}
+                    </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+            {% else %}
+                <h2>
+                    <a href="{% url 'user.group_detail' g.group.id %}">{{ g.group }}</a>有{{ g.result|length }}份答卷。
+                    {% if g.my_rank %}
+                        我的成绩排在第{{ g.my_rank }}名。
+                    {% endif %}
+                </h2>
+            {% endif %}
         {% endfor %}
 
     {% else %}

@@ -64,8 +64,11 @@
                             <th>用户</th>
                             <th>学号</th>
                             <th>权限</th>
+                            {% if my_role > 1 %}
                             <th>累计学习次数</th>
-                            <th>一周内学习次数</th>
+                            <th>一天内学习次数</th>
+                            <th>最近学习的单元</th>
+                            {% endif %}
                         </tr>
                         </thead>
                         {% for member in members %}
@@ -91,12 +94,17 @@
                                         <a id="btn-kickout" title="踢出去" onclick="kickout({{ member.user.id }})"><span class="fa fa-trash"></span></a>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    {{ member.user_id | get_total_learn_times }}
-                                </td>
-                                <td>
-                                    {{ member.user_id | get_recent_learn_times:7 }}
-                                </td>
+                                {% if my_role > 1 %}
+                                    <td>
+                                        {{ member.user_id | get_total_learn_times }}
+                                    </td>
+                                    <td>
+                                        {{ member.user_id | get_recent_learn_times:1 }}
+                                    </td>
+                                    <td>
+                                        {{ member.user_id | get_latest_unit }}
+                                    </td>
+                                {% endif %}
                             </tr>
                         {% endfor %}
 
@@ -508,7 +516,8 @@
             language: "zh-CN"
         });
         // 读取班级学习计划
-        function load_group_books() {var url = "{% url 'operations.ajax_group_books' group.id %}";
+        function load_group_books() {
+            var url = "{% url 'operations.ajax_group_books' group.id %}";
             $.get(url, function(data) {
                 if (data.status == "ok") {
                     var books = data.books;
@@ -568,12 +577,15 @@
             });
         }
 
+        var group_units = null;
+        var last_unit = null;
         // 单元
         function load_group_units() {
             var url = "{% url 'operations.ajax_group_learning_plan' group.id %}";
             $.get(url, function(data) {
                 if (data.status == "ok") {
                     var units = data.units;
+                    group_units = data.units;
                     if (units.length > 0) {
                         var table = $("<table class='table'> <thead> <td>单元</td> <td>开始时间</td> </thead> </table>");
                         var tbody = $("<tbody>");
@@ -604,11 +616,19 @@
                     {% if my_role > 1 %}
                     // add a button to edit
                     $("#group_units").append($("<a>").attr("id", "btn_add_unit").attr("class", "btn btn-primary").html("添加或修改单元"));
+                    // 选中最后一个单元所对应的书本
+                    if (group_units.length > 0) {
+                        last_unit = group_units[group_units.length - 1];
+                        $("#select_group_book").val(last_unit.unit__book_id);
+                    }
+                    // 下一次学习的日期就是后一天
+                    var next_date = new Date(last_unit.start_date);
+                    next_date.setDate(next_date.getDate() + 1);
+                    $("#start_date").datepicker('update', next_date);
                     $("#btn_add_unit").click(function() {
                         $("#dialog-select-unit").modal();
-                        $("#start_date").val("");
                         var book_id = $("#select_group_book").val();
-                        if (book_id) {
+                        if (book_id != null) {
                             load_book_units(book_id);
                         }
                     });
@@ -699,10 +719,19 @@
             $.get(url, function(data) {
                 if (data.status == "ok") {
                     var units = data.units;
+                    var selected_val = null;
                     $("#select_group_unit").html("");
                     for (var i = 0; i < units.length; i++) {
                         var unit = units[i];
                         $("#select_group_unit").append($("<option>").attr("value", unit.id).html(unit.description));
+                        // 如果碰巧最后一次学到的单元在这个列表中，那么下一次学习的就是下一个单元。
+                        if (unit.id == last_unit.unit_id) {
+                            if (i+1 < units.length)
+                                selected_val = units[i+1].id
+                        }
+                    }
+                    if (selected_val != null) {
+                        $("#select_group_unit").val(selected_val);
                     }
                 }
             });

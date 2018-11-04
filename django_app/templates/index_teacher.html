@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <section class="content-header">
+        <h1>
+            班级概况
+            <small>展示各个班级最近学习情况</small>
+        </h1>
+        <ol class="breadcrumb">
+            <li>
+                <a href="#"><i class="fa fa-dashboard"></i> 首页</a>
+            </li>
+            <li class="active">班级概况</li>
+        </ol>
+    </section>
+
+    <!-- Main content -->
+    <section class="content container-fluid">
+
+        <!--------------------------
+          | Your Page Content Here |
+          -------------------------->
+        {% for group in groups %}
+            <!-- 显示群公告 -->
+            {% if group.banner %}
+                <div class="alert alert-warning alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <h4><i class="icon fa fa-info"></i>班级公告 - {{ group.name }}</h4>
+                    {{ group.banner|linebreaksbr }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        <!-- Small boxes (Stat box) -->
+        <div class="row">
+            <div class="col-xs-12">
+                <a class="small-box bg-red-gradient" href="{% url 'learn.start' %}">
+                    <div class="inner">
+                        <h3>{{ today_units|length }}</h3>
+                        <p>今日复习单元</p>
+                    </div>
+                    {% if today_units %}
+                        <div class="icon">
+                            <i class="fa fa-fighter-jet"></i>
+                        </div>
+                        <div class="small-box-footer">
+                            开始学习
+                            <i class="fa fa-arrow-circle-right"></i>
+                        </div>
+                    {% else %}
+                        <div class="icon">
+                            <i class="fa fa-smile-o"></i>
+                        </div>
+                        <div class="small-box-footer">
+                            今天不用再复习啦
+                            <i class="fa fa-smile-o"></i>
+                        </div>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-xs-6" href="{% url 'learn.learning' request.user.id %}">
+                <!-- small box -->
+                <a class="small-box bg-aqua" href="{% url 'learn.learning' request.user.id %}">
+                    <div class="inner">
+                        <h3>{{ learn_count }}</h3>
+
+                        <p>学习次数</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-flask"></i>
+                    </div>
+                    <div class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></div>
+                </a>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-3 col-xs-6">
+                <!-- small box -->
+                <div class="small-box bg-green">
+                    <div class="inner">
+                        <h3>{{ mastered_unit_count }}</h3>
+
+                        <p>掌握单元</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-cube"></i>
+                    </div>
+                    <a href="#" class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></a>
+                </div>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-3 col-xs-6">
+                <!-- small box -->
+                <a class="small-box bg-yellow" href="{% url 'testings.index' %}" >
+                    <div class="inner">
+                        <h3>{{ quiz_count }}</h3>
+
+                        <p>完成测试</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-binoculars"></i>
+                    </div>
+                    <div class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></div>
+                </a>
+            </div>
+            <!-- ./col -->
+            <div class="col-lg-3 col-xs-6">
+                <!-- small box -->
+                <a class="small-box bg-maroon" href="{% url 'learn.error_word_list' %}">
+                    <div class="inner">
+                        <h3>{{ erroneous_words }}</h3>
+
+                        <p>易错单词</p>
+                    </div>
+                    <div class="icon">
+                        <i class="fa fa-bug"></i>
+                    </div>
+                    <div class="small-box-footer">详细信息 <i class="fa fa-arrow-circle-right"></i></div>
+                </a>
+            </div>
+            <!-- ./col -->
+        </div>
+        <!-- /.row -->
+
+
+        {% if 0 and recent_units %}
+
+        <div class="row">
+            <div class="col-xs-12">
+                <div class="box">
+                    <div class="box-header">
+                        <h3 class="box-title">近期学习</h3>
+                    </div>
+                    <!-- /.box-header -->
+                    <div class="box-body table-responsive no-padding">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>单元</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+
+                            {% for u in recent_units %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'learn.book_detail' u.unit__book_id %}">{{ u.unit__book__description }}</a>
+                                        -
+                                        <a href="{% url 'learn.unit_detail' u.unit_id %}">{{ u.unit__description }}</a>
+                        
+                                        <div class="clearfix">
+                                            <span class="pull-left">已经学习{{ u.learn_count }}次</span>
+                                            <small class="pull-right">{{ u.progress }}%</small>
+                                        </div>
+                                            <div class="progress xs">
+                                            <div class="progress-bar progress-bar-green" style="width: {{ u.progress }}%;"></div>
+                                        </div>
+
+                                    </td>
+                                    <td>
+                                        {% if u.learn_count < 2 %}
+                                            <a class="btn btn-danger" href="{% url 'learn.unit_review' u.unit_id %}">复习</a>
+                                        {% elif u.learn_count < 5 %}
+                                            <a class="btn btn-warning" href="{% url 'learn.unit_review' u.unit_id %}">复习</a>
+                                        {% else %}
+                                            <a class="btn btn-primary" href="{% url 'learn.unit_review' u.unit_id %}">复习</a>
+                                        {% endif %}
+                                        <a class="btn btn-primary" href="{% url 'learn.unit_test' u.unit_id %}">拼写测试</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+                <!-- /.box -->
+
+            </div>
+        </div>
+        <!-- /.row -->
+        {% endif %}
+
+    </section>
+    <!-- /.content -->
+{% endblock %}

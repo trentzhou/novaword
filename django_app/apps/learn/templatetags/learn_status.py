@@ -19,6 +19,15 @@ def get_recent_learn_times(value, arg):
     start_time = date.today() - timedelta(days=days)
     return LearningRecord.objects.filter(user_id=user_id, learn_time__gt=start_time).count()
 
+@register.filter(name="get_latest_unit")
+def get_latest_unit(value):
+    user_id = value
+    try:
+        record = LearningRecord.objects.filter(user_id=user_id).order_by("-learn_time").first()
+        return str(record.unit)
+    except:
+        return ""
+
 @register.filter(name="readable_time")
 def readable_time(seconds):
     """

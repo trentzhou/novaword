@@ -184,6 +184,12 @@
                 $(this).find("audio").get(0).play();
             });
 
+
+            $("#word-spelling").click(function() {
+                var div = $(".play_mp3").find("audio").get(0);
+                if (div != null)
+                    div.play();
+            });
         }
 
         function answer_familiar() {
@@ -290,6 +296,11 @@
             $("#simple-meaning").text(word.simple_meaning);
             $("#detailed-meaning").html(word.detailed_meaning);
             show_detailed_meaning_in_dict(word.detailed_meaning_in_dict);
+            $("#word_spelling").click(function() {
+                var div = $(".play_mp3").find("audio").get(0);
+                if (div != null)
+                    div.play();
+            });
         }
 
 
@@ -494,8 +505,9 @@
 
         $(document).keypress(function(event) {
             var key = event.which;
-            if (key == 88 || key == 120) {
-                // X，作为后门，直接通过
+            if (key == 93) {
+                // 似乎已经有小朋友们猜出了后门。
+                // 所以我把后门的按钮换掉了。聪明的小朋友可以继续碰碰运气 :-)
                 finish_learning();
             }
             if (waiting_answer) {
