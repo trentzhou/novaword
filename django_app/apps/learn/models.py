@@ -11,9 +11,9 @@ from users.models import UserProfile, Group
 class Word(models.Model):
     spelling = models.CharField(blank=False, max_length=100,
                                 verbose_name=u"拼写")
-    pronounciation_us = models.CharField(blank=True, max_length=100,
+    pronounciation_us = models.CharField(blank=True, max_length=100, null=True,
                                          verbose_name=u"美式发音")
-    pronounciation_uk = models.CharField(blank=True, max_length=100,
+    pronounciation_uk = models.CharField(blank=True, max_length=100, null=True,
                                          verbose_name=u"英式发音")
     mp3_us_url = models.URLField(blank=True,
                                  verbose_name=u"美式发音mp3")

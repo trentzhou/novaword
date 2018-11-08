@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
-
+import logging
 import re
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
@@ -17,6 +17,8 @@ from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
 from utils import lookup_word_in_db
 from .tasks import do_add
+
+logger = logging.getLogger(__name__)
 
 class BookListView(View):
     def get(self, request):
@@ -274,6 +276,7 @@ class AjaxBatchAddUnitView(LoginRequiredMixin, View):
                 'failed_lines': failed_lines
             })
         except:
+            logger.exception("Faled to add word")
             return JsonResponse({
                 'status': 'fail'
             })
@@ -487,9 +490,12 @@ class UnitDetailView(View):
         words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
 
         is_planned = False
+        records = None
         if request.user.is_authenticated():
             is_planned = is_unit_in_plan(unit_id, request.user.id)
+            records = LearningRecord.objects.filter(unit_id=unit_id, user=request.user).all()
         return render(request, 'unit_detail.html', {
+            "records": records,
             "page": "books",
             "unit": unit,
             "words": words,

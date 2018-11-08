@@ -1,4 +1,26 @@
 {% extends 'base.html' %}
+
+{% block extra_head %}
+    <style>
+    #explain {
+        font-size: 20px;
+    }
+
+    #word_spelling {
+        font-size: 50px;
+    }
+
+    #simple-meaning {
+        font-size: 35px;
+    }
+
+    .play_mp3 {
+        font-size: 25px;
+    }
+    </style>
+
+{% endblock %}
+
 {% block content %}
         <!-- Content Header (Page header) -->
     <section class="content-header">
@@ -38,7 +60,7 @@
                 <div id="count"></div>
                 <h2 id="chinese_meaning"></h2>
 
-                <input class="input-lg form-control" type="text" placeholder="英文拼写" id="english_spelling" />
+                <input class="input-lg form-control margin-bottom" type="text" placeholder="英文拼写" id="english_spelling" />
                 <a class="btn btn-primary btn-block" id="btn-showme" title="你也可以用回车键哦">看结果</a>
             </div>
 
