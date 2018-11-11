@@ -110,6 +110,42 @@ class AjaxBookListView(View):
         })
 
 
+class AjaxBookAddMaintainer(View):
+    def post(self, request):
+        book_id = request.POST.get("book_id")
+        user_name = request.POST.get("user_name")
+        try:
+            maintainer = UserProfile.objects.filter(Q(email=user_name) | Q(mobile_phone=user_name)).get()
+            book = WordBook.objects.filter(id=book_id).get()
+            book.maintainers.add(maintainer)
+            book.save()
+        except:
+            logger.exception("Failed to add maintainer")
+            return JsonResponse({
+                "status": "fail"
+            })
+        return JsonResponse({
+            "status": "ok"
+        })
+
+
+class AjaxBookDeleteMaintainer(View):
+    def post(self, request):
+        book_id = request.POST.get("book_id")
+        user_id = request.POST.get("user_id")
+        try:
+            book = WordBook.objects.filter(id=book_id).get()
+            book.maintainers.remove(UserProfile.objects.get(id=user_id))
+            book.save()
+        except:
+            return JsonResponse({
+                "status": "fail"
+            })
+        return JsonResponse({
+            "status": "ok"
+        })
+
+
 class AjaxBookUnitsView(View):
     def get(self, request, book_id):
         units = WordUnit.objects.filter(book_id=book_id).order_by("order").values("id", "description")

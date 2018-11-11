@@ -1,7 +1,7 @@
 from django import template
 from datetime import date, timedelta
 
-from learn.models import LearningRecord
+from learn.models import LearningRecord, WordBook
 
 register = template.Library()
 
@@ -38,3 +38,15 @@ def readable_time(seconds):
     minutes = int(seconds / 60)
     s = int(seconds) % 60
     return "{0}分{1}秒".format(minutes, s)
+
+@register.filter(name="is_book_maintainer")
+def is_book_maintainer(user_id, book_id):
+    try:
+        book = WordBook.objects.get(id=book_id)
+        if book.uploaded_by.id == user_id:
+            return True
+        if book.maintainers.filter(id=user_id).count() > 0:
+            return True
+    except:
+        pass
+    return False

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load learn_status %}
 
 {% block extra_head %}
     <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
@@ -29,24 +30,34 @@
 
     <!-- Main content -->
     <section class="content container-fluid">
-        <div class="box collapsed-box">
+        <div class="box">
             <div class="box-header with-border">
                 <h3 class="box-title">单词书信息</h3>
-
-                <div class="box-tools pull-right">
-                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i>
-                    </button>
-                    <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
-                </div>
             </div>
             <div class="box-body">
-                <ul>
-                    <li>本书由 <a href="{% url 'users.contact' book.uploaded_by.id %}">{{ book.uploaded_by }}</a> 上传</li>
-                    <li>单个单词最长学习时间： {{ book.max_word_learn_time }}</li>
-                    <li>单元最长学习时间： {{ book.max_unit_learn_time }}</li>
-                    <li>最多几个单元同时学习： {{ book.max_working_units }}</li>
-                </ul>
+                    本书由 <a href="{% url 'users.contact' book.uploaded_by.id %}">{{ book.uploaded_by }}</a> 上传。
+                    单个单词最长学习时间为 {{ book.max_word_learn_time }}秒。
+                    单元最长学习时间为 {{ book.max_unit_learn_time }}秒。
+                    最多{{ book.max_working_units }}个单元同时学习。
 
+                {% if book.maintainers.count %}
+                    本书的维护人包括：
+                    <ul>
+                    {% for m in book.maintainers.all %}
+                        <li>
+                            <a href="{% url 'users.contact' m.id %}">{{ m }}</a>
+                            {% if book.uploaded_by == request.user %}
+                                <a onclick="delete_maintainer({{ book.id }}, {{ m.id }})">
+                                    <span class="fa fa-trash"></span>
+                                </a>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+                {% if request.user.id|is_book_maintainer:book.id %}
+                    <a class="btn btn-primary" onclick="add_maintainer({{ book.id }})">增加维护人</a>
+                {% endif %}
 
             </div>
         </div>
@@ -58,7 +69,7 @@
                 </h3>
             </div>
             <div class="box-body">
-                {% if book.uploaded_by == request.user %}
+                {% if request.user|is_book_maintainer:book.id %}
 
                     <div class="modal fade" id="dialog-edit-book">
                         <div class="modal-dialog">
@@ -93,14 +104,20 @@
                     {% for unit in units %}
                         <li>
                             <a href="{% url 'learn.unit_detail' unit.id %}">{{ unit.description }}</a>
-                            <a title="删除单元" unit_title="{{ unit.description }}" unit_id="{{ unit.id }}" class="pull-right btn-delete-unit"><span class="fa fa-trash"></span></a>
+                            {% if request.user.id|is_book_maintainer:book.id %}
+                                <a title="删除单元" unit_title="{{ unit.description }}" unit_id="{{ unit.id }}" class="pull-right btn-delete-unit">
+                                    <span class="fa fa-trash"></span>
+                                </a>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
                 <div class="btn-bar">
                     <button class="btn btn-primary" id="btn-add-plan">全部加入学习计划</button>
-                    {% if book.uploaded_by == request.user %}
-                        <a class="btn btn-primary" id="btn-delete-book">删除这本书</a>
+                    {% if request.user.id|is_book_maintainer:book.id %}
+                        {% if request.user == book.uploaded_by %}
+                            <a class="btn btn-primary" id="btn-delete-book">删除这本书</a>
+                        {% endif %}
                         <a class="btn btn-primary" id="btn-add-unit">新建单元</a>
                         <a class="btn btn-primary" id="btn-batch-add">批量新建单元</a>
                     {% endif %}
@@ -108,7 +125,7 @@
             </div>
         </div>
 
-        {% if book.uploaded_by == request.user %}
+        {% if request.user.id|is_book_maintainer:book.id %}
 
 
             <div class="modal fade" id="dialog-new-unit">
@@ -192,6 +209,76 @@
 
 {% block extra_script %}
     <script>
+    function delete_maintainer(book_id, user_id) {
+        console.log("Deleting maintainer: book_id=", book_id, ", user_id=", user_id);
+
+        var url = "{% url 'learn.ajax_book_delete_maintainer' %}";
+        $.ajax({
+            type: "POST",
+            url: url,
+            beforeSend:function(xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+            },
+            async: true,
+            data: {
+                "book_id": {{ book.id }},
+                "user_id": user_id
+            },
+            success: function(data) {
+                try {
+                    if (data.status == "ok") {
+                        console.log("Good!");
+                        location.reload();
+                    }
+                } catch (ex) {
+                    console.log(ex);
+                }
+            }
+        });
+
+    }
+
+    function add_maintainer(book_id) {
+        console.log("Adding maintainer for book ", book_id);
+        BootstrapDialog.show({
+            message: '维护人的邮箱或手机号： <input type="text" class="form-control">',
+            title: '添加维护人',
+            buttons: [
+                {
+                    label: '确定',
+                    action: function(dialogRef) {
+
+                        var url = "{% url 'learn.ajax_book_add_maintainer' %}";
+                        $.ajax({
+                            type: "POST",
+                            url: url,
+                            beforeSend:function(xhr, settings) {
+                                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                            },
+                            async: true,
+                            data: {
+                                "book_id": {{ book.id }},
+                                "user_name": dialogRef.getModalBody().find("input").val()
+                            },
+                            success: function(data) {
+                                try {
+                                    if (data.status == "ok") {
+                                        console.log("Good!");
+                                        location.reload();
+                                    }
+                                } catch (ex) {
+                                    console.log(ex);
+                                }
+                            }
+                        });
+
+                        dialogRef.close();
+                    }
+                }
+            ]
+        })
+    }
+
     $(function() {
         $("#btn-add-plan").click(function(){
             var url = "{% url 'learn.ajax_add_book_learning_plan' %}";
@@ -218,7 +305,7 @@
             });
         });
 
-    {% if book.uploaded_by == request.user %}
+    {% if request.user.id|is_book_maintainer:book.id %}
         $("#btn-edit-book").click(function() {
             $("#dialog-edit-book").modal();
         });

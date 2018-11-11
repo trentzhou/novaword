@@ -33,7 +33,10 @@
                 <a href="{% url 'index' %}"><i class="fa fa-dashboard"></i> 首页</a>
             </li>
             <li>
-                <a href="{% url 'learn.unit_detail' unit.id %}">单元</a>
+                <a href="{% url 'learn.books' %}">单词书</a>
+            </li>
+            <li>
+                <a href="{% url 'learn.book_detail' unit.book.id %}">{{ unit.book }}</a>
             </li>
             <li class="active">单词学习</li>
         </ol>

@@ -37,7 +37,13 @@
             {% if quiz %}
                 <li><a href="{% url 'testings.quiz_state' quiz.id %}">考卷</a></li>
             {% elif unit %}
-                <li><a href="{% url 'learn.unit_detail' unit.id %}">单元</a></li>
+            <li>
+                <a href="{% url 'learn.books' %}">单词书</a>
+            </li>
+            <li>
+                <a href="{% url 'learn.book_detail' unit.book.id %}">{{ unit.book }}</a>
+            </li>
+                <li><a href="{% url 'learn.unit_detail' unit.id %}">{{ unit.description }}</a></li>
             {% endif %}
             <li class="active">{{ page_title|default:"拼写测试" }}</li>
         </ol>

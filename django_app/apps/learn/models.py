@@ -50,6 +50,7 @@ class WordBook(models.Model):
                                               verbose_name=u"每个单元最长学习秒数")
     max_working_units = models.IntegerField(default=3,
                                             verbose_name=u"最多几个单元同时在学习")
+    maintainers = models.ManyToManyField(UserProfile, related_name="maintainer")
 
     class Meta:
         verbose_name = u"单词书"

@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
+{% load learn_status %}
 
 {% block extra_head %}
     <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
@@ -24,6 +25,9 @@
             </li>
             <li>
                 <a href="{% url 'learn.books' %}">单词书</a>
+            </li>
+            <li>
+                <a href="{% url 'learn.book_detail' unit.book.id %}">{{ unit.book }}</a>
             </li>
             <li class="active">单元</li>
         </ol>
@@ -54,7 +58,7 @@
 
                 <a class="btn btn-primary" href="{% url 'learn.unit_words_text' unit.id %}" download="{{ unit }}.txt">下载单词表</a>
 
-                {% if unit.book.uploaded_by == request.user %}
+                {% if request.user.id|is_book_maintainer:unit.book_id %}
                     <a class="btn btn-primary" id="btn-edit-unit">编辑单元</a>
                     <a class="btn btn-primary" id="btn-delete-unit">删除单元</a>
 
@@ -193,7 +197,9 @@
                                         <source src="{{ word.word.mp3_us_url }}" />
                                     </audio>
                                 {% endif %}
-                                [{{ word.word.pronounciation_us }}]
+                                {% if word.word.pronounciation_us %}
+                                    [{{ word.word.pronounciation_us }}]
+                                {% endif %}
                             </td>
                             <td>
                                 {% if word.word.mp3_uk_url %}
@@ -202,7 +208,9 @@
                                         <source src="{{ word.word.mp3_uk_url }}" />
                                     </audio>
                                 {% endif %}
-                                [{{ word.word.pronounciation_uk }}]
+                                {% if word.word.pronounciation_uk %}
+                                    [{{ word.word.pronounciation_uk }}]
+                                {% endif %}
                             </td>
                             <td>{{ word.simple_meaning }}</td>
                             <td>{{ word.id }}</td>
@@ -210,7 +218,7 @@
                     {% endfor %}
                 </table>
 
-                {% if unit.book.uploaded_by == request.user %}
+                {% if request.user.id|is_book_maintainer:unit.book.id %}
                     <div class="btn-bar">
                         <a class="btn btn-primary" id="btn-add-word">增加单词</a>
                         <a class="btn btn-primary" id="btn-delete-words">删除选中的单词</a>
@@ -279,7 +287,7 @@
         });
         word_table.column(4).visible(false);
 
-    {% if unit.book.uploaded_by == request.user %}
+    {% if request.user.id|is_book_maintainer:unit.book.id %}
         $("#btn-edit-unit").click(function() {
             $("#dialog-edit-unit").modal();
         });
