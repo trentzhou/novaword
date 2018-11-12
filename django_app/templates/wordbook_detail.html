@@ -69,7 +69,7 @@
                 </h3>
             </div>
             <div class="box-body">
-                {% if request.user|is_book_maintainer:book.id %}
+                {% if request.user.id|is_book_maintainer:book.id %}
 
                     <div class="modal fade" id="dialog-edit-book">
                         <div class="modal-dialog">
