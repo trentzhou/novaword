@@ -154,7 +154,7 @@
             var word = unit_words[index];
             $("#choose").show();
             $("#chinese_meaning").text(word.simple_meaning);
-            $("#english_spelling").val("");
+            $("#english_spelling").val("").focus();
             $("#explain").hide();
             $("#congratulations").hide();
         }
@@ -224,6 +224,8 @@
                     $(this).find("audio").get(0).play();
                 });
             }
+            /*
+            // 有些例句可能少儿不宜。暂时先不显示
             // append sentenses
             if (detail.sentenses) {
                 var sentenses_div = $("<div>").attr("class", "word_sentenses");
@@ -237,6 +239,7 @@
                 }
                 root_div.append(sentenses_div);
             }
+            */
         }
 
         function continue_quiz_for_learn() {

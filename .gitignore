@@ -12,7 +12,7 @@ venv/
 *.env
 .idea/
 */.vscode/
-media/
+media
 django_app/static/xadmin/
 upload/
 mysql_data/
