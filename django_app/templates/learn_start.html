@@ -513,6 +513,9 @@
                 success: function(data) {
                     try {
                         console.log("record saved");
+                        if (data.status == "fail") {
+                            alert("结果没有保存：" + data.reason);
+                        }
                     } catch (ex) {
                         console.log(ex);
                     }

@@ -16,7 +16,8 @@ from operations.models import UserMessage
 from users.forms import LoginForm, RegisterForm, ForgetForm, ModifyPasswordForm, RegisterMobileForm, VerifySmsForm, \
     UploadImageForm, AjaxChangeNickNameForm, AjaxGetEmailVerificationForm, AjaxUpdateEmailForm, AjaxChangePasswordForm
 from users.models import UserProfile, EmailVerifyRecord, UserGroup, Group, Organization
-from utils import parse_bool, find_group_admin_users, find_organization_admin_users
+from utils import parse_bool
+from utils.admin_util import find_group_admin_users, find_organization_admin_users
 from utils.email_send import save_email_verify_record
 from users.tasks import send_register_email_async
 from utils.wilddog_sms import is_valid_phone_number, SmsClient

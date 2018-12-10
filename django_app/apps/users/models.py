@@ -8,6 +8,8 @@ from django.templatetags.static import static
 
 import random
 
+from utils.time_util import get_now
+
 
 def generate_token():
     adj_list = [
@@ -53,7 +55,7 @@ class UserProfile(AbstractUser):
         verbose_name_plural = verbose_name
 
     def membership_days(self):
-        delta = datetime.now() - self.date_joined
+        delta = get_now() - self.date_joined
         return delta.days
 
     def unread_message_count(self):
@@ -87,7 +89,7 @@ class EmailVerifyRecord(models.Model):
                                           ("forget", u"找回密码"),
                                           ("update_email", u"修改邮箱")),
                                  max_length=30)
-    send_time = models.DateTimeField(verbose_name=u"发送时间", default=datetime.now)
+    send_time = models.DateTimeField(verbose_name=u"发送时间", default=get_now)
 
     class Meta:
         verbose_name = u"邮箱验证码"
@@ -103,7 +105,7 @@ class EmailVerifyRecord(models.Model):
 class Organization(models.Model):
     name = models.CharField(blank=False, max_length=100, verbose_name=u"组织名")
     description = models.CharField(blank=True, max_length=300, verbose_name=u"详细描述")
-    create_time = models.DateTimeField(default=datetime.now, verbose_name=u"创建时间")
+    create_time = models.DateTimeField(default=get_now, verbose_name=u"创建时间")
 
     class Meta:
         verbose_name = u"学校"
@@ -122,7 +124,7 @@ class Group(models.Model):
     description = models.CharField(blank=True, max_length=300,
                                    verbose_name=u"详细描述")
     is_admin = models.BooleanField(default=False, verbose_name=u"是不是学校管理员")
-    create_time = models.DateTimeField(default=datetime.now,
+    create_time = models.DateTimeField(default=get_now,
                                        verbose_name=u"创建时间")
     password = models.CharField(max_length=100, default=generate_token,
                                 verbose_name=u"进组密码")
@@ -151,7 +153,7 @@ class UserGroup(models.Model):
                                default=1,
                                verbose_name=u"组内的角色")
     student_id = models.IntegerField(default=0, verbose_name=u"学号")
-    join_time = models.DateField(default=datetime.now,
+    join_time = models.DateField(default=get_now,
                                  verbose_name=u"加入时间")
 
     class Meta:

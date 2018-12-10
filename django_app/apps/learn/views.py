@@ -16,6 +16,7 @@ from testings.models import QuizResult
 from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
 from utils import lookup_word_in_db
+from utils.time_util import get_now
 from .tasks import do_add
 
 logger = logging.getLogger(__name__)
@@ -941,9 +942,16 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
         correct_rate = data.get("correct_rate", 0)
         seconds_used = data.get("seconds_used", 0)
 
+        if seconds_used < 20:
+            # 时间不可靠
+            return JsonResponse({
+                "status": "fail",
+                "reason": "速度太快了，结果看上去不真实"
+            })
         if not unit_id or not type:
             return JsonResponse({
-                "status": "fail"
+                "status": "fail",
+                "reason": "输入错误"
             })
         try:
             unit = WordUnit.objects.filter(id=unit_id).get()
@@ -965,7 +973,7 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
                     error_record.user = request.user
                     error_record.word_id = w
                     error_record.error_count += 1
-                    error_record.latest_error_time = datetime.datetime.now()
+                    error_record.latest_error_time = get_now()
                     error_record.save()
             return JsonResponse({
                 "status": "success"
@@ -1062,7 +1070,7 @@ class AjaxAmendErrorWordsView(LoginRequiredMixin, View):
             for wid in data["error_words"]:
                 error_record = ErrorWord.objects.filter(user=request.user, word_id=wid).get()
                 error_record.error_count += 1
-                error_record.latest_error_time = datetime.datetime.now()
+                error_record.latest_error_time = get_now()
                 error_record.save()
         return JsonResponse({
             "status": "success"

@@ -15,6 +15,7 @@ from testings.models import Quiz, QuizQuestion, QuizResult
 from users.models import UserGroup, Group
 from users.templatetags.user_info import is_teacher
 from utils import parse_bool
+from utils.time_util import get_now
 
 
 class TestIndexView(LoginRequiredMixin, View):
@@ -265,7 +266,7 @@ class AjaxSaveQuizResultView(View):
             record = QuizResult()
             record.user = request.user
             record.quiz_id = quiz_id
-            record.finish_time = datetime.datetime.now()
+            record.finish_time = get_now()
             record.correct_count = int(correct_count)
             record.start_time = record.finish_time - datetime.timedelta(seconds=int(seconds_used))
             record.save()
@@ -281,7 +282,7 @@ class AjaxSaveQuizResultView(View):
                     error_record.user = request.user
                     error_record.word_id = w
                     error_record.error_count += 1
-                    error_record.latest_error_time = datetime.datetime.now()
+                    error_record.latest_error_time = get_now()
                     error_record.save()
             return JsonResponse({
                 "status": "success"

@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models import Q
 
 from users.models import UserProfile, Group
+from utils.time_util import get_now
 
 
 class Word(models.Model):
@@ -146,7 +147,7 @@ class LearningRecord(models.Model):
                                         (3, u"复习")),
                                default=2,
                                verbose_name=u"学习类型")
-    learn_time = models.DateTimeField(default=datetime.now,
+    learn_time = models.DateTimeField(default=get_now,
                                       verbose_name=u"学习时间")
     duration = models.IntegerField(default=0, verbose_name=u"学习时长")
     correct_rate = models.IntegerField(default=100, verbose_name=u"正确率")
@@ -167,7 +168,7 @@ class ErrorWord(models.Model):
     word = models.ForeignKey(WordInUnit, verbose_name=u"单词")
     error_count = models.IntegerField(default=0, verbose_name=u"错误次数")
     amend_count = models.IntegerField(default=0, verbose_name=u"纠正次数")
-    latest_error_time = models.DateTimeField(default=datetime.now, verbose_name=u"最近一次答错时间")
+    latest_error_time = models.DateTimeField(default=get_now, verbose_name=u"最近一次答错时间")
 
     class Meta:
         verbose_name = u"错误记录"

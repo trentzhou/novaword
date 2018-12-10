@@ -128,6 +128,7 @@
         function show_result() {
             $("#word_browser").hide();
             $("#answer").hide();
+            $("#pronounciation").hide();
             $("#word-spelling").html("学习完成");
             $("#result").show();
 
@@ -156,6 +157,9 @@
                 success: function(data) {
                     try {
                         console.log("record saved");
+                        if (data.status == "fail") {
+                            alert("结果没有保存：" + data.reason);
+                        }
                     } catch (ex) {
                         console.log(ex);
                     }

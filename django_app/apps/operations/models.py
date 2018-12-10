@@ -8,6 +8,7 @@ from users.models import UserProfile, Group
 
 
 # Create your models here.
+from utils.time_util import get_now
 
 
 class UserMessage(models.Model):
@@ -48,7 +49,7 @@ class UserMessage(models.Model):
                                        ),
                                        default=0)
     has_read = models.BooleanField(default=False, verbose_name=u"已读")
-    add_time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")
+    add_time = models.DateTimeField(default=get_now, verbose_name=u"添加时间")
     model_icon = 'fa fa-envelope-open'
 
     class Meta:
