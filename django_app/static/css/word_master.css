@@ -16,8 +16,7 @@
 }
 
 .selected {
-    background-color: #337ab7;
-    color: #fff;
+    background-color: #ced0d2;
 }
 
 .tree, .tree ul {

@@ -7,7 +7,7 @@ from learn.views import BookListView, LearningPlanView, LearningView, ReviewView
     AmendErrorWordView, AjaxBookTreeView, AjaxBookUnitsView, AjaxBookListView, StartLearnView, AjaxGetTodayUnitsView, \
     AjaxNewBookView, AjaxEditBookView, AjaxDeleteBookView, AjaxNewUnitView, AjaxEditUnitView, AjaxDeleteUnitView, \
     AjaxNewWordInUnitView, AjaxDeleteWordInUnitView, ErrorWordTextView, AjaxBatchInputWordView, UnitWordsTextView, \
-    AjaxBatchAddUnitView, AjaxBookAddMaintainer, AjaxBookDeleteMaintainer
+    AjaxBatchAddUnitView, AjaxBookAddMaintainer, AjaxBookDeleteMaintainer, AjaxChangeUnitWordMeaningView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^learning-plan/(?P<user_id>\d+)$', LearningPlanView.as_view(), name="learn.learning_plan"),
     url(r'^units/(?P<unit_id>\d+)$', UnitDetailView.as_view(), name="learn.unit_detail"),
     url(r'^units/(?P<unit_id>\d+)/text$', UnitWordsTextView.as_view(), name="learn.unit_words_text"),
+    url(r'^ajax-change-word-meaning$', AjaxChangeUnitWordMeaningView.as_view(), name="learn.change_word_meaning"),
     url(r'^ajax-add-book-learning-plan/$', AjaxAddBookToLearningPlanView.as_view(), name="learn.ajax_add_book_learning_plan"),
     url(r'^ajax-add-learning-plan/$', AjaxAddUnitToLearningPlanView.as_view(), name="learn.ajax_add_learning_plan"),
     url(r'^ajax-del-learning-plan/$', AjaxDeleteUnitFromLearningPlanView.as_view(), name="learn.ajax_del_learning_plan"),

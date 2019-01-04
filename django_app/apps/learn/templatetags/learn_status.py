@@ -19,6 +19,7 @@ def get_recent_learn_times(value, arg):
     start_time = date.today() - timedelta(days=days)
     return LearningRecord.objects.filter(user_id=user_id, learn_time__gt=start_time).count()
 
+
 @register.filter(name="get_latest_unit")
 def get_latest_unit(value):
     user_id = value
@@ -27,6 +28,7 @@ def get_latest_unit(value):
         return str(record.unit)
     except:
         return ""
+
 
 @register.filter(name="readable_time")
 def readable_time(seconds):
@@ -39,6 +41,7 @@ def readable_time(seconds):
     s = int(seconds) % 60
     return "{0}分{1}秒".format(minutes, s)
 
+
 @register.filter(name="is_book_maintainer")
 def is_book_maintainer(user_id, book_id):
     try:
@@ -50,3 +53,8 @@ def is_book_maintainer(user_id, book_id):
     except:
         pass
     return False
+
+
+@register.assignment_tag
+def define(val=None):
+    return val

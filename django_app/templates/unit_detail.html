@@ -10,6 +10,12 @@
 
 
 {% block content %}
+    {% if request.user.id|is_book_maintainer:unit.book_id %}
+        {% define 1 as is_maintainer %}
+    {% else %}
+        {% define 0 as is_maintainer %}
+    {% endif %}
+
     <section class="content-header">
         <h1>
             单元详情
@@ -58,7 +64,7 @@
 
                 <a class="btn btn-primary" href="{% url 'learn.unit_words_text' unit.id %}" download="{{ unit }}.txt">下载单词表</a>
 
-                {% if request.user.id|is_book_maintainer:unit.book_id %}
+                {% if is_maintainer %}
                     <a class="btn btn-primary" id="btn-edit-unit">编辑单元</a>
                     <a class="btn btn-primary" id="btn-delete-unit">删除单元</a>
 
@@ -212,13 +218,18 @@
                                     [{{ word.word.pronounciation_uk }}]
                                 {% endif %}
                             </td>
-                            <td>{{ word.simple_meaning }}</td>
+                            <td>
+                                {% if is_maintainer %}
+                                <span class="fa fa-pencil text-blue" onclick="edit_word_meaning({{ word.id }}, '{{ word.word.spelling }}', '{{ word.simple_meaning }}')"></span>
+                                {% endif %}
+                                {{ word.simple_meaning }}
+                            </td>
                             <td>{{ word.id }}</td>
                         </tr>
                     {% endfor %}
                 </table>
 
-                {% if request.user.id|is_book_maintainer:unit.book.id %}
+                {% if is_maintainer %}
                     <div class="btn-bar">
                         <a class="btn btn-primary" id="btn-add-word">增加单词</a>
                         <a class="btn btn-primary" id="btn-delete-words">删除选中的单词</a>
@@ -233,12 +244,55 @@
 {% endblock %}
 
 {% block extra_script %}
-
+    {% if request.user.id|is_book_maintainer:unit.book_id %}
+        {% define 1 as is_maintainer %}
+    {% else %}
+        {% define 0 as is_maintainer %}
+    {% endif %}
     <script src="{% static 'datatables/jquery.dataTables.min.js' %}" ></script>
     <script src="{% static 'datatables/dataTables.bootstrap.min.js' %}"></script>
 
     <script>
+    function edit_word_meaning(unit_word_id, spelling, simple_meaning) {
+        console.log(`Editing word meaning ${unit_word_id}, ${spelling}, ${simple_meaning}`);
+        BootstrapDialog.show({
+            title: "修改单词解释",
+            message: `<div class="form-group"><label class="control-label">${spelling}的解释是：</label><input type="text" class="form-control" value="${simple_meaning}"></div>`,
+            buttons: [ {
+                label: '确定',
+                action: function(dialogRef) {
+                    var new_meaning = dialogRef.getModalBody().find('input').val();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "{% url 'learn.change_word_meaning' %}",
+                        beforeSend:function(xhr, settings) {
+                            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                        },
+                        async: true,
+                        data: {
+                            "unit_word_id": unit_word_id,
+                            "simple_meaning": new_meaning
+                        },
+                        success: function(data) {
+                            try {
+                                if (data.status == "success") {
+                                    location.reload();
+                                }
+                            } catch (ex) {
+                                console.log(ex);
+                            }
+                        }
+                    });
+                    dialogRef.close();
+                }
+            }]
+        })
+    }
     $(function () {
+
+        BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
+        BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
         {% if is_planned %}
             var isPlanned = true;
         {% else %}
@@ -287,7 +341,7 @@
         });
         word_table.column(4).visible(false);
 
-    {% if request.user.id|is_book_maintainer:unit.book.id %}
+    {% if is_maintainer %}
         $("#btn-edit-unit").click(function() {
             $("#dialog-edit-unit").modal();
         });
@@ -321,8 +375,6 @@
         $("#btn-delete-unit").click(function() {
             var url = "{% url 'learn.ajax_delete_unit' %}";
 
-            BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
-            BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
             BootstrapDialog.confirm({
                 title: "小心！",
                 message: '真的要删除{{ unit.description }}吗?',

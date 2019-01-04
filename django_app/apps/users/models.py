@@ -7,7 +7,7 @@ from django.contrib.auth.models import AbstractUser
 from django.templatetags.static import static
 
 import random
-
+from django.utils import timezone
 from utils.time_util import get_now
 
 
@@ -55,7 +55,7 @@ class UserProfile(AbstractUser):
         verbose_name_plural = verbose_name
 
     def membership_days(self):
-        delta = get_now() - self.date_joined
+        delta = timezone.now() - self.date_joined
         return delta.days
 
     def unread_message_count(self):

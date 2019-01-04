@@ -556,6 +556,17 @@ class UnitWordsTextView(View):
         return HttpResponse(result, **{"content_type": "application/text"})
 
 
+class AjaxChangeUnitWordMeaningView(View):
+    def post(self, request):
+        unit_word_id = request.POST.get("unit_word_id")
+        simple_meaning = request.POST.get("simple_meaning")
+
+        unit_word = WordInUnit.objects.filter(id=unit_word_id).get()
+        unit_word.simple_meaning = simple_meaning
+        unit_word.save()
+        return JsonResponse({"status": "success"})
+
+
 class AjaxAddBookToLearningPlanView(LoginRequiredMixin, View):
     def post(self, request):
         book_id = request.POST.get("book_id", None)
