@@ -108,6 +108,9 @@ class WordInUnit(models.Model):
 class LearningPlan(models.Model):
     user = models.ForeignKey(UserProfile, verbose_name=u"用户")
     unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
+    added_time = models.DateTimeField(default=get_now,
+                                      verbose_name=u"加入的时间")
+    finished = models.BooleanField(default=False, verbose_name=u"已完成")
 
     class Meta:
         verbose_name = u"学习计划"

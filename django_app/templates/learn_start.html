@@ -51,7 +51,7 @@
     <!-- Main content -->
     <section class="content container-fluid">
 
-    <a class="btn btn-primary btn-bar" id="btn_start_over">重新答题</a>
+    <a class="btn btn-primary btn-bar" id="btn_start_over">重新答题</a> <a id="unit_link"></a>
     <div class="box">
         <div class="box-body">
             <div id="answer">
@@ -140,6 +140,9 @@
             var url = "{% url 'learn.ajax_unit_data' 0 %}".replace("0", unit_id);
             $.get(url, function(result) {
                 unit_words = result["data"];
+                var title = result["title"];
+                $("#unit_link").attr("href", "{% url 'learn.unit_detail' 0 %}".replace("0", unit_id));
+                $("#unit_link").text(title);
                 for (var i = 0; i < unit_words.length; i++) {
                     var word = unit_words[i];
                     word.correct = false;
@@ -428,7 +431,7 @@
                     } else {
                         show_explain(word_index);
                     }
-                }, 1000);
+                }, 400);
             }
 
         });
@@ -511,19 +514,23 @@
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function(data) {
+                    var saved = true;
                     try {
                         console.log("record saved");
                         if (data.status == "fail") {
+                            saved = false;
                             alert("结果没有保存：" + data.reason);
+                            $("#btn_start_over").click();
                         }
                     } catch (ex) {
                         console.log(ex);
                     }
+                    if (saved)
+                        unit_index++;
+                    show_result();
                 }
             });
 
-            unit_index++;
-            show_result();
         }
 
         $("#btn-showme").click(function() {

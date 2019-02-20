@@ -11,7 +11,6 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, Word
-from operations.models import GroupLearningPlan
 from testings.models import QuizResult
 from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
@@ -485,13 +484,9 @@ class LearningPlanView(LoginRequiredMixin, View):
     # list all units which are in the learning plan
     def get(self, request, user_id):
         my_plans = LearningPlan.objects.filter(user_id=user_id).values("unit_id").all()
-        group_plans = GroupLearningPlan.objects.filter(group__usergroup__user_id=request.user.id).values("unit_id").all()
 
         all_planned_units = {}
         for u in my_plans:
-            unit_id = u["unit_id"]
-            all_planned_units[unit_id] = True
-        for u in group_plans:
             unit_id = u["unit_id"]
             all_planned_units[unit_id] = True
 
@@ -514,9 +509,8 @@ def is_unit_in_plan(unit_id, user_id):
     """
     if LearningPlan.objects.filter(unit_id=unit_id, user_id=user_id).count():
         return True
-    # 有可能单元在班级计划里面
-    if GroupLearningPlan.objects.filter(group__usergroup__user_id=user_id, unit_id=unit_id).count():
-        return True
+    return False
+
 
 class UnitDetailView(View):
     def get(self, request, unit_id):
@@ -641,15 +635,6 @@ def get_active_units(user_id):
     learned_units = LearningRecord.objects.filter(user_id=user_id).values("unit_id").distinct().all()
     for u in learned_units:
         active_units[u["unit_id"]] = True
-    user_groups = UserGroup.objects.filter(user_id=user_id, role__exact=1).all()
-    today = datetime.date.today()
-    for group in user_groups:
-        group_units = GroupLearningPlan.objects.filter(start_date__lte=today,
-                                                       start_date__gte=group.join_time,
-                                                       group=group.group).values("unit_id",
-                                                                           "start_date").distinct().all()
-        for u in group_units:
-            active_units[u["unit_id"]] = True
     all_active_units = active_units.keys()
     # if we have finished this unit, delete it
     result = [x for x in all_active_units if get_unit_learn_count(user_id, x) < 6]
@@ -712,6 +697,7 @@ def is_unit_for_today(user_id, unit_id):
         learning_curve = [1, 1, 2, 3, 8]
         if delta_days >= learning_curve[learn_count - 1]:
             return True
+        return False
     return True
 
 
@@ -878,6 +864,7 @@ class AjaxUnitDataView(LoginRequiredMixin, View):
             return JsonResponse({
                 "status": "failure"
             })
+        unit = WordUnit.objects.filter(id=unit_id).get()
         result = []
         for w in words_in_unit:
             detailed_meaning = {}
@@ -897,6 +884,7 @@ class AjaxUnitDataView(LoginRequiredMixin, View):
             })
         return JsonResponse({
             "data": result,
+            "title": str(unit),
             "learn_count": get_unit_learn_count(request.user.id, unit_id)
         })
 
@@ -953,7 +941,8 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
         correct_rate = data.get("correct_rate", 0)
         seconds_used = data.get("seconds_used", 0)
 
-        if seconds_used < 20:
+        word_count = WordInUnit.objects.filter(unit_id=unit_id).count()
+        if seconds_used < word_count: # 一个单词算1秒钟
             # 时间不可靠
             return JsonResponse({
                 "status": "fail",
@@ -973,6 +962,18 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             record.correct_rate = correct_rate
             record.duration = seconds_used
             record.save()
+            # 如果这个单元不在计划中，那么加入计划
+            try:
+                plan = LearningPlan.objects.filter(unit_id=unit_id, user=request.user).get()
+                if LearningRecord.objects.filter(user=request.user, unit_id=unit_id).count() > 5:
+                    plan.finished = True
+                    plan.save()
+            except LearningPlan.DoesNotExist:
+                plan = LearningPlan()
+                plan.user = request.user
+                plan.unit = unit
+                plan.finished = False
+                plan.save()
             if "error_words" in data:
                 error_words = data["error_words"]
                 for w in error_words:

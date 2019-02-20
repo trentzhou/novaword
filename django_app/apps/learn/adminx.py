@@ -45,10 +45,11 @@ class WordInUnitAdmin(object):
 
 
 class LearningPlanAdmin(object):
-    list_display = ['user', 'unit']
+    list_display = ['user', 'unit', 'added_time', 'finished']
     search_fields = ['user__username', 'user__nick_name', 'unit__description']
     list_filter = list_display
     model_icon = 'fa fa-check'
+
 
 class LearningRecordAdmin(object):
     list_display = ['user', 'unit', 'type', 'learn_time', 'duration', 'correct_rate']
