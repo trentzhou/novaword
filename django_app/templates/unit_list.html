@@ -1,6 +1,39 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 
+{% block extra_head %}
+<style>
+.plan_unit {
+    padding: 10px;
+    border-bottom: 1px solid #aaaaaa;
+    align-items: center;
+    color: #4c4c4c;
+    display: flex;
+}
+
+.unit_text {
+    flex: 1;
+}
+
+.unit_title {
+    font-size: 20px;
+    padding-bottom: 4px;
+    align-items: baseline;
+}
+
+.unit_status {
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    color: #aaaaaa;
+}
+
+.unit_finished {
+    color: #00ca6d;
+}
+
+</style>
+{% endblock %}
 {% block content %}
     <section class="content-header">
         <h1>
@@ -17,24 +50,23 @@
     <!-- Main content -->
     <section class="content container-fluid">
         {% if units %}
-            <table class="table table-responsive" id="unit_table">
-                <thead>
-                <tr>
-                    <th>单元</th>
-                    <th>已学习次数</th>
-                    <th>已复习次数</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for unit in units %}
-                    <tr>
-                        <td><a href="{% url 'learn.unit_detail' unit.id %}">{{ unit }}</a></td>
-                        <td>{{ unit.learn_times }}</td>
-                        <td>{{ unit.review_times }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+            {% for unit in units %}
+            <a href="{% url 'learn.unit_detail' unit.id %}">
+            <span class="plan_unit">
+                <div class="unit_text">
+                    <div class="unit_title">
+                        {{ unit }}
+                    </div>
+                    <div class="unit_status">
+                        已学习{{ unit.learn_times }}次，复习{{ unit.review_times }}次
+                    </div>
+                </div>
+                {% if unit.finished %}
+                    <span class="unit_finished label">已完成</span>
+                {% endif %}
+            </span>
+            </a>
+            {% endfor %}
         {% else %}
             您现在还没有任何计划要学习的单元，快去找找看<a href="{% url 'learn.books' %}">哪些书</a>感兴趣吧。
         {% endif %}

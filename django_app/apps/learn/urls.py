@@ -3,14 +3,14 @@ from django.conf.urls import url
 from learn.book_views import BookListView, BookDetailView, AjaxBookTreeView, AjaxBookListView, AjaxBookUnitsView, \
     AjaxNewBookView, AjaxEditBookView, AjaxDeleteBookView, AjaxBookAddMaintainer, AjaxBookDeleteMaintainer
 from learn.unit_views import AjaxNewUnitView, AjaxBatchAddUnitView, AjaxEditUnitView, AjaxDeleteUnitView, \
-    AjaxNewWordInUnitView, AjaxBatchInputWordView, AjaxDeleteWordInUnitView
-from learn.views import LearningPlanView, LearningView, ReviewView, UnitDetailView, \
+    AjaxNewWordInUnitView, AjaxBatchInputWordView, AjaxDeleteWordInUnitView, AjaxUnitDataView, UnitDetailView, \
+    UnitWordsTextView, AjaxChangeUnitWordMeaningView
+from learn.views import LearningPlanView, LearningView, ReviewView, \
     AjaxAddUnitToLearningPlanView, AjaxDeleteUnitFromLearningPlanView, AjaxIsUnitInLearningPlan, \
-    AjaxAddBookToLearningPlanView, AjaxUnitDataView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
+    AjaxAddBookToLearningPlanView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
     AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
     AmendErrorWordView, StartLearnView, AjaxGetTodayUnitsView, \
-    ErrorWordTextView, UnitWordsTextView, \
-    AjaxChangeUnitWordMeaningView
+    ErrorWordTextView, AjaxAllocateTasks
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'^ajax-query-learning-plan/(?P<unit_id>\d+)/$', AjaxIsUnitInLearningPlan.as_view(), name="learn.ajax_query_learning_plan"),
 
     url(r'^start_learn/$', StartLearnView.as_view(), name='learn.start'),
+    url(r'^ajax-allocate-tasks/$', AjaxAllocateTasks.as_view(), name='learn.alloc_tasks'),
     url(r'^ajax-today-units/$', AjaxGetTodayUnitsView.as_view(), name='learn.ajax_today_units'),
     url(r'^learning/(?P<user_id>\d+)$', LearningView.as_view(), name='learn.learning'),
     url(r'^review/$', ReviewView.as_view(), name='learn.review'),

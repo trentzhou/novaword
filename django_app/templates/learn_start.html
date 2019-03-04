@@ -107,6 +107,8 @@
 
         var start_seconds = 0;
         var finish_seconds = 0;
+        var quiz_count = 0;
+        var correct_count = 0;
         var wrong_answer_words = {};
 
         $("#congratulations").hide();
@@ -155,6 +157,8 @@
                 } else {
                     learn_type = 3;
                     wrong_answer_words = {};
+                    quiz_count = 0;
+                    correct_count = 0;
                     continue_quiz();
                 }
                 start_seconds = new Date().getTime()/1000;
@@ -413,7 +417,9 @@
                 var is_correct = false;
                 if (this.id == correct_div_id)
                     is_correct = true;
+                quiz_count++;
                 if (is_correct) {
+                    correct_count++;
                     unit_words[word_index].correct = true;
                     $(this).addClass("info");
                     $(this).append('<span class="fa fa-check text-yellow pull-right result"></span>');
@@ -494,6 +500,11 @@
             var title = null;
             var correct_rate = 100;
 
+            if (quiz_count == 0)
+                correct_rate = 0;
+            else
+                correct_rate = (correct_count * 100)/quiz_count;
+
             var data = {
                 "unit_id": all_units[unit_index],
                 "type": learn_type,
@@ -545,6 +556,8 @@
             for (var i = 0; i < unit_words.length; i++) {
                 unit_words[i].correct = false;
             }
+            quiz_count = 0;
+            correct_count = 0;
             start_seconds = new Date().getTime()/1000;
             wrong_answer_words = {};
             continue_quiz();

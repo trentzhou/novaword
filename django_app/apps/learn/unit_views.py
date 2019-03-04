@@ -4,10 +4,12 @@ import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Max
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404, HttpResponse
+from django.shortcuts import render
 from django.views.generic import View
 
-from learn.models import WordInUnit, Word, WordUnit, WordBook
+from learn.models import WordInUnit, Word, WordUnit, WordBook, LearningRecord
+from learn.user_learn import UserLearn
 from utils import lookup_word_in_db
 
 logger = logging.getLogger(__name__)
@@ -265,5 +267,87 @@ class AjaxDeleteWordInUnitView(LoginRequiredMixin, View):
             WordInUnit.objects.filter(id=id).delete()
         return JsonResponse({
             "status": "ok"
+        })
+
+
+class UnitDetailView(View):
+    def get(self, request, unit_id):
+        unit = WordUnit.objects.filter(id=unit_id).get()
+        if not unit:
+            raise Http404()
+
+        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
+
+        is_planned = False
+        records = None
+        if request.user.is_authenticated():
+            is_planned = UserLearn(request.user.id).is_unit_in_plan(unit_id)
+            records = LearningRecord.objects.filter(unit_id=unit_id, user=request.user).all()
+        return render(request, 'unit_detail.html', {
+            "records": records,
+            "page": "books",
+            "unit": unit,
+            "words": words,
+            "is_planned": is_planned
+        })
+
+
+class UnitWordsTextView(View):
+    def get(self, request, unit_id):
+        unit = WordUnit.objects.filter(id=unit_id).get()
+        if not unit:
+            raise Http404()
+
+        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
+        result = ""
+        for w in words:
+            spelling = w.word.spelling
+            meaning = w.simple_meaning
+            line = "%-20s    %s\r\n" % (spelling, meaning)
+            result += line
+        return HttpResponse(result, **{"content_type": "application/text"})
+
+
+class AjaxChangeUnitWordMeaningView(View):
+    def post(self, request):
+        unit_word_id = request.POST.get("unit_word_id")
+        simple_meaning = request.POST.get("simple_meaning")
+
+        unit_word = WordInUnit.objects.filter(id=unit_word_id).get()
+        unit_word.simple_meaning = simple_meaning
+        unit_word.save()
+        return JsonResponse({"status": "success"})
+
+
+class AjaxUnitDataView(LoginRequiredMixin, View):
+    def get(self, request, unit_id):
+        words_in_unit = WordInUnit.objects.filter(unit_id=unit_id).order_by("order").all()
+        if not words_in_unit:
+            return JsonResponse({
+                "status": "failure"
+            })
+        unit = WordUnit.objects.filter(id=unit_id).get()
+        result = []
+        for w in words_in_unit:
+            detailed_meaning = {}
+            if w.word.detailed_meanings:
+                detailed_meaning = json.loads(w.word.detailed_meanings)
+            result.append({
+                "id": w.id,
+                "simple_meaning": w.simple_meaning,
+                "detailed_meaning": w.detailed_meaning,
+                "spelling": w.word.spelling,
+                "pronounciation_us": w.word.pronounciation_us,
+                "pronounciation_uk": w.word.pronounciation_uk,
+                "mp3_us_url": w.word.mp3_us_url,
+                "mp3_uk_url": w.word.mp3_uk_url,
+                "short_meaning_in_dict": w.word.short_meaning,
+                "detailed_meaning_in_dict": detailed_meaning
+            })
+        user_learn = UserLearn(request.user.id)
+        return JsonResponse({
+            "data": result,
+            "title": str(unit),
+            "learn_count": user_learn.unit_learn_count(unit)
         })
 

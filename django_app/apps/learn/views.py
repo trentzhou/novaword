@@ -11,6 +11,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, Word
+from learn.user_learn import UserLearn
 from testings.models import QuizResult
 from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
@@ -22,82 +23,23 @@ from .tasks import do_add
 class LearningPlanView(LoginRequiredMixin, View):
     # list all units which are in the learning plan
     def get(self, request, user_id):
-        my_plans = LearningPlan.objects.filter(user_id=user_id).values("unit_id").all()
+        my_plans = LearningPlan.objects.filter(user_id=user_id).values("unit_id", "finished").all()
 
         all_planned_units = {}
         for u in my_plans:
             unit_id = u["unit_id"]
-            all_planned_units[unit_id] = True
+            all_planned_units[unit_id] = u["finished"]
 
         units = WordUnit.objects.filter(id__in=all_planned_units.keys()).all()
         for u in units:
             u.learn_times = u.learn_count(user_id)
             u.review_times = u.review_count(user_id)
+            u.finished = all_planned_units[u.id]
 
         return render(request, 'unit_list.html', {
             "page": "units",
             "units": units
         })
-
-def is_unit_in_plan(unit_id, user_id):
-    """
-    判断是否某个单元在某人的计划中
-    :param int unit_id: unit id
-    :param int user_id: user id
-    :return:
-    """
-    if LearningPlan.objects.filter(unit_id=unit_id, user_id=user_id).count():
-        return True
-    return False
-
-
-class UnitDetailView(View):
-    def get(self, request, unit_id):
-        unit = WordUnit.objects.filter(id=unit_id).get()
-        if not unit:
-            raise Http404()
-
-        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
-
-        is_planned = False
-        records = None
-        if request.user.is_authenticated():
-            is_planned = is_unit_in_plan(unit_id, request.user.id)
-            records = LearningRecord.objects.filter(unit_id=unit_id, user=request.user).all()
-        return render(request, 'unit_detail.html', {
-            "records": records,
-            "page": "books",
-            "unit": unit,
-            "words": words,
-            "is_planned": is_planned
-        })
-
-
-class UnitWordsTextView(View):
-    def get(self, request, unit_id):
-        unit = WordUnit.objects.filter(id=unit_id).get()
-        if not unit:
-            raise Http404()
-
-        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
-        result = ""
-        for w in words:
-            spelling = w.word.spelling
-            meaning = w.simple_meaning
-            line = "%-20s    %s\r\n" % (spelling, meaning)
-            result += line
-        return HttpResponse(result, **{"content_type": "application/text"})
-
-
-class AjaxChangeUnitWordMeaningView(View):
-    def post(self, request):
-        unit_word_id = request.POST.get("unit_word_id")
-        simple_meaning = request.POST.get("simple_meaning")
-
-        unit_word = WordInUnit.objects.filter(id=unit_word_id).get()
-        unit_word.simple_meaning = simple_meaning
-        unit_word.save()
-        return JsonResponse({"status": "success"})
 
 
 class AjaxAddBookToLearningPlanView(LoginRequiredMixin, View):
@@ -246,9 +188,19 @@ def get_todays_units(user_id):
     :param int user_id:
     :return list: list of unit ids for today's learning
     """
-    active_units = get_active_units(user_id)["result"]
-    result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
-    return result[:5]
+    user_learn = UserLearn(user_id)
+    active_tasks = user_learn.get_active_tasks()
+    return [task.unit.id for task in active_tasks]
+
+
+class AjaxAllocateTasks(LoginRequiredMixin, View):
+    def post(self, request):
+        user_learn = UserLearn(request.user.id)
+        units = user_learn.populate_today_tasks()
+        return JsonResponse({
+            "status": "ok",
+            "units": units
+        })
 
 
 class StartLearnView(LoginRequiredMixin, View):
@@ -396,37 +348,6 @@ class ReviewView(LoginRequiredMixin, View):
         })
 
 
-class AjaxUnitDataView(LoginRequiredMixin, View):
-    def get(self, request, unit_id):
-        words_in_unit = WordInUnit.objects.filter(unit_id=unit_id).order_by("order").all()
-        if not words_in_unit:
-            return JsonResponse({
-                "status": "failure"
-            })
-        unit = WordUnit.objects.filter(id=unit_id).get()
-        result = []
-        for w in words_in_unit:
-            detailed_meaning = {}
-            if w.word.detailed_meanings:
-                detailed_meaning = json.loads(w.word.detailed_meanings)
-            result.append({
-                "id": w.id,
-                "simple_meaning": w.simple_meaning,
-                "detailed_meaning": w.detailed_meaning,
-                "spelling": w.word.spelling,
-                "pronounciation_us": w.word.pronounciation_us,
-                "pronounciation_uk": w.word.pronounciation_uk,
-                "mp3_us_url": w.word.mp3_us_url,
-                "mp3_uk_url": w.word.mp3_uk_url,
-                "short_meaning_in_dict": w.word.short_meaning,
-                "detailed_meaning_in_dict": detailed_meaning
-            })
-        return JsonResponse({
-            "data": result,
-            "title": str(unit),
-            "learn_count": get_unit_learn_count(request.user.id, unit_id)
-        })
-
 
 class UnitWalkThroughView(LoginRequiredMixin, View):
     def get(self, request, unit_id):
@@ -500,19 +421,9 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             record.type = type
             record.correct_rate = correct_rate
             record.duration = seconds_used
-            record.save()
-            # 如果这个单元不在计划中，那么加入计划
-            try:
-                plan = LearningPlan.objects.filter(unit_id=unit_id, user=request.user).get()
-                if LearningRecord.objects.filter(user=request.user, unit_id=unit_id).count() > 5:
-                    plan.finished = True
-                    plan.save()
-            except LearningPlan.DoesNotExist:
-                plan = LearningPlan()
-                plan.user = request.user
-                plan.unit = unit
-                plan.finished = False
-                plan.save()
+
+            user_learn = UserLearn(request.user.id)
+            user_learn.save_learning_record(record)
             if "error_words" in data:
                 error_words = data["error_words"]
                 for w in error_words:
