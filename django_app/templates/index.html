@@ -1,4 +1,11 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <script src="{% static 'bootstrap-dialog/bootstrap-dialog.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'datatables/dataTables.bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'bootstrap-dialog/bootstrap-dialog.min.css' %}">
+{% endblock %}
 
 {% block content %}
     <!-- Content Header (Page header) -->
@@ -34,7 +41,7 @@
         <!-- Small boxes (Stat box) -->
         <div class="row">
             <div class="col-xs-12">
-                <a class="small-box bg-red-gradient" href="{% url 'learn.start' %}">
+                <a class="small-box bg-red-gradient" id="start_learn" href="{% if today_units %}{% url 'learn.start' %}{% else %}#{% endif %}">
                     <div class="inner">
                         <h3>{{ today_units|length }}</h3>
                         <p>今日复习单元</p>
@@ -52,7 +59,7 @@
                             <i class="fa fa-smile-o"></i>
                         </div>
                         <div class="small-box-footer">
-                            今天不用再复习啦
+                            点击领取更多学习任务
                             <i class="fa fa-smile-o"></i>
                         </div>
                     {% endif %}
@@ -184,4 +191,72 @@
 
     </section>
     <!-- /.content -->
+{% endblock %}
+
+{% block extra_script %}
+    <script language="javascript">
+
+    $(function() {
+        BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
+        BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
+
+        if ({{ pending_unit_count }} > 10) {
+            BootstrapDialog.show({
+                "title": "学习计划超负荷了",
+                "message": "你已经有{{ pending_unit_count }}个单元在学习计划中。要不要看一下是不是有些单元可以忽略？",
+                buttons: [{
+                    label: "确定",
+                    action: function(dialog) {
+                        location.href = "{% url 'learn.learning_plan' request.user.id %}";
+                    }
+                }, {
+                    label: "不用了",
+                    action: function(dialog) {
+                        dialog.close();
+                    }
+                }]
+            })
+        }
+        {% if not today_units %}
+        $("#start_learn").click(function() {
+            BootstrapDialog.show({
+                title: "确定吗？",
+                message: "学霸，你确定想要领取更多的学习任务吗？",
+                buttons:[{
+                    label: "确定",
+                    action: function(dialog) {
+                        $.ajax({
+                            type: "POST",
+                            url: "{% url 'learn.alloc_tasks' %}",
+                            beforeSend:function(xhr, settings) {
+                                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                            },
+                            async: true,
+                            success: function(result) {
+                                if (result.status == "ok") {
+                                    unit_count = result.units.length;
+                                    if (unit_count == 0) {
+                                        BootstrapDialog.show({
+                                            title: "",
+                                            message: "没有找到可以学习的任务"
+                                        });
+                                    } else {
+                                        location.reload();
+                                    }
+                                }
+                            }
+                        });
+                        dialog.close();
+                    }
+                }, {
+                    label: "不用了",
+                    action: function(dialog) {
+                        dialog.close();
+                    }
+                }]
+            })
+        });
+        {% endif %}
+    });
+    </script>
 {% endblock %}

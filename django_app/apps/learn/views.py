@@ -11,7 +11,7 @@ from django.shortcuts import render, redirect
 from django.views.generic import View
 
 from learn.models import WordBook, WordUnit, WordInUnit, LearningPlan, LearningRecord, ErrorWord, Word
-from operations.models import GroupLearningPlan
+from learn.user_learn import UserLearn
 from testings.models import QuizResult
 from users.models import UserGroup, UserProfile, Group
 from users.templatetags.user_info import is_teacher
@@ -19,552 +19,37 @@ from utils import lookup_word_in_db
 from utils.time_util import get_now
 from .tasks import do_add
 
-logger = logging.getLogger(__name__)
-
-class BookListView(View):
-    def get(self, request):
-        wordbooks = WordBook.objects.all()
-
-        return render(request, 'wordbook_list.html', {
-            "page": "books",
-            "wordbooks": wordbooks
-        })
-
-
-def make_string_groups(m):
-    """
-    Taken a dict[str, object], return a tree.
-    Example:
-
-    strings = {
-        "1 2 3 4": "first",
-        "1 2 3 3": "second",
-        "1 2 4 4": "third",
-        "1 2 4 3": "fourth",
-        "1 2": "fifth",
-        "1 3 3": "sixth"
-    }
-    result = make_string_groups(strings)
-
-    Now the result looks like:
-    {
-        "1": {
-            "2": {
-                "3": {
-                    "3": "second",
-                    "4": "first"
-                },
-                "4": {
-                    "3": "fourth",
-                    "4": "third"
-                },
-                "___": "fifth"
-            },
-            "3": {
-                "3": "sixth"
-            }
-        }
-    }
-
-    :param dict[str, object] m: the map object which has key as '/' separated string
-    :return tree
-    """
-    result = {}
-    for k, v in m.items():
-        container = result
-        row = k.split('/')
-        for folder in row[:-1]:
-            if folder not in container:
-                container[folder] = {}
-            container = container[folder]
-        final = row[-1]
-        if final in container:
-            container[final]["___"] = v
-        else:
-            container[row[-1]] = v
-    return result
-
-
-class AjaxBookTreeView(View):
-    def get(self, request):
-        wordbooks = WordBook.objects.all()
-        wordbook_map = {}
-        for book in wordbooks:
-            wordbook_map[book.description] = {
-                "description": book.description.split('/')[-1],
-                "id": book.id
-            }
-        # construct a map
-        book_tree = make_string_groups(wordbook_map)
-        return JsonResponse({
-            "status": "ok",
-            "books": book_tree
-        })
-
-
-class AjaxBookListView(View):
-    def get(self, request):
-        wordbooks = WordBook.objects.order_by("description").values("id", "description").all()
-        return JsonResponse({
-            "status": "ok",
-            "books": [x for x in wordbooks]
-        })
-
-
-class AjaxBookAddMaintainer(View):
-    def post(self, request):
-        book_id = request.POST.get("book_id")
-        user_name = request.POST.get("user_name")
-        try:
-            maintainer = UserProfile.objects.filter(Q(email=user_name) | Q(mobile_phone=user_name)).get()
-            book = WordBook.objects.filter(id=book_id).get()
-            book.maintainers.add(maintainer)
-            book.save()
-        except:
-            logger.exception("Failed to add maintainer")
-            return JsonResponse({
-                "status": "fail"
-            })
-        return JsonResponse({
-            "status": "ok"
-        })
-
-
-class AjaxBookDeleteMaintainer(View):
-    def post(self, request):
-        book_id = request.POST.get("book_id")
-        user_id = request.POST.get("user_id")
-        try:
-            book = WordBook.objects.filter(id=book_id).get()
-            book.maintainers.remove(UserProfile.objects.get(id=user_id))
-            book.save()
-        except:
-            return JsonResponse({
-                "status": "fail"
-            })
-        return JsonResponse({
-            "status": "ok"
-        })
-
-
-class AjaxBookUnitsView(View):
-    def get(self, request, book_id):
-        units = WordUnit.objects.filter(book_id=book_id).order_by("order").values("id", "description")
-        return JsonResponse({
-            "status": "ok",
-            "units": [x for x in units]
-        })
-
-
-class AjaxNewBookView(LoginRequiredMixin, View):
-    def post(self, request):
-        description = request.POST.get("description", "")
-        if description:
-            # 是否重名？
-            if WordBook.objects.filter(description=description).count():
-                return JsonResponse({
-                    "status": "fail",
-                    "reason": "名为'{0}'的单词书已经存在了".format(description)
-                })
-            book = WordBook()
-            book.description = description
-            book.uploaded_by = request.user
-            book.save()
-            return JsonResponse({
-                "status": "ok",
-                "book_id": book.id
-            })
-        else:
-            return JsonResponse({
-                "status": "fail",
-                "reason": "标题不对"
-            })
-
-
-class AjaxEditBookView(LoginRequiredMixin, View):
-    def post(self, request):
-        book_id = request.POST.get("book_id", 0)
-        description = request.POST.get("description", "")
-
-        try:
-            if description:
-                book = WordBook.objects.filter(id=book_id).get()
-                book.description = description
-                book.save()
-                return JsonResponse({
-                    "status": "ok"
-                })
-        except:
-            pass
-
-        return JsonResponse({
-            "status": "fail",
-            "reason": "输入不对"
-        })
-
-
-class AjaxDeleteBookView(LoginRequiredMixin, View):
-    def post(self, request):
-        book_id = request.POST.get("book_id", 0)
-        WordBook.objects.filter(id=book_id).delete()
-        return JsonResponse({
-            "status": "ok"
-        })
-
-
-class AjaxNewUnitView(LoginRequiredMixin, View):
-    def post(self, request):
-        book_id = request.POST.get("book_id", 0)
-        description = request.POST.get("description", "")
-
-        try:
-            if description:
-                book = WordBook.objects.filter(id=book_id).get()
-                max_order = WordUnit.objects.filter(book=book).aggregate(Max("order"))["order__max"]
-                if not max_order:
-                    max_order = 0
-                unit = WordUnit()
-                unit.book = book
-                unit.description = description
-                unit.order = max_order + 1
-                unit.save()
-
-                return JsonResponse({
-                    "status": "ok",
-                    "unit_id": unit.id
-                })
-
-        except:
-            pass
-        return JsonResponse({
-            "status": "fail",
-            "reason": "输入不对"
-        })
-
-def get_next_unit_name(name):
-    regex = re.compile(r"(\D*)(\d+)(\D*)")
-    m = regex.match(name)
-    if m:
-        index = int(m.group(2)) + 1
-        return m.group(1) + str(index) + m.group(3)
-    else:
-        return name + "1"
-
-
-class AjaxBatchAddUnitView(LoginRequiredMixin, View):
-    def post(self, request):
-        data = json.loads(request.body.decode("utf-8"))
-        book_id = data.get('book_id', None)
-        first_unit_name = data.get('first_unit_name', None)
-        unit_size_limit = int(data.get('unit_size_limit', 20))
-        text = data.get('text', "")
-
-        failed_lines = []
-        try:
-            parsed_words = []
-
-            lines = text.split("\n")
-            for line in lines:
-                line = line.strip()
-                if not line:
-                    continue
-                good = False
-
-                try:
-                    parsed = parse_word_line(line)
-                    if parsed:
-                        parsed_words.append(parsed)
-                        good = True
-                except:
-                    pass
-                if not good:
-                    failed_lines.append(line)
-            # generate data to be added
-            units_to_add = []
-            unit_name = first_unit_name
-            book = WordBook.objects.filter(id=book_id).get()
-            max_order = WordUnit.objects.filter(book=book).aggregate(Max("order"))["order__max"]
-            if not max_order:
-                max_order = 0
-            order = max_order + 1
-            while len(parsed_words) > 0:
-                words = parsed_words[:unit_size_limit]
-                unit = {
-                    'name': unit_name,
-                    'order': order,
-                    'words': words
-                }
-                units_to_add.append(unit)
-                parsed_words = parsed_words[unit_size_limit:]
-                unit_name = get_next_unit_name(unit_name)
-                order += 1
-            # now create the units
-            for unit in units_to_add:
-                wordunit = WordUnit()
-                wordunit.book = book
-                wordunit.description = unit['name']
-                wordunit.order = unit['order']
-                wordunit.save()
-                # generate the words
-                for word in unit['words']:
-                    add_word_to_unit(wordunit.id, word['word'], word['meaning'])
-            return JsonResponse({
-                'status': 'ok',
-                'failed_lines': failed_lines
-            })
-        except:
-            logger.exception("Faled to add word")
-            return JsonResponse({
-                'status': 'fail'
-            })
-
-
-class AjaxEditUnitView(LoginRequiredMixin, View):
-    def post(self, request):
-        unit_id = request.POST.get("unit_id", 0)
-        description = request.POST.get('description', "")
-        order = request.POST.get("order", 0)
-        try:
-            if description:
-                unit = WordUnit.objects.filter(id=unit_id).get()
-                unit.description = description
-                unit.order = int(order)
-                unit.save()
-                return JsonResponse({
-                    "status": "ok"
-                })
-        except:
-            pass
-        return JsonResponse({
-            "status": "fail",
-            "reason": "输入不对"
-        })
-
-
-class AjaxDeleteUnitView(LoginRequiredMixin, View):
-    def post(self, request):
-        unit_id = request.POST.get("unit_id", 0)
-        WordUnit.objects.filter(id=unit_id).delete()
-        return JsonResponse({
-            "status": "ok"
-        })
-
-
-def add_word_to_unit(unit_id, spelling, meaning, detailed_meaning=""):
-    """
-    把单词添加到单元里
-    :param unit_id:
-    :param spelling:
-    :param meaning:
-    :param detailed_meaning:
-    :return:
-    """
-    unit = WordUnit.objects.filter(id=unit_id).get()
-
-    # in case the word already exists
-    if not WordInUnit.objects.filter(unit=unit, word__spelling=spelling).count():
-        unit_word = WordInUnit()
-        max_order = WordInUnit.objects.filter(unit=unit).aggregate(Max("order"))["order__max"]
-        if not max_order:
-            max_order = 0
-        if spelling and meaning:
-            # try to find the word first
-            word = lookup_word_in_db.find_word(spelling)
-            if not word:
-                word = Word()
-                word.spelling = spelling
-                word.short_meaning = meaning
-                word.detailed_meanings = "{}"
-                word.save()
-
-        unit_word.word = word
-        unit_word.unit = unit
-        unit_word.simple_meaning = meaning
-        unit_word.detailed_meaning = detailed_meaning
-        unit_word.order = max_order + 1
-        unit_word.save()
-
-
-class AjaxNewWordInUnitView(LoginRequiredMixin, View):
-    def post(self, request):
-        spelling = request.POST.get("spelling", "")
-        meaning = request.POST.get("meaning", "")
-        detailed_meaning = request.POST.get("detailed_meaning", "")
-        unit_id = request.POST.get("unit_id", "")
-
-        try:
-            add_word_to_unit(unit_id, spelling, meaning, detailed_meaning)
-            return JsonResponse({
-                "status": "ok"
-            })
-
-        except:
-            pass
-        return JsonResponse({
-            "status": "fail"
-        })
-
-
-line_word_re = re.compile("(.*)(\t| {4})(.*)")
-
-
-def parse_word_line(line):
-    m = line_word_re.match(line)
-    if m:
-        word = m.group(1).strip()
-        meaning = m.group(3).strip()
-        return {
-            "word": word,
-            "meaning": meaning
-        }
-    return None
-
-class AjaxBatchInputWordView(LoginRequiredMixin, View):
-    def post(self, request):
-        data = json.loads(request.body.decode("utf-8"))
-        unit_id = data.get('unit_id', None)
-        text = data.get('text', '')
-
-        if not unit_id or not text:
-            return JsonResponse({
-                "status": "fail"
-            })
-        failed_lines = []
-        lines = text.split("\n")
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            good = False
-
-            try:
-                parsed = parse_word_line(line)
-
-                if parsed:
-                    word = parsed["word"]
-                    meaning = parsed["meaning"]
-                    add_word_to_unit(unit_id, word, meaning)
-                    good = True
-            except:
-                pass
-            if not good:
-                failed_lines.append(line)
-
-        return JsonResponse({
-            "status": "ok",
-            "failed_lines": failed_lines
-        })
-
-
-class AjaxDeleteWordInUnitView(LoginRequiredMixin, View):
-    def post(self, request):
-        unit_words = request.POST.get("unit_word_ids", "")
-        words = unit_words.split(",")
-        for id in words:
-            WordInUnit.objects.filter(id=id).delete()
-        return JsonResponse({
-            "status": "ok"
-        })
-
-
-class BookDetailView(View):
-    def get(self, request, book_id):
-        wordbook = WordBook.objects.filter(id=book_id).get()
-        if not wordbook:
-            raise Http404()
-
-        units = WordUnit.objects.filter(book_id=book_id).order_by("order").all()
-        return render(request, 'wordbook_detail.html', {
-            "page": "books",
-            "book": wordbook,
-            "units": units
-        })
-
 
 class LearningPlanView(LoginRequiredMixin, View):
     # list all units which are in the learning plan
     def get(self, request, user_id):
-        my_plans = LearningPlan.objects.filter(user_id=user_id).values("unit_id").all()
-        group_plans = GroupLearningPlan.objects.filter(group__usergroup__user_id=request.user.id).values("unit_id").all()
+        my_plans = LearningPlan.objects.filter(user_id=user_id).order_by("added_time").values("unit_id", "finished", "finished_time").all()
 
         all_planned_units = {}
         for u in my_plans:
             unit_id = u["unit_id"]
-            all_planned_units[unit_id] = True
-        for u in group_plans:
-            unit_id = u["unit_id"]
-            all_planned_units[unit_id] = True
+            all_planned_units[unit_id] = u
 
         units = WordUnit.objects.filter(id__in=all_planned_units.keys()).all()
         for u in units:
-            u.learn_times = u.learn_count(user_id)
-            u.review_times = u.review_count(user_id)
+            plan = all_planned_units[u.id]
+            plan["learn_times"] = u.learn_count(user_id)
+            plan["review_times"] = u.review_count(user_id)
+            plan["unit"] = u
 
         return render(request, 'unit_list.html', {
             "page": "units",
-            "units": units
-        })
-
-def is_unit_in_plan(unit_id, user_id):
-    """
-    判断是否某个单元在某人的计划中
-    :param int unit_id: unit id
-    :param int user_id: user id
-    :return:
-    """
-    if LearningPlan.objects.filter(unit_id=unit_id, user_id=user_id).count():
-        return True
-    # 有可能单元在班级计划里面
-    if GroupLearningPlan.objects.filter(group__usergroup__user_id=user_id, unit_id=unit_id).count():
-        return True
-
-class UnitDetailView(View):
-    def get(self, request, unit_id):
-        unit = WordUnit.objects.filter(id=unit_id).get()
-        if not unit:
-            raise Http404()
-
-        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
-
-        is_planned = False
-        records = None
-        if request.user.is_authenticated():
-            is_planned = is_unit_in_plan(unit_id, request.user.id)
-            records = LearningRecord.objects.filter(unit_id=unit_id, user=request.user).all()
-        return render(request, 'unit_detail.html', {
-            "records": records,
-            "page": "books",
-            "unit": unit,
-            "words": words,
-            "is_planned": is_planned
+            "units": [all_planned_units[x['unit_id']] for x in my_plans],
+            "is_me": request.user.id == user_id
         })
 
 
-class UnitWordsTextView(View):
-    def get(self, request, unit_id):
-        unit = WordUnit.objects.filter(id=unit_id).get()
-        if not unit:
-            raise Http404()
-
-        words = WordInUnit.objects.filter(unit=unit).order_by("order").all()
-        result = ""
-        for w in words:
-            spelling = w.word.spelling
-            meaning = w.simple_meaning
-            line = "%-20s    %s\r\n" % (spelling, meaning)
-            result += line
-        return HttpResponse(result, **{"content_type": "application/text"})
-
-
-class AjaxChangeUnitWordMeaningView(View):
+class AjaxFinishPlanView(LoginRequiredMixin, View):
     def post(self, request):
-        unit_word_id = request.POST.get("unit_word_id")
-        simple_meaning = request.POST.get("simple_meaning")
-
-        unit_word = WordInUnit.objects.filter(id=unit_word_id).get()
-        unit_word.simple_meaning = simple_meaning
-        unit_word.save()
-        return JsonResponse({"status": "success"})
+        unit_id = request.POST["unit_id"]
+        user_learn = UserLearn(request.user.id)
+        user_learn.finish_unit(unit_id)
+        return JsonResponse({"status": "ok"})
 
 
 class AjaxAddBookToLearningPlanView(LoginRequiredMixin, View):
@@ -641,15 +126,6 @@ def get_active_units(user_id):
     learned_units = LearningRecord.objects.filter(user_id=user_id).values("unit_id").distinct().all()
     for u in learned_units:
         active_units[u["unit_id"]] = True
-    user_groups = UserGroup.objects.filter(user_id=user_id, role__exact=1).all()
-    today = datetime.date.today()
-    for group in user_groups:
-        group_units = GroupLearningPlan.objects.filter(start_date__lte=today,
-                                                       start_date__gte=group.join_time,
-                                                       group=group.group).values("unit_id",
-                                                                           "start_date").distinct().all()
-        for u in group_units:
-            active_units[u["unit_id"]] = True
     all_active_units = active_units.keys()
     # if we have finished this unit, delete it
     result = [x for x in all_active_units if get_unit_learn_count(user_id, x) < 6]
@@ -712,6 +188,7 @@ def is_unit_for_today(user_id, unit_id):
         learning_curve = [1, 1, 2, 3, 8]
         if delta_days >= learning_curve[learn_count - 1]:
             return True
+        return False
     return True
 
 
@@ -721,9 +198,19 @@ def get_todays_units(user_id):
     :param int user_id:
     :return list: list of unit ids for today's learning
     """
-    active_units = get_active_units(user_id)["result"]
-    result = [x for x in active_units if not has_learned_today(user_id, x) and is_unit_for_today(user_id, x)]
-    return result[:5]
+    user_learn = UserLearn(user_id)
+    active_tasks = user_learn.get_active_tasks()
+    return [task.unit.id for task in active_tasks]
+
+
+class AjaxAllocateTasks(LoginRequiredMixin, View):
+    def post(self, request):
+        user_learn = UserLearn(request.user.id)
+        units = user_learn.populate_today_tasks()
+        return JsonResponse({
+            "status": "ok",
+            "units": units
+        })
 
 
 class StartLearnView(LoginRequiredMixin, View):
@@ -772,10 +259,12 @@ class LearningOverviewView(LoginRequiredMixin, View):
             else:
                 u["progress"] = int(100 * count / 6)
         mastered_unit_count = len(active_units["all_active_units"]) - len(active_units["result"])
+        pending_unit_count = LearningPlan.objects.filter(user_id=request.user.id, finished=False).count()
 
         groups = Group.objects.filter(usergroup__user=request.user).all()
         return render(request, 'index.html', {
             "page": "overview",
+            "pending_unit_count": pending_unit_count,
             "learn_count": learn_count,
             "quiz_count": quiz_count,
             "erroneous_words": erroneous_words,
@@ -871,35 +360,6 @@ class ReviewView(LoginRequiredMixin, View):
         })
 
 
-class AjaxUnitDataView(LoginRequiredMixin, View):
-    def get(self, request, unit_id):
-        words_in_unit = WordInUnit.objects.filter(unit_id=unit_id).order_by("order").all()
-        if not words_in_unit:
-            return JsonResponse({
-                "status": "failure"
-            })
-        result = []
-        for w in words_in_unit:
-            detailed_meaning = {}
-            if w.word.detailed_meanings:
-                detailed_meaning = json.loads(w.word.detailed_meanings)
-            result.append({
-                "id": w.id,
-                "simple_meaning": w.simple_meaning,
-                "detailed_meaning": w.detailed_meaning,
-                "spelling": w.word.spelling,
-                "pronounciation_us": w.word.pronounciation_us,
-                "pronounciation_uk": w.word.pronounciation_uk,
-                "mp3_us_url": w.word.mp3_us_url,
-                "mp3_uk_url": w.word.mp3_uk_url,
-                "short_meaning_in_dict": w.word.short_meaning,
-                "detailed_meaning_in_dict": detailed_meaning
-            })
-        return JsonResponse({
-            "data": result,
-            "learn_count": get_unit_learn_count(request.user.id, unit_id)
-        })
-
 
 class UnitWalkThroughView(LoginRequiredMixin, View):
     def get(self, request, unit_id):
@@ -953,7 +413,8 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
         correct_rate = data.get("correct_rate", 0)
         seconds_used = data.get("seconds_used", 0)
 
-        if seconds_used < 20:
+        word_count = WordInUnit.objects.filter(unit_id=unit_id).count()
+        if seconds_used < word_count: # 一个单词算1秒钟
             # 时间不可靠
             return JsonResponse({
                 "status": "fail",
@@ -972,7 +433,9 @@ class AjaxSaveLearnRecordView(LoginRequiredMixin, View):
             record.type = type
             record.correct_rate = correct_rate
             record.duration = seconds_used
-            record.save()
+
+            user_learn = UserLearn(request.user.id)
+            user_learn.save_learning_record(record)
             if "error_words" in data:
                 error_words = data["error_words"]
                 for w in error_words:
