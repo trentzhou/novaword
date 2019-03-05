@@ -8,6 +8,7 @@ ADD django_app/requirements-py3.txt /requirements.txt
 
 # Install build deps, then run `pip install`, then remove unneeded build deps all in a single step. Correct the path to your production requirements file, if needed.
 RUN set -ex \
+    && apk add --no-cache libxml2 libxslt \
     && apk add --no-cache --virtual .build-deps \
             gcc \
             make \
@@ -17,10 +18,9 @@ RUN set -ex \
             pcre-dev \
             postgresql-dev \
             jpeg-dev zlib-dev freetype-dev lcms2-dev openjpeg-dev tiff-dev tk-dev tcl-dev \
-            libxslt-dev libxml2-dev \
+            libxml2-dev libxslt-dev \
     && pyvenv /venv \
     && /venv/bin/pip install -U pip \
-    && export STATIC_DEPS=true \
     && LIBRARY_PATH=/lib:/usr/lib /bin/sh -c "/venv/bin/pip install --no-cache-dir -r /requirements.txt" \
     && runDeps="$( \
             scanelf --needed --nobanner --recursive /venv \
