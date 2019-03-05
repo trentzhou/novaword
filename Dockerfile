@@ -8,7 +8,7 @@ ADD django_app/requirements-py3.txt /requirements.txt
 
 # Install build deps, then run `pip install`, then remove unneeded build deps all in a single step. Correct the path to your production requirements file, if needed.
 RUN set -ex \
-    && apk add --no-cache vim libxml2 libxslt libjpeg openjpeg tiff \
+    && apk add --no-cache vim libxml2 libxslt libjpeg openjpeg tiff pcre libuuid \
     && apk add --no-cache --virtual .build-deps \
             gcc \
             make \
