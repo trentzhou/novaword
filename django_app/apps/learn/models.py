@@ -110,6 +110,7 @@ class LearningPlan(models.Model):
     unit = models.ForeignKey(WordUnit, verbose_name=u"单元")
     added_time = models.DateTimeField(default=get_now,
                                       verbose_name=u"加入的时间")
+    finished_time = models.DateTimeField(default=None, null=True, verbose_name=u"完成时间")
     finished = models.BooleanField(default=False, verbose_name=u"已完成")
 
     class Meta:

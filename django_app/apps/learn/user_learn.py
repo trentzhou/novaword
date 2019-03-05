@@ -1,4 +1,6 @@
 from learn.models import LearningPlan, LearningRecord, UserTask
+from users.templatetags.user_info import is_teacher
+from utils.time_util import get_now
 
 
 class UserLearn(object):
@@ -39,6 +41,8 @@ class UserLearn(object):
         Populate today's tasks.
         :return list[int]: active unit ids
         """
+        if is_teacher(self.user_id):
+            return
         existing_tasks = UserTask.objects.filter(user_id=self.user_id).all()
         task_count = existing_tasks.count()
         result = [task.unit_id for task in existing_tasks]
@@ -50,7 +54,7 @@ class UserLearn(object):
 
         for plan in ongoing_plan:
             type = 1
-            if self.unit_learn_count(plan.unit):
+            if self.unit_learn_count(plan.unit) > 0:
                 type = 3
 
             task = UserTask()
@@ -88,6 +92,20 @@ class UserLearn(object):
             return True
         return False
 
+    def finish_unit(self, unit_id):
+        """
+        Finish a unit
+        :param unit_id: unit id
+        :return None:
+        """
+        try:
+            plan = LearningPlan.objects.filter(unit_id=unit_id, user_id=self.user_id).get()
+            plan.finished = True
+            plan.finished_time = get_now()
+            plan.save()
+        except LearningPlan.DoesNotExist:
+            pass
+
     def save_learning_record(self, record):
         """
         Save a learning record.
@@ -95,11 +113,13 @@ class UserLearn(object):
         :return None:
         """
         # 如果这个单元不在计划中，那么加入计划
+        record.save()
         try:
             plan = LearningPlan.objects.filter(unit_id=record.unit_id, user_id=self.user_id).get()
             # If the unit is all correct, then finish the unit
             if record.correct_rate == 100 or LearningRecord.objects.filter(user_id=self.user_id, unit_id=record.unit_id).count() > 5:
                 plan.finished = True
+                plan.finished_time = get_now()
                 plan.save()
         except LearningPlan.DoesNotExist:
             plan = LearningPlan()

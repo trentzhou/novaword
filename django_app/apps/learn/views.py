@@ -23,23 +23,33 @@ from .tasks import do_add
 class LearningPlanView(LoginRequiredMixin, View):
     # list all units which are in the learning plan
     def get(self, request, user_id):
-        my_plans = LearningPlan.objects.filter(user_id=user_id).values("unit_id", "finished").all()
+        my_plans = LearningPlan.objects.filter(user_id=user_id).order_by("added_time").values("unit_id", "finished", "finished_time").all()
 
         all_planned_units = {}
         for u in my_plans:
             unit_id = u["unit_id"]
-            all_planned_units[unit_id] = u["finished"]
+            all_planned_units[unit_id] = u
 
         units = WordUnit.objects.filter(id__in=all_planned_units.keys()).all()
         for u in units:
-            u.learn_times = u.learn_count(user_id)
-            u.review_times = u.review_count(user_id)
-            u.finished = all_planned_units[u.id]
+            plan = all_planned_units[u.id]
+            plan["learn_times"] = u.learn_count(user_id)
+            plan["review_times"] = u.review_count(user_id)
+            plan["unit"] = u
 
         return render(request, 'unit_list.html', {
             "page": "units",
-            "units": units
+            "units": [all_planned_units[x['unit_id']] for x in my_plans],
+            "is_me": request.user.id == user_id
         })
+
+
+class AjaxFinishPlanView(LoginRequiredMixin, View):
+    def post(self, request):
+        unit_id = request.POST["unit_id"]
+        user_learn = UserLearn(request.user.id)
+        user_learn.finish_unit(unit_id)
+        return JsonResponse({"status": "ok"})
 
 
 class AjaxAddBookToLearningPlanView(LoginRequiredMixin, View):
@@ -249,10 +259,12 @@ class LearningOverviewView(LoginRequiredMixin, View):
             else:
                 u["progress"] = int(100 * count / 6)
         mastered_unit_count = len(active_units["all_active_units"]) - len(active_units["result"])
+        pending_unit_count = LearningPlan.objects.filter(user_id=request.user.id, finished=False).count()
 
         groups = Group.objects.filter(usergroup__user=request.user).all()
         return render(request, 'index.html', {
             "page": "overview",
+            "pending_unit_count": pending_unit_count,
             "learn_count": learn_count,
             "quiz_count": quiz_count,
             "erroneous_words": erroneous_words,

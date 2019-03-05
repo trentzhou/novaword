@@ -10,7 +10,7 @@ from learn.views import LearningPlanView, LearningView, ReviewView, \
     AjaxAddBookToLearningPlanView, UnitWalkThroughView, UnitLearnView, UnitTestView, \
     AjaxSaveLearnRecordView, UnitReviewView, ErrorWordListView, AjaxErrorWordsView, AjaxAmendErrorWordsView, \
     AmendErrorWordView, StartLearnView, AjaxGetTodayUnitsView, \
-    ErrorWordTextView, AjaxAllocateTasks
+    ErrorWordTextView, AjaxAllocateTasks, AjaxFinishPlanView
 
 urlpatterns = [
     url(r'^books/$', BookListView.as_view(), name="learn.books"),
@@ -37,6 +37,7 @@ urlpatterns = [
     url(r'^ajax-change-word-meaning$', AjaxChangeUnitWordMeaningView.as_view(), name="learn.change_word_meaning"),
 
     url(r'^learning-plan/(?P<user_id>\d+)$', LearningPlanView.as_view(), name="learn.learning_plan"),
+    url(r'^ajax-finish-plan-unit/$', AjaxFinishPlanView.as_view(), name="learn.ajax_finish_plan_unit"),
     url(r'^ajax-add-book-learning-plan/$', AjaxAddBookToLearningPlanView.as_view(), name="learn.ajax_add_book_learning_plan"),
     url(r'^ajax-add-learning-plan/$', AjaxAddUnitToLearningPlanView.as_view(), name="learn.ajax_add_learning_plan"),
     url(r'^ajax-del-learning-plan/$', AjaxDeleteUnitFromLearningPlanView.as_view(), name="learn.ajax_del_learning_plan"),

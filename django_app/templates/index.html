@@ -194,13 +194,30 @@
 {% endblock %}
 
 {% block extra_script %}
-    {% if not today_units %}
     <script language="javascript">
 
     $(function() {
         BootstrapDialog.DEFAULT_TEXTS['OK'] = '确定';
         BootstrapDialog.DEFAULT_TEXTS['CANCEL'] = '放弃';
 
+        if ({{ pending_unit_count }} > 10) {
+            BootstrapDialog.show({
+                "title": "学习计划超负荷了",
+                "message": "你已经有{{ pending_unit_count }}个单元在学习计划中。要不要看一下是不是有些单元可以忽略？",
+                buttons: [{
+                    label: "确定",
+                    action: function(dialog) {
+                        location.href = "{% url 'learn.learning_plan' request.user.id %}";
+                    }
+                }, {
+                    label: "不用了",
+                    action: function(dialog) {
+                        dialog.close();
+                    }
+                }]
+            })
+        }
+        {% if not today_units %}
         $("#start_learn").click(function() {
             BootstrapDialog.show({
                 title: "确定吗？",
@@ -219,7 +236,10 @@
                                 if (result.status == "ok") {
                                     unit_count = result.units.length;
                                     if (unit_count == 0) {
-                                        BootstrapDialog.show({message: "没有找到可以学习的任务"});
+                                        BootstrapDialog.show({
+                                            title: "",
+                                            message: "没有找到可以学习的任务"
+                                        });
                                     } else {
                                         location.reload();
                                     }
@@ -236,7 +256,7 @@
                 }]
             })
         });
+        {% endif %}
     });
     </script>
-    {% endif %}
 {% endblock %}

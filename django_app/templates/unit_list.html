@@ -4,15 +4,19 @@
 {% block extra_head %}
 <style>
 .plan_unit {
-    padding: 10px;
     border-bottom: 1px solid #aaaaaa;
     align-items: center;
-    color: #4c4c4c;
     display: flex;
 }
 
+.plan_unit_active {
+    background-color: #3c8dbc;
+}
+
 .unit_text {
+    padding: 10px;
     flex: 1;
+    color: #4c4c4c;
 }
 
 .unit_title {
@@ -29,7 +33,7 @@
 }
 
 .unit_finished {
-    color: #00ca6d;
+    font-size: 20px;
 }
 
 </style>
@@ -50,22 +54,27 @@
     <!-- Main content -->
     <section class="content container-fluid">
         {% if units %}
-            {% for unit in units %}
-            <a href="{% url 'learn.unit_detail' unit.id %}">
-            <span class="plan_unit">
-                <div class="unit_text">
+            {% for plan in units %}
+            <div id="unit_{{ plan.unit_id }}" class="plan_unit {% if not plan.finished %} plan_unit_active {% endif %}">
+                <a href="{% url 'learn.unit_detail' plan.unit_id %}" class="unit_text">
+                <div>
                     <div class="unit_title">
-                        {{ unit }}
+                        {{ plan.unit }}
                     </div>
                     <div class="unit_status">
-                        已学习{{ unit.learn_times }}次，复习{{ unit.review_times }}次
+                        已学习{{ plan.learn_times }}次，复习{{ plan.review_times }}次。
+                        {% if plan.finished_time %}
+                            完成于{{ plan.finished_time }}
+                        {% endif %}
                     </div>
                 </div>
-                {% if unit.finished %}
-                    <span class="unit_finished label">已完成</span>
+                </a>
+                {% if plan.finished %}
+                    <span class="unit_finished label-success">已完成</span>
+                {% else %}
+                    <button class="unit_finished btn btn-danger " onclick="finish_unit({{ plan.unit_id }})">忽略</button>
                 {% endif %}
-            </span>
-            </a>
+            </div>
             {% endfor %}
         {% else %}
             您现在还没有任何计划要学习的单元，快去找找看<a href="{% url 'learn.books' %}">哪些书</a>感兴趣吧。
@@ -73,3 +82,33 @@
 
     </section>
 {% endblock %}
+
+{% if is_me %}
+    {% block extra_script %}
+        <script>
+        function finish_unit(unit_id) {
+            $.ajax({
+                type: "POST",
+                url: "{% url 'learn.ajax_finish_plan_unit' %}",
+                beforeSend:function(xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                async: true,
+                data: {
+                    "unit_id": unit_id
+                },
+                success: function(data) {
+                    try {
+                        if (data.status == "ok") {
+                            $(`#unit_${unit_id}`).removeClass("plan_unit_active");
+                            $(`#unit_${unit_id} button`).text("已忽略").removeClass("btn-danger").attr("disabled", "disabled");
+                        }
+                    } catch (ex) {
+                        console.log(ex);
+                    }
+                }
+            });
+        }
+        </script>
+    {% endblock %}
+{% endif %}
