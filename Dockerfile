@@ -20,6 +20,7 @@ RUN set -ex \
             libxslt-dev libxml2-dev \
     && pyvenv /venv \
     && /venv/bin/pip install -U pip \
+    && export STATIC_DEPS=true \
     && LIBRARY_PATH=/lib:/usr/lib /bin/sh -c "/venv/bin/pip install --no-cache-dir -r /requirements.txt" \
     && runDeps="$( \
             scanelf --needed --nobanner --recursive /venv \
