@@ -7,7 +7,7 @@ from utils.user_plan import UserPlan
 logger = get_task_logger(__name__)
 
 
-@periodic_task(run_every=(crontab(hour='*/1')), name="deploy_today_group_plans", ignore_result=True)
+@periodic_task(run_every=(crontab(hour='*/2')), name="deploy_today_group_plans", ignore_result=True)
 def deploy_today_group_plans():
     logger.info("Deploying today's learning plans")
     user_plan = UserPlan()
