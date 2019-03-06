@@ -8,9 +8,9 @@ if [ -n "$STARTUP_DELAY" ]; then
 fi
 
 if [ "$1" = "celery" ]; then
-    exec /venv/bin/celery -A word_master worker -E -l info
+    exec /venv/bin/celery -A word_master worker -E -l info 2>&1
 elif [ "$1" = "beat" ]; then
-    exec /venv/bin/celery -A word_master beat -l info
+    exec /venv/bin/celery -A word_master beat -l info 2>&1
 else
     if [ "x$DJANGO_MANAGEPY_MIGRATE" = 'xon' ]; then
         /venv/bin/python manage.py migrate --noinput
