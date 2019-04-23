@@ -35,7 +35,7 @@ class SmsClient:
             request_body = {"templateId": templateId, "mobile": mobile, "timestamp": "%d" % (time.time() * 1000)}
         sign = self._signature(request_body)
         request_body['signature'] = sign
-        r = requests.post(url=CODE_SEND_URL.format(self.appid), data=request_body, headers=headers)
+        r = requests.post(url=CODE_SEND_URL.format(self.appid), data=request_body, headers=headers, verify=False)
         if r.status_code == 200 or r.status_code == 400 or r.status_code == 500:
             return r.text
         return r
@@ -45,7 +45,7 @@ class SmsClient:
                         "params": params}
         sign = self._signature(request_body)
         request_body['signature'] = sign
-        r = requests.post(url=NOTIFY_SEND_URL.format(self.appid), data=request_body, headers=headers)
+        r = requests.post(url=NOTIFY_SEND_URL.format(self.appid), data=request_body, headers=headers, verify=False)
         if r.status_code == 200 or r.status_code == 400 or r.status_code == 500:
             return r.text
         return r
@@ -54,7 +54,7 @@ class SmsClient:
         request_body = {"mobile": mobile, "code": code, "timestamp": "%d" % (time.time() * 1000)}
         sign = self._signature(request_body)
         request_body['signature'] = sign
-        r = requests.post(url=CODE_CHECK_URL.format(self.appid), data=request_body, headers=headers)
+        r = requests.post(url=CODE_CHECK_URL.format(self.appid), data=request_body, headers=headers, verify=False)
         if r.status_code == 200 or r.status_code == 400 or r.status_code == 500:
             return r.text
         return r
