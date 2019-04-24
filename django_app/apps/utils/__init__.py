@@ -22,3 +22,12 @@ def parse_bool(v):
             return True
     return False
 
+def is_valid_phone_number(mobile):
+    """
+    Check whether a phone number is valid
+    :param str mobile: phone number
+    :return bool:
+    """
+    if mobile.isdigit() and len(mobile) == 11:
+        return True
+    return False

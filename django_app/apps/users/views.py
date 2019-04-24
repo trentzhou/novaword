@@ -20,7 +20,8 @@ from utils import parse_bool
 from utils.admin_util import find_group_admin_users, find_organization_admin_users
 from utils.email_send import save_email_verify_record
 from users.tasks import send_register_email_async
-from utils.wilddog_sms import is_valid_phone_number, SmsClient
+from utils import is_valid_phone_number
+from utils.aliyun_sms import AliyunSms
 from django.conf import settings
 
 
@@ -176,9 +177,11 @@ class UserVirificationSmsView(View):
     def post(self, request):
         mobile = request.POST.get("mobile", "")
         if is_valid_phone_number(mobile):
-            c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
-            result = c.send_code(str(mobile), "100000", None)
-            return HttpResponse(result)
+            c = AliyunSms()
+            ok = c.send_sms(str(mobile), AliyunSms.MSG_TYPE_REGISTER)
+            return JsonResponse({
+                "status": ok
+            })
         else:
             return JsonResponse({
                 "status": "fail",
@@ -228,8 +231,8 @@ class ForgetPasswordView(View):
                 return render(request, "send_success.html")
             elif user.mobile_phone == email:
                 # 发送短消息来重置密码
-                c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
-                c.send_code(str(email), "100000", None)
+                c = AliyunSms()
+                c.send_sms(str(email), AliyunSms.MSG_TYPE_FORGET)
                 return render(request, "verify_sms.html", {"mobile": email})
         else:
             return render(request, "forget_password.html", {"forget_form":forget_form})

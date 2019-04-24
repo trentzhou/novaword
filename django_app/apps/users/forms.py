@@ -4,7 +4,7 @@ import json
 from django import forms
 from captcha.fields import CaptchaField
 
-from utils.wilddog_sms import SmsClient
+from utils.aliyun_sms import AliyunSms
 from django.conf import settings
 from .models import UserProfile, EmailVerifyRecord
 
@@ -40,15 +40,9 @@ class RegisterMobileForm(forms.Form):
             if self.data['password'] != self.data['password_confirm']:
                 self.add_error("password_confirm", u"密码不一致")
             # check verification code
-            c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
+            c = AliyunSms()
             result = c.check_code(self.data['mobile'], self.data['verification_code'])
-            verification_good = False
-            try:
-                result = json.loads(result)
-                if result["status"] == "ok":
-                    verification_good = True
-            except:
-                verification_good = False
+            verification_good = result
             if not verification_good:
                 self.add_error("verification_code", u"验证码错误")
         return super(RegisterMobileForm, self).is_valid()
@@ -60,15 +54,8 @@ class VerifySmsForm(forms.Form):
 
     def is_valid(self):
         # check verification code
-        c = SmsClient(settings.WILDDOG_APP_ID, settings.WILDDOG_API_KEY)
-        result = c.check_code(self.data['mobile'], self.data['code'])
-        verification_good = False
-        try:
-            result = json.loads(result)
-            if result["status"] == "ok":
-                verification_good = True
-        except:
-            verification_good = False
+        c = AliyunSms()
+        verification_good = c.check_code(self.data['mobile'], self.data['code'])
         if not verification_good:
             self.add_error("code", u"验证码错误")
         return super(VerifySmsForm, self).is_valid()

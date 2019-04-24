@@ -168,6 +168,11 @@ MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, 'media'))
 WILDDOG_APP_ID = os.getenv("WILDDOG_APP_ID", "")
 WILDDOG_API_KEY = os.getenv("WILDDOG_API_KEY", "")
 
+# aliyun sms
+ALIYUN_ACCESS_KEY = os.getenv("ALIYUN_ACCESS_KEY", "")
+ALIYUN_ACCESS_SECRET = os.getenv("ALIYUN_ACCESS_SECRET", "")
+ALIYUN_SIGN_NAME = os.getenv("ALIYUN_SIGN_NAME", "")
+
 # redis
 # CELERY STUFF
 REDIS_HOST=os.getenv("REDIS_HOST", "localhost")

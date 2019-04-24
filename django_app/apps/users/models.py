@@ -102,6 +102,29 @@ class EmailVerifyRecord(models.Model):
         return '{0}({1})'.format(self.code, self.email)
 
 
+class SmsVerifyRecord(models.Model):
+    code = models.CharField(max_length=20, verbose_name=u"验证码")
+    mobile_phone = models.CharField(blank=True,
+                                    null=True,
+                                    verbose_name=u"手机号",
+                                    max_length=20)
+    send_type = models.CharField(verbose_name=u"验证码类型",
+                                 choices=(("register", u"注册"),
+                                          ("forget", u"找回密码")),
+                                 max_length=30)
+    send_time = models.DateTimeField(verbose_name=u"发送时间", default=get_now)
+
+    class Meta:
+        verbose_name = u"短信验证码"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.__unicode__()
+
+    def __unicode__(self):
+        return '{0}({1})'.format(self.code, self.mobile_phone)
+
+
 class Organization(models.Model):
     name = models.CharField(blank=False, max_length=100, verbose_name=u"组织名")
     description = models.CharField(blank=True, max_length=300, verbose_name=u"详细描述")

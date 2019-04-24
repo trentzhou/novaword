@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xadmin
 from xadmin.plugins.auth import UserAdmin
-from .models import EmailVerifyRecord, Group, UserGroup, Organization, UserProfile
+from .models import EmailVerifyRecord, Group, UserGroup, Organization, UserProfile, SmsVerifyRecord
 
 
 class BaseSetting(object):
@@ -25,6 +25,13 @@ class EmailVerifyRecordAdmin(object):
     list_display = ['code', 'email', 'send_type', 'send_time']
     search_fields = ['code', 'email', 'send_type']
     list_filter = ['code', 'email', 'send_type', 'send_time']
+    model_icon = 'fa fa-envelope'
+
+
+class SmsVerifyRecordAdmin(object):
+    list_display = ['code', 'mobile_phone', 'send_type', 'send_time']
+    search_fields = ['code', 'mobile_phone', 'send_type']
+    list_filter = ['code', 'mobile_phone', 'send_type', 'send_time']
     model_icon = 'fa fa-envelope'
 
 
@@ -52,6 +59,7 @@ class UserGroupAdmin(object):
 xadmin.site.unregister(UserProfile)
 xadmin.site.register(UserProfile, UserProfileAdmin)
 xadmin.site.register(EmailVerifyRecord, EmailVerifyRecordAdmin)
+xadmin.site.register(SmsVerifyRecord, SmsVerifyRecordAdmin)
 xadmin.site.register(Organization, OrganizationAdmin)
 xadmin.site.register(Group, GroupAdmin)
 xadmin.site.register(UserGroup, UserGroupAdmin)
