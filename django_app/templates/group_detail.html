@@ -587,7 +587,7 @@
                     var units = data.units;
                     group_units = data.units;
                     if (units.length > 0) {
-                        var table = $("<table class='table'> <thead> <td>单元</td> <td>开始时间</td> </thead> </table>");
+                        var table = $("<table class='table table-responsive'> <thead> <td>单元</td> <td>开始时间</td> </thead> </table>");
                         var tbody = $("<tbody>");
                         table.append(tbody);
                         for (var i = 0; i < units.length; i++) {
@@ -609,6 +609,13 @@
                             {% endif %}
                             tbody.append($("<tr>").append(td).append($("<td>").text(unit.start_date)));
                         }
+                        table.DataTable({
+                            "language": {
+                                url: "{% static 'datatables/Chinese.txt' %}"
+                            },
+                            "pageLength": 10,
+                            "order": [[1, "desc"]]
+                        });
                         $("#group_units").html("").append(table);
                     } else {
                         $("#group_units").html("").append($("<p>").html("现在还没有在学习的单元"));
