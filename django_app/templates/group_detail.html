@@ -624,13 +624,14 @@
                     // add a button to edit
                     $("#group_units").append($("<a>").attr("id", "btn_add_unit").attr("class", "btn btn-primary").html("添加或修改单元"));
                     // 选中最后一个单元所对应的书本
+                    var next_date = new Date();
                     if (group_units.length > 0) {
                         last_unit = group_units[group_units.length - 1];
+                        next_date = new Date(last_unit.start_date);
+                        // 下一次学习的日期就是后一天
+                        next_date.setDate(next_date.getDate() + 1);
                         $("#select_group_book").val(last_unit.unit__book_id);
                     }
-                    // 下一次学习的日期就是后一天
-                    var next_date = new Date(last_unit.start_date);
-                    next_date.setDate(next_date.getDate() + 1);
                     $("#start_date").datepicker('update', next_date);
                     $("#btn_add_unit").click(function() {
                         $("#dialog-select-unit").modal();
