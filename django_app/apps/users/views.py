@@ -118,7 +118,7 @@ class RegisterView(View):
             user_message.message = "欢迎来到Nova背单词。你可以先看看有没有感兴趣的单词书，或者去找到感兴趣的班级。"
             user_message.save()
 
-            send_register_email_async.delay(user_name, "register", request.get_host())
+            send_register_email_async.delay(user_name, "register", "{0}://{1}".format(request.scheme, request.get_host()))
             return render(request, "user_login.html", {"login_title": u"注册成功，请检查你的邮箱中的确认邮件。账号激活之后就可以登录了。"})
         else:
             return render(request, "user_register.html", {
@@ -227,7 +227,7 @@ class ForgetPasswordView(View):
                 })
             user = user_query.get()
             if user.email == email:
-                send_register_email_async.delay(email, "forget", request.get_host())
+                send_register_email_async.delay(email, "forget", "{0}://{1}".format(request.scheme, request.get_host()))
                 return render(request, "send_success.html")
             elif user.mobile_phone == email:
                 # 发送短消息来重置密码
@@ -330,7 +330,7 @@ class AjaxGetEmailVerificationView(LoginRequiredMixin, View):
                         "error": "邮箱已经被别人使用。请使用别的邮箱。"
                     })
                 else:
-                    send_register_email_async.delay(form.data["email"], send_type="update_email", host=request.get_host())
+                    send_register_email_async.delay(form.data["email"], send_type="update_email", base_url="{0}://{1}".format(request.scheme, request.get_host()))
                     return JsonResponse({
                         "status": "success"
                     })

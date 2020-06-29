@@ -7,5 +7,5 @@ logger = get_task_logger(__name__)
 
 
 @task(name="send_register_email_async")
-def send_register_email_async(email, send_type="register", host="localhost:8000"):
-    send_register_email(email, send_type, host)
+def send_register_email_async(email, send_type="register", base_url="http://localhost:8000"):
+    send_register_email(email, send_type, base_url)

@@ -68,7 +68,7 @@ def save_email_verify_record(email, send_type):
     return code
 
 
-def send_register_email(email, send_type="register", host="localhost:8000"):
+def send_register_email(email, send_type="register", base_url="http://localhost:8000"):
     code = save_email_verify_record(email, send_type)
 
     email_title = ""
@@ -76,14 +76,14 @@ def send_register_email(email, send_type="register", host="localhost:8000"):
 
     if send_type == "register":
         email_title = "Nova背单词 -- 注册激活链接"
-        email_body = "请点击下面的链接激活你的账号: https://{0}/activate/{1}".format(host, code)
+        email_body = "请点击下面的链接激活你的账号: {0}/activate/{1}".format(base_url, code)
 
         send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
             pass
     elif send_type == "forget":
         email_title = "Nova背单词 -- 注册密码重置链接"
-        email_body = "请点击下面的链接重置密码: https://{0}/reset_password/{1}".format(host, code)
+        email_body = "请点击下面的链接重置密码: {0}/reset_password/{1}".format(base_url, code)
 
         send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
         if send_status:
