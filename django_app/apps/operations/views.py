@@ -16,6 +16,7 @@ from learn.models import LearningRecord
 from operations.models import UserMessage, GroupBook, GroupLearningPlan, UserFeedback
 from users.models import UserProfile, Group, UserGroup, Organization
 from utils.lookup_word_in_db import find_word
+from .tasks import send_user_feedback
 
 
 class MessageView(LoginRequiredMixin, View):
@@ -241,6 +242,11 @@ class UserFeedbackView(LoginRequiredMixin, View):
         msg.title = title
         msg.detail = detail
         msg.save()
+
+        # notify administrator
+        superusers = UserProfile.objects.filter(is_superuser=1).all()
+        for superuser in superusers:
+            send_user_feedback.delay(superuser.email, title, detail)
 
         return render(request, 'user_feedback_done.html')
 

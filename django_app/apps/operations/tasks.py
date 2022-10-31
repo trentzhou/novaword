@@ -1,8 +1,9 @@
 from celery.schedules import crontab
-from celery.task import periodic_task
+from celery.task import periodic_task, task
 from celery.utils.log import get_task_logger
 
 from utils.user_plan import UserPlan
+from utils.email_send import send_feedback_email
 
 logger = get_task_logger(__name__)
 
@@ -20,3 +21,7 @@ def populate_today_tasks():
     user_plan = UserPlan()
     user_plan.populate_today_tasks()
 
+
+@task(name="send_user_feedback")
+def send_user_feedback(email, title, message):
+    send_feedback_email(email, title, message)

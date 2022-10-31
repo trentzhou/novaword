@@ -97,3 +97,9 @@ def send_register_email(email, send_type="register", base_url="http://localhost:
             pass
 
 
+def send_feedback_email(email, title, message):
+    email_title = "Novaword user feedback: {}".format(title)
+    email_body = message
+    send_status = send_mail(email_title, email_body, settings.EMAIL_FROM, [email])
+    if send_status:
+        pass
